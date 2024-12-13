@@ -1,0 +1,24 @@
+
+Ejemplo de como se obtendria el arbol sintactico de analisis de la
+cadena de entrada que aparece en la parte inferior.
+
+                                                |
+                           /-----------------2-list--------------------\
+                           |                                      |    |
+                         /--------------2-list-------------\   /-5-e\ \n
+                         |                           |     |   |  | |
+                   /---2-list------------------\  /-7-e-\  \n /e\ - e
+                   |                     |     |  |  |  |     | e   7
+      /--------2-list----------------\ /-7-e\ \n  e  /  e     - 7   N
+      |              |               | | |  |     7     7       N
+    /-1-list\     /---6-expr--\     \n e /  e     N     N       
+    |       |     |     |     |        7    7 
+   /-6-e-\ \n /-8-e---\ * /-8-e---\    N    N
+   |   | |    |   |   |   |   |   |
+ /6-e\ * e    ( /4-e\ )   ( /4e-\ )
+ | | |   7      | | |       | | |
+ e * e   N      e + e       e + e
+ 7   7          7   7       7   7 
+ N   N          N   N       N   N
+
+ 4 * 3 * 2 \n ( 1 + 2 ) * ( 3 + 4 ) \n 1  / 2 \n 355 / 113 \n - 3 - 4 \n
