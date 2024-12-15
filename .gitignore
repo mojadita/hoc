@@ -1,4 +1,7 @@
-*.o
-y.tab.h
+hoc-sin-prec.c
+hoc-sin-prec
 hoc.c
 hoc
+y.tab.h
+y.tab.c
+*.o

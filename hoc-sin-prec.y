@@ -13,8 +13,6 @@ void yyerror(char *);
 %}
 
 %token NUMBER
-%left '+' '-'  /* left associative, same precedence */
-%left '*' '/'  /* left associative, higher precedence */
 
 %%
 
@@ -23,12 +21,18 @@ list: /* nothing */
 	| list expr '\n' { printf("\t%.8g\n", $2); }
 	;
 
-expr: NUMBER
-	| expr '+' expr { $$ = $1 + $3; }
-	| expr '-' expr { $$ = $1 - $3; }
-	| expr '*' expr { $$ = $1 * $3; }
-	| expr '/' expr { $$ = $1 / $3; }
-	| '(' expr ')'  { $$ = $1; }
+expr: term          { $$ = $1; }
+	| expr '+' term { $$ = $1 + $3; }
+	| expr '-' term { $$ = $1 - $3; }
+	;
+
+term: fact          { $$ = $1; }
+	| term '*' fact { $$ = $1 * $3; }
+	| term '/' fact { $$ = $1 / $3; }
+	;
+
+fact: NUMBER        { $$ = $1; }
+	| '(' expr ')'  { $$ = $2; }
 	;
 
 %%
@@ -56,11 +60,11 @@ int yylex(void)   /* hoc1 */
 	if (c == '.' || isdigit(c)) { /* number */
 		ungetc(c, stdin);  /* retornando tipo de token  */
 		scanf("%lf", &yylval);
+		printf("Hemos leido un numero: %.8lg\n", yylval);
 		return NUMBER;  /* retornando tipo de token  */
 	}
 	if (c == '\n')
 		lineno++;
-	printf("yylex retornando [0x%02x]\n", c);
 	return c;
 }
 
