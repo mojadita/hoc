@@ -1,2 +1,4 @@
 *.o
 y.tab.h
+hoc.c
+hoc
