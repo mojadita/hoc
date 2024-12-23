@@ -22,6 +22,8 @@ list: /* nothing */  { puts("list: /* nothing */");  }
 	;
 
 expr: term          { puts("expr: term");          }
+    | '-' term      { puts("expr: '-' term");      }
+    | '+' term      { puts("expr: '+' term");      }
 	| expr '+' term { puts("expr: expr '+' term"); }
 	| expr '-' term { puts("expr: expr '-' term"); }
 	;
@@ -29,6 +31,7 @@ expr: term          { puts("expr: term");          }
 term: fact          { puts("term: fact");          }
 	| term '*' fact { puts("term: term '*' fact"); }
 	| term '/' fact { puts("term: term '/' fact"); }
+	| term '%' fact { puts("term: term '%' fact"); }
 	;
 
 fact: NUMBER        { puts("fact: NUMBER");       }

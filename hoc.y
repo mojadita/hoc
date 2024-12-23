@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 #define YYSTYPE double /* data type of yacc stack */
 
@@ -14,8 +15,8 @@ void yyerror(char *);
 
 %token NUMBER
 %left '+' '-'  /* left associative, same precedence */
-%left '*' '/'  /* left associative, higher precedence */
-%left '-' UNARYMINUS /* new, lo mas todavia */
+%left '*' '/' '%' /* left associative, higher precedence */
+%left UNARY /* new, lo mas todavia */
 
 %%
 
@@ -25,8 +26,10 @@ list: /* nothing */
 	;
 
 expr: NUMBER
-	| '-' expr %prec UNARYMINUS { $$ = -$2; } /* new */
+	| '-' expr %prec UNARY { $$ = -$2; } /* new */
+	| '+' expr %prec UNARY { $$ =  $2; } /* new */
 	| '(' expr ')'  { $$ = $2; }
+	| expr '%' expr { $$ = fmod($1, $3); }
 	| expr '*' expr { $$ = $1 * $3; }
 	| expr '/' expr { $$ = $1 / $3; }
 	| expr '+' expr { $$ = $1 + $3; }
