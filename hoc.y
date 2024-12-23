@@ -15,6 +15,7 @@ void yyerror(char *);
 %token NUMBER
 %left '+' '-'  /* left associative, same precedence */
 %left '*' '/'  /* left associative, higher precedence */
+%left '-' UNARYMINUS /* new, lo mas todavia */
 
 %%
 
@@ -24,11 +25,12 @@ list: /* nothing */
 	;
 
 expr: NUMBER
-	| expr '+' expr { $$ = $1 + $3; }
-	| expr '-' expr { $$ = $1 - $3; }
+	| '-' expr %prec UNARYMINUS { $$ = -$2; } /* new */
+	| '(' expr ')'  { $$ = $2; }
 	| expr '*' expr { $$ = $1 * $3; }
 	| expr '/' expr { $$ = $1 / $3; }
-	| '(' expr ')'  { $$ = $1; }
+	| expr '+' expr { $$ = $1 + $3; }
+	| expr '-' expr { $$ = $1 - $3; }
 	;
 
 %%
@@ -60,7 +62,6 @@ int yylex(void)   /* hoc1 */
 	}
 	if (c == '\n')
 		lineno++;
-	printf("yylex retornando [0x%02x]\n", c);
 	return c;
 }
 

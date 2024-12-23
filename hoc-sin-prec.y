@@ -16,23 +16,23 @@ void yyerror(char *);
 
 %%
 
-list: /* nothing */
-	| list '\n'
-	| list expr '\n' { printf("\t%.8g\n", $2); }
+list: /* nothing */  { puts("list: /* nothing */");  }
+	| list '\n'      { puts("list: list '\n'");      }
+	| list expr '\n' { puts("list: list expr '\n'"); }
 	;
 
-expr: term          { $$ = $1; }
-	| expr '+' term { $$ = $1 + $3; }
-	| expr '-' term { $$ = $1 - $3; }
+expr: term          { puts("expr: term");          }
+	| expr '+' term { puts("expr: expr '+' term"); }
+	| expr '-' term { puts("expr: expr '-' term"); }
 	;
 
-term: fact          { $$ = $1; }
-	| term '*' fact { $$ = $1 * $3; }
-	| term '/' fact { $$ = $1 / $3; }
+term: fact          { puts("term: fact");          }
+	| term '*' fact { puts("term: term '*' fact"); }
+	| term '/' fact { puts("term: term '/' fact"); }
 	;
 
-fact: NUMBER        { $$ = $1; }
-	| '(' expr ')'  { $$ = $2; }
+fact: NUMBER        { puts("fact: NUMBER");       }
+	| '(' expr ')'  { puts("fact: '(' expr ')'"); }
 	;
 
 %%
@@ -65,6 +65,7 @@ int yylex(void)   /* hoc1 */
 	}
 	if (c == '\n')
 		lineno++;
+	printf("yylex: retornamos '%c'\n", isprint(c) ? c : '@');
 	return c;
 }
 
@@ -75,8 +76,8 @@ void yyerror(char *s)   /* called for yacc syntax error */
 
 void warning(char *s, char *t)    /* print warning message */
 {
-	fprintf(stderr, "%s: %s", progname, s);
+	fprintf(stdout, "%s: %s", progname, s);
 	if (t)
-		fprintf(stderr, " %s", t);
-	fprintf(stderr, " near line %d\n",  lineno);
+		fprintf(stdout, " %s", t);
+	fprintf(stdout, " near line %d\n",  lineno);
 }
