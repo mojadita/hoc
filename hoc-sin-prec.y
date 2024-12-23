@@ -3,39 +3,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#define YYSTYPE double /* data type of yacc stack */
+#include <math.h>
 
 void warning(char *, char *);
 int  yylex(void);
 void yyerror(char *);
 
+double mem[26];
+
 %}
 
-%token NUMBER
+%union {
+	double val;
+	int    index;
+}
+
+%token <val>   NUMBER
+%token <index> VAR
+%type  <val>   expr term fact asig
 
 %%
 
-list: /* nothing */  { puts("list: /* nothing */");  }
-	| list '\n'      { puts("list: list '\n'");      }
-	| list expr '\n' { puts("list: list expr '\n'"); }
+list: /* nothing */
+	| list '\n'      
+	| list asig '\n' { printf("\t%.8g\n", $2); }
+	| list error '\n' { yyerrok; }
 	;
 
-expr: term          { puts("expr: term");          }
-    | '-' term      { puts("expr: '-' term");      }
-    | '+' term      { puts("expr: '+' term");      }
-	| expr '+' term { puts("expr: expr '+' term"); }
-	| expr '-' term { puts("expr: expr '-' term"); }
+asig: VAR '=' asig { $$ = mem[$1] = $3; }
+	| expr ;
+
+expr: term          
+    | '-' term      { $$ = -$2;      }
+    | '+' term      { $$ =  $2;      }
+	| expr '+' term { $$ =  $1 + $3; }
+	| expr '-' term { $$ =  $1 - $3; }
 	;
 
-term: fact          { puts("term: fact");          }
-	| term '*' fact { puts("term: term '*' fact"); }
-	| term '/' fact { puts("term: term '/' fact"); }
-	| term '%' fact { puts("term: term '%' fact"); }
+term: fact          
+	| term '*' fact { $$ = $1 * $3; }
+	| term '/' fact { $$ = $1 / $3; }
+	| term '%' fact { $$ = fmod($1, $3); }
 	;
 
-fact: NUMBER        { puts("fact: NUMBER");       }
-	| '(' expr ')'  { puts("fact: '(' expr ')'"); }
+fact: NUMBER        
+	| '(' asig ')'  { $$ = $2; }
+	| VAR           { $$ = mem[$1]; }
 	;
 
 %%
@@ -62,13 +75,18 @@ int yylex(void)   /* hoc1 */
 		return 0;  /* retornando tipo de token  */
 	if (c == '.' || isdigit(c)) { /* number */
 		ungetc(c, stdin);  /* retornando tipo de token  */
-		scanf("%lf", &yylval);
-		printf("Hemos leido un numero: %.8lg\n", yylval);
+		if (scanf("%lf", &yylval.val) < 1) {
+			getchar();
+			return YYERRCODE;
+		}
 		return NUMBER;  /* retornando tipo de token  */
 	}
 	if (c == '\n')
 		lineno++;
-	printf("yylex: retornamos '%c'\n", isprint(c) ? c : '@');
+	if (islower(c)) {
+		yylval.index = c - 'a';
+		return VAR;
+	}
 	return c;
 }
 

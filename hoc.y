@@ -5,27 +5,38 @@
 #include <ctype.h>
 #include <math.h>
 
-#define YYSTYPE double /* data type of yacc stack */
-
 void warning(char *, char *);
 int  yylex(void);
 void yyerror(char *);
+double mem[26];        /* memory variables 'a'..'z' */
 
 %}
 
-%token NUMBER
-%left '+' '-'  /* left associative, same precedence */
-%left '*' '/' '%' /* left associative, higher precedence */
-%left UNARY /* new, lo mas todavia */
+%union {
+	double val;
+	int    index;
+}
+
+%token <val>   NUMBER
+%token <index> VAR
+%type  <val>   expr
+
+%right '='     /* right associative, minimum precedence */
+%left  '+' '-'  /* left associative, same precedence */
+%left  '*' '/' '%' /* left associative, higher precedence */
+%left  UNARY /* new, lo mas todavia */
 
 %%
 
 list: /* nothing */
 	| list '\n'
 	| list expr '\n' { printf("\t%.8g\n", $2); }
+	| list error '\n' { yyerrok; }
 	;
 
 expr: NUMBER
+	| VAR                  { $$ = mem[$1];        }  /*  index  */
+	| VAR '=' expr         { $$ = (mem[$1] = $3); }  /* asignacion */ 
 	| '-' expr %prec UNARY { $$ = -$2; } /* new */
 	| '+' expr %prec UNARY { $$ =  $2; } /* new */
 	| '(' expr ')'  { $$ = $2; }
@@ -60,8 +71,19 @@ int yylex(void)   /* hoc1 */
 		return 0;  /* retornando tipo de token  */
 	if (c == '.' || isdigit(c)) { /* number */
 		ungetc(c, stdin);  /* retornando tipo de token  */
-		scanf("%lf", &yylval);
+		if (scanf("%lf", &yylval.val) != 1) {
+			//getchar();
+			while ((c = getchar()) != EOF && c != '\n')
+				continue;
+			if (c == '\n')
+				ungetc(c, stdin);
+			return YYERRCODE;
+		}
 		return NUMBER;  /* retornando tipo de token  */
+	}
+	if (islower(c)) {
+		yylval.index = c - 'a';
+		return VAR;
 	}
 	if (c == '\n')
 		lineno++;
