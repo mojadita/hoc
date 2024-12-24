@@ -31,11 +31,18 @@ double mem[26];        /* memory variables 'a'..'z' */
 
 list: /* nothing */
     | list       '\n'
-    | list expr  '\n' { printf("\t%.8g\n", $2);
-                       /* p es asignado en el lugar donde se
-                        * imprime un resultado. */
-                       mem['p'-'a'] = $2; }
-    | list error '\n' { yyerrok; }
+    | list expr  '\n' {  printf("\t%.8g\n", $2);
+                         /* p es asignado en el lugar donde se
+                          * imprime un resultado. */
+                         mem['p'-'a'] = $2;
+			          }
+    | list expr ';'   {  /* si se escribe ; entonces hacer salto de linea */
+                         printf( "   %.8g\n", $2 );
+                         /* p es asignado en el lugar donde se
+                          * imprime un resultado. */
+                         mem['p'-'a'] = $2;
+                      }
+    | list error '\n' {  yyerrok;  }
     ;
 
 expr: NUMBER
@@ -98,6 +105,10 @@ int yylex(void)   /* hoc1 */
         yylval.index = c - 'a';
         return VAR;
     }
+//    /* si se escribe ; entonces hacer salto de linea */
+//    if ( c == ';' )
+//         printf( "\n" );
+    /*  Salto de linea normal  */
     if (c == '\n')
         lineno++;
     return c;

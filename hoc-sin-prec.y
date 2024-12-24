@@ -26,12 +26,18 @@ double mem[26];   /*  Array de variables desde 'a' hasta 'z'  */
 
 list: /* nothing */
 	| list '\n'      
-	| list asig '\n' { printf("\t%.8g\n", $2); 
-                       /*  Asignar el dato impreso a la variable que esta 
-						   en la posicion 'p' del array de variables  */
-                       mem['p' - 'a'] = $2;
-                     }
-	| list error '\n' { yyerrok; }
+	| list asig '\n'  {  printf("\t%.8g\n", $2); 
+                         /*  Asignar el dato impreso a la variable que esta 
+						     en la posicion 'p' del array de variables  */
+                         mem['p' - 'a'] = $2;
+                      }
+	| list asig ';'   {  /*  Si se escribe ; entonces hacer salto de linea  */
+                         printf("   %.8g\n", $2); 
+                         /*  Asignar el dato impreso a la variable que esta 
+						     en la posicion 'p' del array de variables  */
+                         mem['p' - 'a'] = $2;
+                      }
+	| list error '\n' {  yyerrok;  }
 	;
 
 asig: VAR '=' asig { $$ = mem[$1] = $3; }
