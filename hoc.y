@@ -8,13 +8,14 @@
 void warning(char *, char *);
 int  yylex(void);
 void yyerror(char *);
+/*  array de variables desde 'a' hasta 'z'  */
 double mem[26];        /* memory variables 'a'..'z' */
 
 %}
 
 %union {
-	double val;
-	int    index;
+    double val;
+    int    index;
 }
 
 %token <val>   NUMBER
@@ -29,23 +30,30 @@ double mem[26];        /* memory variables 'a'..'z' */
 %%
 
 list: /* nothing */
-	| list '\n'
-	| list expr '\n' { printf("\t%.8g\n", $2); }
-	| list error '\n' { yyerrok; }
-	;
+    | list       '\n'
+    | list expr  '\n' { printf("\t%.8g\n", $2);
+                       /* p es asignado en el lugar donde se
+                        * imprime un resultado. */
+                       mem['p'-'a'] = $2; }
+    | list error '\n' { yyerrok; }
+    ;
 
 expr: NUMBER
-	| VAR                  { $$ = mem[$1];        }  /*  index  */
-	| VAR '=' expr         { $$ = (mem[$1] = $3); }  /* asignacion */ 
-	| '-' expr %prec UNARY { $$ = -$2; } /* new */
-	| '+' expr %prec UNARY { $$ =  $2; } /* new */
-	| '(' expr ')'  { $$ = $2; }
-	| expr '%' expr { $$ = fmod($1, $3); }
-	| expr '*' expr { $$ = $1 * $3; }
-	| expr '/' expr { $$ = $1 / $3; }
-	| expr '+' expr { $$ = $1 + $3; }
-	| expr '-' expr { $$ = $1 - $3; }
-	;
+    | VAR                  { $$ = mem[$1];        }  /*  index  */
+    | VAR '=' expr         { $$ = (mem[$1] = $3);
+                             /* p es asignado alla donde hay una
+                              * asignacion */
+                             /* mem['p' - 'a'] = $$; */
+                           }  /* asignacion */
+    | '-' expr %prec UNARY { $$ = -$2; } /* new */
+    | '+' expr %prec UNARY { $$ =  $2; } /* new */
+    | '(' expr ')'         { $$ = $2; }
+    | expr '%' expr        { $$ = fmod($1, $3); }
+    | expr '*' expr        { $$ = $1 * $3; }
+    | expr '/' expr        { $$ = $1 / $3; }
+    | expr '+' expr        { $$ = $1 + $3; }
+    | expr '-' expr        { $$ = $1 - $3; }
+    ;
 
 %%
 
@@ -55,50 +63,55 @@ int   lineno = 1;   /* numero de linea */
 int
 main(int argc, char *argv[]) /* hoc1 */
 {
-	progname = argv[0];
-	yyparse();
-	return EXIT_SUCCESS;
+    progname = argv[0];
+    yyparse();
+    return EXIT_SUCCESS;
 }
-	
+
 int yylex(void)   /* hoc1 */
 {
-	int c;
+    int c;
 
-	while ((c=getchar()) == ' ' || c == '\t')
-		continue;
-	
-	if (c == EOF)
-		return 0;  /* retornando tipo de token  */
-	if (c == '.' || isdigit(c)) { /* number */
-		ungetc(c, stdin);  /* retornando tipo de token  */
-		if (scanf("%lf", &yylval.val) != 1) {
-			//getchar();
-			while ((c = getchar()) != EOF && c != '\n')
-				continue;
-			if (c == '\n')
-				ungetc(c, stdin);
-			return YYERRCODE;
-		}
-		return NUMBER;  /* retornando tipo de token  */
-	}
-	if (islower(c)) {
-		yylval.index = c - 'a';
-		return VAR;
-	}
-	if (c == '\n')
-		lineno++;
-	return c;
+    while ((c=getchar()) == ' ' || c == '\t')
+        continue;
+
+    if ( c == 27 )  /*  si se presiona  [Escape] [Enter]  salimos del programa  */
+    {
+        printf( "  Saliendo .... Chao!!...\n" );
+        return 0;
+    }
+    if (c == EOF)   /*  si se preiona  [Control] d  Salimos del programa  */
+        return 0;  /* retornando tipo de token  */
+    if (c == '.' || isdigit(c)) { /* number */
+        ungetc(c, stdin);  /* retornando tipo de token  */
+        if (scanf("%lf", &yylval.val) != 1) {
+            //getchar();
+            while ((c = getchar()) != EOF && c != '\n')
+                continue;
+            if (c == '\n')
+                ungetc(c, stdin);
+            return YYERRCODE;
+        }
+        return NUMBER;  /* retornando tipo de token  */
+    }
+    if (islower(c)) {
+        yylval.index = c - 'a';
+        return VAR;
+    }
+    if (c == '\n')
+        lineno++;
+    return c;
 }
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
-	warning(s, NULL);
+    warning(s, NULL);
 }
 
 void warning(char *s, char *t)    /* print warning message */
 {
-	fprintf(stderr, "%s: %s", progname, s);
-	if (t)
-		fprintf(stderr, " %s", t);
-	fprintf(stderr, " near line %d\n",  lineno);
+    fprintf(stderr, "%s: %s", progname, s);
+    if (t)
+        fprintf(stderr, " %s", t);
+    fprintf(stderr,     " near line %d\n",  lineno);
 }

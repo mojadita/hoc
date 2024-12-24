@@ -9,7 +9,7 @@ void warning(char *, char *);
 int  yylex(void);
 void yyerror(char *);
 
-double mem[26];
+double mem[26];   /*  Array de variables desde 'a' hasta 'z'  */
 
 %}
 
@@ -26,7 +26,11 @@ double mem[26];
 
 list: /* nothing */
 	| list '\n'      
-	| list asig '\n' { printf("\t%.8g\n", $2); }
+	| list asig '\n' { printf("\t%.8g\n", $2); 
+                       /*  Asignar el dato impreso a la variable que esta 
+						   en la posicion 'p' del array de variables  */
+                       mem['p' - 'a'] = $2;
+                     }
 	| list error '\n' { yyerrok; }
 	;
 
@@ -71,7 +75,12 @@ int yylex(void)   /* hoc1 */
 	while ((c=getchar()) == ' ' || c == '\t')
 		continue;
 	
-	if (c == EOF)
+    if ( c == 27 )  /*  si se presiona  [Escape] [Enter]  vamos a salir  */
+    {
+        printf( "  ***  Saliendo .... chao!!...\n" );
+        return 0;
+    }
+	if (c == EOF)   /*  si se presiona  [Control] d  vamos a salir  */
 		return 0;  /* retornando tipo de token  */
 	if (c == '.' || isdigit(c)) { /* number */
 		ungetc(c, stdin);  /* retornando tipo de token  */
