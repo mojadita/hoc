@@ -1,14 +1,14 @@
-RM   ?= rm -f
-targets = hoc hoc-sin-prec
+RM      ?= rm -f
+targets  = hoc hoc-sin-prec
 toclean += $(targets)
 
 hoc_objs = hoc.o
 hoc_libs = -lm
-toclean += $(hoc_objs)
+toclean += $(hoc_objs) hoc.c y.tab.h
 
 hoc-sin-prec_objs = hoc-sin-prec.o
 hoc-sin-prec_libs = -lm
-toclean += $(hoc-sin-prec_objs)
+toclean          += $(hoc-sin-prec_objs) hoc-sin-prec.c
 
 all: $(targets)
 clean:
