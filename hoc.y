@@ -22,28 +22,26 @@ double mem[26];        /* memory variables 'a'..'z' */
 %token <index> VAR
 %type  <val>   expr
 
-%right '='     /* right associative, minimum precedence */
-%left  '+' '-'  /* left associative, same precedence */
+%right '='         /* right associative, minimum precedence */
+%left  '+' '-'     /* left associative, same precedence */
 %left  '*' '/' '%' /* left associative, higher precedence */
-%left  UNARY /* new, lo mas todavia */
+%left  UNARY       /* new, lo mas todavia */
 
 %%
 
 list: /* nothing */
-    | list       '\n'
-    | list expr  '\n' {  printf("\t%.8g\n", $2);
+    | list       final
+    | list expr  final { /* si se escribe ; entonces
+						  * hacer salto de linea */
+                         printf( "\t%.8g\n", $2 );
                          /* p es asignado en el lugar donde se
                           * imprime un resultado. */
                          mem['p'-'a'] = $2;
-			          }
-    | list expr ';'   {  /* si se escribe ; entonces hacer salto de linea */
-                         printf( "   %.8g\n", $2 );
-                         /* p es asignado en el lugar donde se
-                          * imprime un resultado. */
-                         mem['p'-'a'] = $2;
-                      }
-    | list error '\n' {  yyerrok;  }
+                       }
+    | list error final {  yyerrok;  }
     ;
+
+final: '\n' | ';' ;
 
 expr: NUMBER
     | VAR                  { $$ = mem[$1];        }  /*  index  */
