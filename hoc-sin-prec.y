@@ -25,20 +25,17 @@ double mem[26];   /*  Array de variables desde 'a' hasta 'z'  */
 %%
 
 list: /* nothing */
-	| list '\n'      
-	| list asig '\n'  {  printf("\t%.8g\n", $2); 
-                         /*  Asignar el dato impreso a la variable que esta 
-						     en la posicion 'p' del array de variables  */
-                         mem['p' - 'a'] = $2;
-                      }
-	| list asig ';'   {  /*  Si se escribe ; entonces hacer salto de linea  */
+	| list final      
+	| list asig final {  /*  Si se escribe ; ó \n entonces hacer salto de linea  */
                          printf("   %.8g\n", $2); 
                          /*  Asignar el dato impreso a la variable que esta 
 						     en la posicion 'p' del array de variables  */
                          mem['p' - 'a'] = $2;
                       }
-	| list error '\n' {  yyerrok;  }
+	| list error final {  yyerrok;  }
 	;
+
+final:  '\n' | ';';    /* Regla para evaular si el caracter es '\n' ó ';'  */
 
 asig: VAR '=' asig { $$ = mem[$1] = $3; }
 	| expr ;
@@ -98,6 +95,12 @@ int yylex(void)   /* hoc1 */
 	}
 	if (c == '\n')
 		lineno++;
+    /* evaluar si se ha ingreado una letra minscula para luego 
+	   usarla como nombre de variable.
+	   Las variables estan en un array:  double mem[26];
+	   El array contiene las letras desde 'a' hasta 'z'
+	   cada elemento del array sera el nombre de una variable 
+	   Nota:  las variables solo pueden tener nombres de 1 caracter */
 	if (islower(c)) {
 		yylval.index = c - 'a';
 		return VAR;

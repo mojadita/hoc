@@ -79,8 +79,11 @@ int yylex(void)   /* hoc1 */
 
     while ((c=getchar()) == ' ' || c == '\t')
         continue;
+	/*  c != ' ' && c != '\t' */
 
-    if ( c == 27 )  /*  si se presiona  [Escape] [Enter]  salimos del programa  */
+    /*  si se presiona  [Escape] [Enter]  salimos del programa  */
+    /*  [Escape]:   \e   27    x01b   */
+    if ( c == '\e' )
     {
         printf( "  Saliendo .... Chao!!...\n" );
         return 0;
@@ -90,11 +93,21 @@ int yylex(void)   /* hoc1 */
     if (c == '.' || isdigit(c)) { /* number */
         ungetc(c, stdin);  /* retornando tipo de token  */
         if (scanf("%lf", &yylval.val) != 1) {
-            //getchar();
+#if 1
+            /*  Esta es la condicion que sempre se cumple  */
+            /*  Leer un solo caracter  */
+            getchar();  /*  esto es similar al codigo de abajo  */ 
+#else 
+            /*  Lectura hasta el final de la linea  */ 
             while ((c = getchar()) != EOF && c != '\n')
                 continue;
+			/* c == EOF || c == '\n' */
+
+			/*  Se hace para que luego el parser lea el siguiente TOKENs
+			 * (si c diera la casualidad de ser un salto de linea '\n' */
             if (c == '\n')
-                ungetc(c, stdin);
+                ungetc(c, stdin);  /* retrocede el ulitmo caracter leido */
+#endif
             return YYERRCODE;
         }
         return NUMBER;  /* retornando tipo de token  */

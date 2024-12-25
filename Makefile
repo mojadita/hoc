@@ -10,7 +10,10 @@ hoc-sin-prec_objs = hoc-sin-prec.o
 hoc-sin-prec_libs = -lm
 toclean          += $(hoc-sin-prec_objs) hoc-sin-prec.c
 
-all: $(targets)
+##  Crea un fichero donde se gurda la fecha hora de compilacion.
+BUILD_DATE.txt: $(targets)
+	date > $@
+
 clean:
 	$(RM) $(toclean)
 
