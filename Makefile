@@ -22,3 +22,5 @@ hoc: $(hoc_objs)
 
 hoc-sin-prec: $(hoc-sin-prec_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc-sin-prec_objs) $(hoc-sin-prec_libs)
+
+symbol.o: symbol.c hoc.h
