@@ -42,7 +42,9 @@ Symbol *install(
 {
     Symbol *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
-    ret_val->name   = name;
+    ret_val->name   = malloc(strlen(name)+1);
+	assert(ret_val->name != NULL);
+	strcpy(ret_val->name, name);
     ret_val->type   = typ;
 
     switch (typ) {

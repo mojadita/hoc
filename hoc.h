@@ -26,3 +26,5 @@ Symbol *install(
 
 Symbol *lookup(
         const char *name);
+
+void init(void);  /* install constants and built-ins in table */
