@@ -5,3 +5,4 @@ hoc
 y.tab.h
 y.tab.c
 *.o
+BUILD_DATE.txt
