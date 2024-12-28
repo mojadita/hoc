@@ -3,26 +3,26 @@
  */
 
 typedef enum sym_type {
-	UNDEF,
-	VAR,
-	BLTIN
+    UNDEF,
+    VAR,
+    BLTIN
 } sym_type;
 
-typedef struct Symbol {             /* Symbol table entry */
-	const char   *name;
-	sym_type      type;             /* VAR, BLTIN, UNDEF */
-	union {
-		double    val;              /* if VAR */
-		double  (*ptr)(double val); /* if BLTIN */
-	} u;
-	struct Symbol *next;            /* link to next */
+typedef struct Symbol {         /* Symbol table entry */
+    const char   *name;
+    sym_type      type;         /* VAR, BLTIN, UNDEF */
+    union {
+        double    val;          /* if VAR */
+        double  (*ptr)(double); /* if BLTIN */
+    } u;
+    struct Symbol *next;        /* link to next */
 } Symbol;
 
 Symbol *install(
-		const char *name,
-		sym_type    typ,
-		double      val,
-		double    (*ptr)(double));
+        const char *name,
+        sym_type    typ,
+        double      val,
+        double    (*ptr)(double));
 
 Symbol *lookup(
-		const char *name);
+        const char *name);
