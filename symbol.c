@@ -34,26 +34,24 @@ static Symbol *lista_simbolos = NULL;
  *            simbolo.
  * @return La funcion retorna un puntero al
  *         nuevo Symbol creado. */
-Symbol *install(
+Symbol *
+install(
         const char *name,
         sym_type    typ,
-        double      val,
-        double    (*ptr)(double))
+        double      val)
 {
     Symbol *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
+
     ret_val->name   = malloc(strlen(name)+1);
 	assert(ret_val->name != NULL);
 	strcpy(ret_val->name, name);
-    ret_val->type   = typ;
 
-    switch (typ) {
-        case VAR:   ret_val->u.val = val; break;
-        case BLTIN: ret_val->u.ptr = ptr; break;
-        case UNDEF: ret_val->u.val = 0.0; break;
-    }
-    ret_val->next = lista_simbolos;
-    lista_simbolos = ret_val;
+    ret_val->type   = typ;
+	ret_val->u.val  = val;
+
+    ret_val->next   = lista_simbolos;
+    lista_simbolos  = ret_val;
 
     return ret_val;
 } /* install */

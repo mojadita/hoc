@@ -5,24 +5,28 @@
 typedef enum sym_type {
     UNDEF,
     VAR,
-    BLTIN
+	BLTIN,
+    BLTIN0,
+	BLTIN1,
+	BLTIN2,
 } sym_type;
 
-typedef struct Symbol {         /* Symbol table entry */
-    const char   *name;
-    sym_type      type;         /* VAR, BLTIN, UNDEF */
+typedef struct Symbol {                  /* Symbol table entry */
+    char         *name;
+    sym_type      type;                  /* VAR, BLTIN[012], UNDEF */
     union {
-        double    val;          /* if VAR */
-        double  (*ptr)(double); /* if BLTIN */
+        double    val;                   /* if VAR */
+        double  (*ptr0)(void);           /* if BLTIN0 */
+        double  (*ptr1)(double);         /* if BLTIN1 */
+        double  (*ptr2)(double, double); /* if BLTIN2 */
     } u;
-    struct Symbol *next;        /* link to next */
+    struct Symbol *next;                 /* link to next */
 } Symbol;
 
 Symbol *install(
         const char *name,
         sym_type    typ,
-        double      val,
-        double    (*ptr)(double));
+        double      val);
 
 Symbol *lookup(
         const char *name);

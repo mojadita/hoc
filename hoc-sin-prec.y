@@ -1,4 +1,6 @@
-
+/* hoc-sin-prec.y -- programa para implementar una calculadora.
+ * Date: Mon Dec 30 14:06:56 -05 2024
+ */
 %{
 #include <stdio.h>
 #include <stdlib.h>
