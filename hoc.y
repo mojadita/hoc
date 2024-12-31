@@ -14,6 +14,7 @@
 
 #include "hoc.h"
 #include "error.h"
+#include "math.h"   /*  Modulo personalizado con nuevas funciones */ 
 
 static int  yylex(void);
 static void yyerror(char *);
@@ -35,7 +36,7 @@ jmp_buf begin;
 /* Los valores que retorna la fncion  yylex son declarados con
  * la directiva %token */
 %token <val> NUMBER
-%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF
+%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 
 /* la directiva %type indica los tipos de datos de los diferentes
  * simbolos no terminales, definidos en la gramatica */
@@ -70,9 +71,15 @@ list: /* nothing */
     | list error final {  yyerrok;  }
     ;
 
-asgn: VAR '=' expr         { $$ = $1->u.val = $3;
+asgn: VAR '=' expr         { if ($1->type == CONST) {
+								 execerror("intento de asignar la constante %s",
+									$1->name);
+							 }
+							 $$ = $1->u.val = $3;
                              $1->type = VAR;
                            }
+	| CONST '=' expr       { execerror("No se puede asignar la constante %s",
+									$1->name); }
     ;
 
 final: '\n' | ';' ;
@@ -85,6 +92,7 @@ expr: NUMBER            /* { $$ = $1; } */
                           }
                           $$ = $1->u.val;
                         }
+	| CONST                         { $$ = $1->u.val; }
     | asgn                          /* asignacion */
     | BLTIN0 '(' ')'                { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' expr ')'           { $$ = $1->u.ptr1($3); }
@@ -103,11 +111,7 @@ expr: NUMBER            /* { $$ = $1; } */
                                       }
                                       $$ = $1 / $3; }
     | '(' expr ')'                  { $$ = $2; }
-    | expr '^' expr                 { if ($1 == 0 && $3 == 0) {
-                                          execerror(
-                                              "indeterminacion 0^0");
-                                      }
-                                      $$ = pow($1, $3); }
+    | expr '^' expr                 { $$ = Pow($1, $3); }
     | '+' expr %prec UNARY          { $$ =  $2; } /* new */
     | '-' expr %prec UNARY          { $$ = -$2; } /* new */
     ;

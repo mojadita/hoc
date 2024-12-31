@@ -7,10 +7,10 @@
 
 #include "hoc.h"
 #include "y.tab.h"
+#include "math.h"
 
 double integer(double x);
 double Rand(void);
-
 
 static struct { /* constants */
     char *name;
@@ -23,57 +23,6 @@ static struct { /* constants */
     "prev", 0.0,
     NULL,   0.0,
 };
-
-/* algunas definiciones que no estan en a libreria math */
-/*  Confirmacion de las operaciones para obtener
- *  el arcoseno, arcocoseno
- *  cos(x)^2 + sin(x)^2 = 1
- *  cos(x)^2 = 1 - sin(x)^2
- *  cos(x) = sqrt(1 - sin(x)^2)
- *  tan(x) = sin(x) / cos(x)
- *  tan(x) = sin(x) / sqrt(1 - sin(x)^2)
- *  sx = sin(x)
- *  tan(x) = sx / sqrt(1 - sx^2)
- *  atan(tan(x)) = atan(sx / sqrt(1 - sx^2))
- *  x = atan(sx / sqrt(1 - sx^2))
- *  asin(sx) = asin(sin(x)) = x
- *  asin(sx) = atan(sx / sqrt(1 - sx^2))
- */
-double asin(double sx)
-{
-    return atan(sx/sqrt(1-sx*sx));
-} /* asin */
-
-/*  sin(x)^2 = 1 - cos(x)^2
- *  sin(x) = sqrt(1 - cos(x)^2)
- *  tan(x) = sin(x) / cos(x) = sqrt(1 - cos(x)^2) / cos(x)
- *  cx = cos(x)  -->  x = acos(cx)
- *  tan(x) = sqrt(1 - cx^2) / cx
- *  atan(tan(x)) = atan(sqrt(1 - cx^2) / cx)
- *  x = atan(sqrt(1 - cx^2) / cx)
- *  acos(cx) = atan(sqrt(1 - cx^2) / cx)
- */
-double acos(double cx)
-{
-    return atan(sqrt(1 - cx*cx) / cx);
-} /* acos */
-
-double Sqrt(double x)
-{
-    if (x < 0.0)
-        execerror("Raiz de numero < 0");
-    return sqrt(x);
-}
-
-double inverso( double x )
-{
-    return 1/x;
-}
-
-double opuesto( double x )
-{
-    return -x;
-}
 
 static struct builtin { /* built-ins-1 */
     char *name;
@@ -94,7 +43,7 @@ static struct builtin { /* built-ins-1 */
     "int",   integer,  BLTIN1,
     "abs",   fabs,     BLTIN1,
     "atan2", atan2,    BLTIN2,
-    "pow",   pow,      BLTIN2,
+    "pow",   Pow,      BLTIN2,
     "inv",   inverso,  BLTIN1,
     "ops",   opuesto,  BLTIN1,
     NULL,    NULL,
@@ -106,7 +55,7 @@ void init(void)  /* install constants and built-ins in table */
     Symbol *s;
 
     for (i = 0; consts[i].name != NULL; i++)
-        install(consts[i].name, VAR, consts[i].cval);
+        install(consts[i].name, CONST, consts[i].cval);
 
     for (   struct builtin *p = builtins;
             p->name;

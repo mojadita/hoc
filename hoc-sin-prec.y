@@ -11,6 +11,7 @@
 
 #include "hoc.h"
 #include "error.h"
+#include "math.h"   /*  Modulo personalizado con nuevas funciones */ 
 
 void warning(const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
@@ -28,7 +29,7 @@ jmp_buf begin;
 }
 
 %token <val> NUMBER
-%token <sym> VAR BLTIN0 BLTIN1 BLTIN2
+%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 CONST
 %type  <val> expr term fact asig prim asg_exp
 
 %%
@@ -53,9 +54,15 @@ list: /* nothing */
 
 final:  '\n' | ';';    /* Regla para evaular si el caracter es '\n' ó ';'  */
 
-asig: VAR '=' asg_exp { $$ = $1->u.val = $3;
-                        $1->type = VAR;
-                      }
+asig: VAR '=' asg_exp     { if ($1->type == CONST) {
+                                 execerror("intento de asignar la constante %s",
+                                    $1->name);
+                             }
+                             $$ = $1->u.val = $3;
+                             $1->type = VAR;
+                           }
+	| CONST '=' asg_exp    { execerror("No se puede asignar la constante %s",
+									$1->name); }
     ;
 
 expr: term
@@ -77,11 +84,7 @@ term: fact
                       $$ = fmod($1, $3); }
     ;
 
-fact: prim '^' fact { if ($1 == 0 && $3 == 0) {
-                          execerror("indeterminacion 0^0");
-                      }
-                      $$ = pow($1, $3);
-                    }
+fact: prim '^' fact { $$ = Pow($1, $3); }
     | prim
     ;
 
@@ -98,6 +101,7 @@ prim: NUMBER
                       }
                       $$ = $1->u.val;
                     }
+	| CONST                              { $$ = $1->u.val; }
     | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
     | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }
