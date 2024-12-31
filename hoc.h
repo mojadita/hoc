@@ -2,33 +2,52 @@
  * Date: Fri Dec 27 14:57:20 -05 2024
  */
 
+#include <setjmp.h>
+
 typedef enum sym_type {
     UNDEF,
     VAR,
-	BLTIN,
+    BLTIN,
     BLTIN0,
-	BLTIN1,
-	BLTIN2,
+    BLTIN1,
+    BLTIN2,
 } sym_type;
 
-typedef struct Symbol {                  /* Symbol table entry */
-    char         *name;
-    sym_type      type;                  /* VAR, BLTIN[012], UNDEF */
+typedef struct Symbol {                   /* Symbol table entry */
+    char          *name;                  /* nombre del simbolo */
+    sym_type       type;                  /* tipo del simbolo:
+                                           * VAR, BLTIN[012], UNDEF */
     union {
-        double    val;                   /* if VAR */
-        double  (*ptr0)(void);           /* if BLTIN0 */
-        double  (*ptr1)(double);         /* if BLTIN1 */
-        double  (*ptr2)(double, double); /* if BLTIN2 */
+        double     val;                   /* si el tipo es VAR */
+        double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
+        double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
+        double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
     } u;
-    struct Symbol *next;                 /* link to next */
+    struct Symbol *next;                  /* enlace al siguiente
+                                           * simbolo de la tabla.*/
 } Symbol;
 
+/* instala un nuevo simbolo en la tabla de simbolos, inicializado
+ * con el nombre, tipo y valor correspondiente.
+ * Los simbolos asociados a funciones BLTIN[012] se inicializan
+ * solamente en la funcion init(), con lo que una vez dado un tipo
+ * y un nombre, se inicializan alli nada mas.  Los demas se usan
+ * en el parser (en diferentes partes) para asignar variables. */
 Symbol *install(
         const char *name,
         sym_type    typ,
         double      val);
 
+/* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
+ * simbolo no existe. */
 Symbol *lookup(
         const char *name);
 
+/* inicializa la tabla de simbolos con las funciones builtin y las
+ * variables predefinidas. */
 void init(void);  /* install constants and built-ins in table */
+void execerror(const char *fmt, ...);
+
+extern jmp_buf begin;
+extern int lineno;
+extern char *progname;

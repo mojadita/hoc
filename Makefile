@@ -2,11 +2,11 @@ RM      ?= rm -f
 targets  = hoc hoc-sin-prec
 toclean += $(targets)
 
-hoc_objs = hoc.o symbol.o init.o
+hoc_objs = hoc.o symbol.o init.o  error.o
 hoc_libs = -lm
 toclean += $(hoc_objs) hoc.c y.tab.h
 
-hoc-sin-prec_objs = hoc-sin-prec.o
+hoc-sin-prec_objs = hoc-sin-prec.o symbol.o init.o error.o
 hoc-sin-prec_libs = -lm
 toclean          += $(hoc-sin-prec_objs) hoc-sin-prec.c
 

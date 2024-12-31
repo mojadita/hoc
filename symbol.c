@@ -44,11 +44,11 @@ install(
     assert(ret_val != NULL);
 
     ret_val->name   = malloc(strlen(name)+1);
-	assert(ret_val->name != NULL);
-	strcpy(ret_val->name, name);
+    assert(ret_val->name != NULL);
+    strcpy(ret_val->name, name);
 
     ret_val->type   = typ;
-	ret_val->u.val  = val;
+    ret_val->u.val  = val;
 
     ret_val->next   = lista_simbolos;
     lista_simbolos  = ret_val;

@@ -1,64 +1,107 @@
 /* hoc-sin-prec.y -- programa para implementar una calculadora.
  * Date: Mon Dec 30 14:06:56 -05 2024
+ * Esta version no tiene precedencia de operadores.
  */
 %{
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
 
-void warning(char *, char *);
+#include "hoc.h"
+#include "error.h"
+
+void warning(const char *fmt, ...);
+void vwarning(const char *fmt, va_list args);
 int  yylex(void);
 void yyerror(char *);
 
-double mem[26];   /*  Array de variables desde 'a' hasta 'z'  */
+/*  Necersario para hacer setjmp y longjmp */
+jmp_buf begin;
 
 %}
 
 %union {
-	double val;
-	int    index;
+    double val;
+    Symbol *sym;
 }
 
-%token <val>   NUMBER
-%token <index> VAR
-%type  <val>   expr term fact asig
+%token <val> NUMBER
+%token <sym> VAR BLTIN0 BLTIN1 BLTIN2
+%type  <val> expr term fact asig prim asg_exp
 
 %%
 
 list: /* nothing */
-	| list final      
-	| list asig final {  /*  Si se escribe ; ó \n entonces hacer salto de linea  */
-                         printf("   %.8g\n", $2); 
-                         /*  Asignar el dato impreso a la variable que esta 
-						     en la posicion 'p' del array de variables  */
-                         mem['p' - 'a'] = $2;
+    | list final
+    | list asig final
+    | list expr final {  /*  Si se escribe ; ó \n entonces hacer salto de linea  */
+                         printf("   %.8g\n", $2);
+                         /* lookup retorna un Symbol *, asi que
+                          * el valor retornado por lookup puede
+                          * ser usado para acceder directamente
+                          * a la variable, como si lo hubieramos
+                          * asignado a una variable intermedia.
+                          *   Symbol *interm = lookup("prev");
+                          *   interm->u.val  = $2;
+                          */
+                         lookup("prev")->u.val = $2;
                       }
-	| list error final {  yyerrok;  }
-	;
+    | list error final {  yyerrok;  }
+    ;
 
 final:  '\n' | ';';    /* Regla para evaular si el caracter es '\n' ó ';'  */
 
-asig: VAR '=' asig { $$ = mem[$1] = $3; }
-	| expr ;
+asig: VAR '=' asg_exp { $$ = $1->u.val = $3;
+                        $1->type = VAR;
+                      }
+    ;
 
-expr: term          
+expr: term
     | '-' term      { $$ = -$2;      }
     | '+' term      { $$ =  $2;      }
-	| expr '+' term { $$ =  $1 + $3; }
-	| expr '-' term { $$ =  $1 - $3; }
-	;
+    | asg_exp '+' term { $$ =  $1 + $3; }
+    | asg_exp '-' term { $$ =  $1 - $3; }
+    ;
 
-term: fact          
-	| term '*' fact { $$ = $1 * $3; }
-	| term '/' fact { $$ = $1 / $3; }
-	| term '%' fact { $$ = fmod($1, $3); }
-	;
+term: fact
+    | term '*' fact { $$ = $1 * $3; }
+    | term '/' fact { if ($3 == 0) {
+                          execerror("error /0");
+                      }
+                      $$ = $1 / $3; }
+    | term '%' fact { if ($3 == 0) {
+                          execerror("error modulo 0");
+                      }
+                      $$ = fmod($1, $3); }
+    ;
 
-fact: NUMBER        
-	| '(' asig ')'  { $$ = $2; }
-	| VAR           { $$ = mem[$1]; }
-	;
+fact: prim '^' fact { if ($1 == 0 && $3 == 0) {
+                          execerror("indeterminacion 0^0");
+                      }
+                      $$ = pow($1, $3);
+                    }
+    | prim
+    ;
+
+asg_exp: asig
+      | expr
+      ;
+
+prim: NUMBER
+    | '(' asg_exp ')'  { $$ = $2; }
+    | VAR           { if ($1->type == UNDEF) {
+                          execerror(
+                              "undefined variable '%s'",
+                              $1->name);
+                      }
+                      $$ = $1->u.val;
+                    }
+    | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
+    | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
+    | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }
+    ;
 
 %%
 
@@ -68,57 +111,62 @@ int   lineno = 1;   /* numero de linea */
 int
 main(int argc, char *argv[]) /* hoc1 */
 {
-	progname = argv[0];
-	yyparse();
-	return EXIT_SUCCESS;
+    progname = argv[0];
+    init();
+    setjmp(begin);
+    yyparse();
+    return EXIT_SUCCESS;
 }
-	
-int yylex(void)   /* hoc1 */
-{
-	int c;
 
-	while ((c=getchar()) == ' ' || c == '\t')
-		continue;
-	
+int yylex(void)   /* hoc3 */
+{
+    int c;
+
+    while ((c=getchar()) == ' ' || c == '\t')
+        continue;
+
     if ( c == 27 )  /*  si se presiona  [Escape] [Enter]  vamos a salir  */
     {
         printf( "  ***  Saliendo .... chao!!...\n" );
         return 0;
     }
-	if (c == EOF)   /*  si se presiona  [Control] d  vamos a salir  */
-		return 0;  /* retornando tipo de token  */
-	if (c == '.' || isdigit(c)) { /* number */
-		ungetc(c, stdin);  /* retornando tipo de token  */
-		if (scanf("%lf", &yylval.val) < 1) {
-			getchar();
-			return YYERRCODE;
-		}
-		return NUMBER;  /* retornando tipo de token  */
-	}
-	if (c == '\n')
-		lineno++;
-    /* evaluar si se ha ingreado una letra minscula para luego 
-	   usarla como nombre de variable.
-	   Las variables estan en un array:  double mem[26];
-	   El array contiene las letras desde 'a' hasta 'z'
-	   cada elemento del array sera el nombre de una variable 
-	   Nota:  las variables solo pueden tener nombres de 1 caracter */
-	if (islower(c)) {
-		yylval.index = c - 'a';
-		return VAR;
-	}
-	return c;
+    if (c == EOF)   /*  si se presiona  [Control] d  vamos a salir  */
+        return 0;  /* retornando tipo de token  */
+    if (c == '.' || isdigit(c)) { /* number */
+        ungetc(c, stdin);  /* retornando tipo de token  */
+        if (scanf("%lf", &yylval.val) < 1) {
+            getchar();
+            return YYERRCODE;
+        }
+        return NUMBER;  /* retornando tipo de token  */
+    }
+    if (isalpha(c)) {
+        Symbol *s;
+        char sbuf[100], *p = sbuf;
+
+        do {
+            *p++ = c;
+        } while (((c = getchar()) != EOF) && isalnum(c));
+        /* c == EOF || !isalnum(c) */
+        if (c != EOF) ungetc(c, stdin);
+        *p = '\0';
+        if ((s = lookup(sbuf)) == NULL) {
+            s = install(sbuf, UNDEF, 0.0);
+        }
+        /* el valor que se usa en el interprete */
+        yylval.sym = s;
+
+        return s->type == UNDEF
+                ? VAR
+                : s->type;
+    }
+    /* actualizar numero de linea */
+    if (c == '\n') lineno++;
+
+    return c;
 }
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
-	warning(s, NULL);
-}
-
-void warning(char *s, char *t)    /* print warning message */
-{
-	fprintf(stdout, "%s: %s", progname, s);
-	if (t)
-		fprintf(stdout, " %s", t);
-	fprintf(stdout, " near line %d\n",  lineno);
+    warning("%s", s);
 }

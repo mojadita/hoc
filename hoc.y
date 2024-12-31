@@ -1,7 +1,10 @@
+/* area de definiciones y configuracion de yacc
+ * se extiende hasta encontrar %% aislado en una linea */
 /* hoc.y -- analizador sintactico de hoc.
  * Date: Mon Dec 30 11:59:54 -05 2024
  */
 %{
+/* area reservada para insertar codigo C */
 #include <setjmp.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,22 +13,32 @@
 #include <math.h>
 
 #include "hoc.h"
+#include "error.h"
 
-void warning(char *, char *);
-int  yylex(void);
-void yyerror(char *);
+static int  yylex(void);
+static void yyerror(char *);
 
+/*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
 
 %}
+/* continuamos el area de definicion y configuracion
+ * de yacc */
 
+/*  Declaracion tipos de datos de los objetos
+    (TOKENS, SYMBOLOS no terminales)  */
 %union {
     double val;
     Symbol *sym;
 }
 
+/* Los valores que retorna la fncion  yylex son declarados con
+ * la directiva %token */
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF
+
+/* la directiva %type indica los tipos de datos de los diferentes
+ * simbolos no terminales, definidos en la gramatica */
 %type  <val> expr asgn
 
 %right '='         /* right associative, minimum precedence */
@@ -34,57 +47,72 @@ jmp_buf begin;
 %left  UNARY       /* new, lo mas todavia */
 %right '^'         /* operador exponenciacion */
 
+/* fin del area de configuracion de yacc */
 %%
+/*  Area de definicion de reglas gramaticales */
 
 list: /* nothing */
     | list       final
-	| list asgn  final
+    | list asgn  final
     | list expr  final     { /* si se escribe ; entonces
-						      * hacer salto de linea */
+                              * hacer salto de linea */
                              printf( "\t%.8g\n", $2 );
-							 /* lookup retorna un Symbol *, asi que
-							  * el valor retornado por lookup puede
-							  * ser usado para acceder directamente
-							  * a la variable, como si lo hubieramos
-							  * asignado a una variable intermedia.
-							  *   Symbol *interm = lookup("prev");
-							  *   interm->u.val  = $2;
-							  */
-							 lookup("prev")->u.val = $2;
+                             /* lookup retorna un Symbol *, asi que
+                              * el valor retornado por lookup puede
+                              * ser usado para acceder directamente
+                              * a la variable, como si lo hubieramos
+                              * asignado a una variable intermedia.
+                              *   Symbol *interm = lookup("prev");
+                              *   interm->u.val  = $2;
+                              */
+                             lookup("prev")->u.val = $2;
                            }
     | list error final {  yyerrok;  }
     ;
 
 asgn: VAR '=' expr         { $$ = $1->u.val = $3;
-							 $1->type = VAR;
-						   }
-	;
+                             $1->type = VAR;
+                           }
+    ;
 
 final: '\n' | ';' ;
 
-expr: NUMBER
-    | VAR                  { if ($1->type == UNDEF) {
-								execerror(
-									"undefined variable '%s'\n",
-									$1->name);
-							 }
-							 $$ = $1->u.val;
-						   }
+expr: NUMBER            /* { $$ = $1; } */
+    | VAR               { if ($1->type == UNDEF) {
+                              execerror(
+                                  "undefined variable '%s'",
+                                  $1->name);
+                          }
+                          $$ = $1->u.val;
+                        }
     | asgn                          /* asignacion */
-	| BLTIN0 '(' ')'                { $$ = $1->u.ptr0(); }
-	| BLTIN1 '(' expr ')'           { $$ = $1->u.ptr1($3); }
-	| BLTIN2 '(' expr ',' expr ')'  { $$ = $1->u.ptr2($3, $5); }
+    | BLTIN0 '(' ')'                { $$ = $1->u.ptr0(); }
+    | BLTIN1 '(' expr ')'           { $$ = $1->u.ptr1($3); }
+    | BLTIN2 '(' expr ',' expr ')'  { $$ = $1->u.ptr2($3, $5); }
     | expr '+' expr                 { $$ = $1 + $3; }
     | expr '-' expr                 { $$ = $1 - $3; }
-    | expr '%' expr                 { $$ = fmod($1, $3); }
+    | expr '%' expr                 { if ($3 == 0) {
+                                          execerror(
+                                              "error modulo 0");
+                                      }
+                                      $$ = fmod($1, $3); }
     | expr '*' expr                 { $$ = $1 * $3; }
-    | expr '/' expr                 { $$ = $1 / $3; }
+    | expr '/' expr                 { if ($3 == 0) {
+                                          execerror(
+                                              "division por 0");
+                                      }
+                                      $$ = $1 / $3; }
     | '(' expr ')'                  { $$ = $2; }
-	| expr '^' expr                 { $$ = pow($1, $3); }
+    | expr '^' expr                 { if ($1 == 0 && $3 == 0) {
+                                          execerror(
+                                              "indeterminacion 0^0");
+                                      }
+                                      $$ = pow($1, $3); }
     | '+' expr %prec UNARY          { $$ =  $2; } /* new */
     | '-' expr %prec UNARY          { $$ = -$2; } /* new */
     ;
 
+/* Fin Area de definicion de reglas gramaticales */
 %%
 
 char *progname;     /* for error messages */
@@ -94,19 +122,21 @@ int
 main(int argc, char *argv[]) /* hoc1 */
 {
     progname = argv[0];
-	init();
-	setjmp(begin);
-	yyparse();
+    init();
+    setjmp(begin);
+    yyparse();
     return EXIT_SUCCESS;
 } /* main */
 
-int yylex(void)   /* hoc1 */
+
+/*  Esta funcion produce un TOKEN  */
+static int yylex(void)   /* hoc1 */
 {
     int c;
 
     while ((c=getchar()) == ' ' || c == '\t')
         continue;
-	/*  c != ' ' && c != '\t' */
+    /*  c != ' ' && c != '\t' */
 
     /*  si se presiona  [Escape] [Enter]  salimos del programa  */
     /*  [Escape]:   \e   27    x01b   */
@@ -115,23 +145,28 @@ int yylex(void)   /* hoc1 */
         printf( "  Saliendo .... Chao!!...\n" );
         return 0;
     }
-    if (c == EOF)   /*  si se preiona  [Control] d  Salimos del programa  */
+    if (c == EOF)  /* si se preiona Cntrl-d Salimos del programa*/
         return 0;  /* retornando tipo de token  */
+
     if (c == '.' || isdigit(c)) { /* number */
         ungetc(c, stdin);  /* retornando tipo de token  */
+        /* el valor que se usa en el interprete, se coloca en
+         * la variable yylval (se usa el campo correspondiente
+         * de la union de acuerdo al tipo declarado para el token
+         * en la directiva %token arriba. */
         if (scanf("%lf", &yylval.val) != 1) {
 #if 1
             /*  Esta es la condicion que sempre se cumple  */
             /*  Leer un solo caracter  */
-            getchar();  /*  esto es similar al codigo de abajo  */ 
-#else 
-            /*  Lectura hasta el final de la linea  */ 
+            getchar();  /*  esto es similar al codigo de abajo  */
+#else
+            /*  Lectura hasta el final de la linea  */
             while ((c = getchar()) != EOF && c != '\n')
                 continue;
-			/* c == EOF || c == '\n' */
+            /* c == EOF || c == '\n' */
 
-			/*  Se hace para que luego el parser lea el siguiente TOKENs
-			 * (si c diera la casualidad de ser un salto de linea '\n' */
+            /*  Se hace para que luego el parser lea el siguiente TOKENs
+             * (si c diera la casualidad de ser un salto de linea '\n' */
             if (c == '\n')
                 ungetc(c, stdin);  /* retrocede el ulitmo caracter leido */
 #endif
@@ -140,18 +175,22 @@ int yylex(void)   /* hoc1 */
         return NUMBER;  /* retornando tipo de token  */
     }
     if (isalpha(c)) {
-		Symbol *s;
-		char sbuf[100], *p = sbuf;
-		do {
-			*p++ = c;
-		} while (((c = getchar()) != EOF) && isalnum(c));
-		/* c == EOF || !isalnum(c) */
-		if (c != EOF) ungetc(c, stdin);
-		*p = '\0';
-		if ((s = lookup(sbuf)) == NULL)
-			s = install(sbuf, UNDEF, 0.0);
+        Symbol *s;
+        char sbuf[100], *p = sbuf;
+
+        do {
+            *p++ = c;
+        } while (((c = getchar()) != EOF) && isalnum(c));
+        /* c == EOF || !isalnum(c) */
+        if (c != EOF) ungetc(c, stdin);
+        *p = '\0';
+        if ((s = lookup(sbuf)) == NULL)
+            s = install(sbuf, UNDEF, 0.0);
+        /* el valor que se usa en el interprete */
         yylval.sym = s;
-        return s->type == UNDEF ? VAR : s->type;
+        return s->type == UNDEF
+                ? VAR
+                : s->type;
     }
     /*  Salto de linea normal  */
     if (c == '\n') lineno++;
@@ -159,25 +198,7 @@ int yylex(void)   /* hoc1 */
     return c;
 } /* yylex */
 
-void yyerror(char *s)   /* called for yacc syntax error */
+static void yyerror(char *s)   /* called for yacc syntax error */
 {
-    warning(s, NULL);
-}
-
-void execerror(const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-	longjmp(begin, 0);
-} /* execerror */
-
-void warning(char *s, char *t)    /* print warning message */
-{
-    fprintf(stderr, "%s: %s", progname, s);
-    if (t)
-        fprintf(stderr, " %s", t);
-    fprintf(stderr,     " near line %d\n",  lineno);
+    warning("%s", s);
 }
