@@ -15,7 +15,6 @@
 
 void warning(const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
-int  yylex(void);
 void yyerror(char *);
 
 /*  Necersario para hacer setjmp y longjmp */
@@ -28,6 +27,7 @@ jmp_buf begin;
     Symbol *sym;
 }
 
+%token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 CONST
 %type  <val> expr term fact asig prim asg_exp
@@ -121,54 +121,6 @@ main(int argc, char *argv[]) /* hoc1 */
     setjmp(begin);
     yyparse();
     return EXIT_SUCCESS;
-}
-
-int yylex(void)   /* hoc3 */
-{
-    int c;
-
-    while ((c=getchar()) == ' ' || c == '\t')
-        continue;
-
-    if ( c == 27 )  /*  si se presiona  [Escape] [Enter]  vamos a salir  */
-    {
-        printf( "  ***  Saliendo .... chao!!...\n" );
-        return 0;
-    }
-    if (c == EOF)   /*  si se presiona  [Control] d  vamos a salir  */
-        return 0;  /* retornando tipo de token  */
-    if (c == '.' || isdigit(c)) { /* number */
-        ungetc(c, stdin);  /* retornando tipo de token  */
-        if (scanf("%lf", &yylval.val) < 1) {
-            getchar();
-            return YYERRCODE;
-        }
-        return NUMBER;  /* retornando tipo de token  */
-    }
-    if (isalpha(c)) {
-        Symbol *s;
-        char sbuf[100], *p = sbuf;
-
-        do {
-            *p++ = c;
-        } while (((c = getchar()) != EOF) && isalnum(c));
-        /* c == EOF || !isalnum(c) */
-        if (c != EOF) ungetc(c, stdin);
-        *p = '\0';
-        if ((s = lookup(sbuf)) == NULL) {
-            s = install(sbuf, UNDEF, 0.0);
-        }
-        /* el valor que se usa en el interprete */
-        yylval.sym = s;
-
-        return s->type == UNDEF
-                ? VAR
-                : s->type;
-    }
-    /* actualizar numero de linea */
-    if (c == '\n') lineno++;
-
-    return c;
 }
 
 void yyerror(char *s)   /* called for yacc syntax error */
