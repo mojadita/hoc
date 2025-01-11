@@ -11,7 +11,7 @@
 
 #include "hoc.h"
 #include "error.h"
-#include "math.h"   /*  Modulo personalizado con nuevas funciones */ 
+#include "math.h"   /*  Modulo personalizado con nuevas funciones */
 
 void warning(const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
@@ -37,8 +37,8 @@ jmp_buf begin;
 list: /* nothing */
     | list final
     | list asig final
-    | list expr final {  /*  Si se escribe ; ó \n entonces hacer salto de linea  */
-                         printf("   %.8g\n", $2);
+    | list asg_exp final {/*Si se escribe ; ó \n entonces hacer salto de linea*/
+                         printf("%32.8g\n", $2);
                          /* lookup retorna un Symbol *, asi que
                           * el valor retornado por lookup puede
                           * ser usado para acceder directamente
@@ -61,8 +61,8 @@ asig: VAR '=' asg_exp     { if ($1->type == CONST) {
                              $$ = $1->u.val = $3;
                              $1->type = VAR;
                            }
-	| CONST '=' asg_exp    { execerror("No se puede asignar la constante %s",
-									$1->name); }
+    | CONST '=' asg_exp    { execerror("No se puede asignar la constante %s",
+                                    $1->name); }
     ;
 
 expr: term
@@ -88,9 +88,10 @@ fact: prim '^' fact { $$ = Pow($1, $3); }
     | prim
     ;
 
-asg_exp: asig
-      | expr
-      ;
+asg_exp
+    : asig
+    | expr
+    ;
 
 prim: NUMBER
     | '(' asg_exp ')'  { $$ = $2; }
@@ -101,7 +102,7 @@ prim: NUMBER
                       }
                       $$ = $1->u.val;
                     }
-	| CONST                              { $$ = $1->u.val; }
+    | CONST                              { $$ = $1->u.val; }
     | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
     | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }

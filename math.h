@@ -11,5 +11,6 @@ double Pow(double b, double e);
 double Sqrt(double x);
 double inverso( double x );
 double opuesto( double x );
+double Rand(void);
 
 #endif /* MATH_H */

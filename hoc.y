@@ -14,7 +14,7 @@
 
 #include "hoc.h"
 #include "error.h"
-#include "math.h"   /*  Modulo personalizado con nuevas funciones */ 
+#include "math.h"   /*  Modulo personalizado con nuevas funciones */
 
 static int  yylex(void);
 static void yyerror(char *);
@@ -72,14 +72,14 @@ list: /* nothing */
     ;
 
 asgn: VAR '=' expr         { if ($1->type == CONST) {
-								 execerror("intento de asignar la constante %s",
-									$1->name);
-							 }
-							 $$ = $1->u.val = $3;
+                                 execerror("intento de asignar la constante %s",
+                                    $1->name);
+                             }
+                             $$ = $1->u.val = $3;
                              $1->type = VAR;
                            }
-	| CONST '=' expr       { execerror("No se puede asignar la constante %s",
-									$1->name); }
+    | CONST '=' expr       { execerror("No se puede asignar la constante %s",
+                                    $1->name); }
     ;
 
 final: '\n' | ';' ;
@@ -92,7 +92,7 @@ expr: NUMBER            /* { $$ = $1; } */
                           }
                           $$ = $1->u.val;
                         }
-	| CONST                         { $$ = $1->u.val; }
+    | CONST                         { $$ = $1->u.val; }
     | asgn                          /* asignacion */
     | BLTIN0 '(' ')'                { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' expr ')'           { $$ = $1->u.ptr1($3); }

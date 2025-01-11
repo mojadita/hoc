@@ -54,8 +54,9 @@ void init(void)  /* install constants and built-ins in table */
     int i;
     Symbol *s;
 
-    for (i = 0; consts[i].name != NULL; i++)
+    for (i = 0; consts[i].name != NULL; i++) {
         install(consts[i].name, CONST, consts[i].cval);
+    }
 
     for (   struct builtin *p = builtins;
             p->name;
@@ -73,9 +74,4 @@ void init(void)  /* install constants and built-ins in table */
 double integer(double x)
 {
     return (int) x;
-}
-
-double Rand(void)
-{
-    return (double) rand();
 }

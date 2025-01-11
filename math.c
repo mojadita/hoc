@@ -4,6 +4,7 @@
  */
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include <math.h>
 #include "error.h"
 
@@ -46,9 +47,9 @@ double acos(double cx)
     originales de la libreria math.h  */
 double Pow(double b, double e)
 {
-	if (b == 0 && e == 0)
-		execerror("indeterminacion tipo 0^0");
-	return pow(b, e);
+    if (b == 0 && e == 0)
+        execerror("indeterminacion tipo 0^0");
+    return pow(b, e);
 }
 
 double Sqrt(double x)
@@ -66,4 +67,9 @@ double inverso( double x )
 double opuesto( double x )
 {
     return -x;
+}
+
+double Rand(void)
+{
+    return rand() / 2.147483648E9;
 }
