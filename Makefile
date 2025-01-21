@@ -13,8 +13,8 @@ man1dir       ?= $(mandir)/man1
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
 
-OWN-FreeBSD   ?= wheel
-GRP-FreeBSD   ?= bin
+OWN-FreeBSD   ?= bin
+GRP-FreeBSD   ?= wheel
 
 FMOD          ?= 0644
 XMOD          ?= 0755

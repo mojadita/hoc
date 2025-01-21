@@ -41,8 +41,8 @@ jmp_buf begin;
 
 list: /* nothing */
     | list final
-    /* | list asig final */
-    | list asg_exp final {/*Si se escribe ; ó \n entonces hacer salto de linea*/
+    | list asg_exp ';'
+    | list asg_exp '\n' {/*Si se escribe ; ó \n entonces hacer salto de linea*/
                          printf("\t"OUTPUT_FMT"\n", $2);
                          /* lookup retorna un Symbol *, asi que
                           * el valor retornado por lookup puede
