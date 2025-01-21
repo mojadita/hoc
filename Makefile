@@ -1,27 +1,31 @@
-RM      ?= rm -f
-targets  = hoc hoc-sin-prec hoc.1.gz
-toclean += $(targets)
+RM            ?= rm -f
+targets        = hoc hoc-sin-prec hoc.1.gz
+toclean       += $(targets)
+OS            != uname -o
 
-prefix      ?= /usr/local
-exec_prefix ?= $(prefix)
-bindir      ?= $(exec_prefix)/bin
-datarootdir ?= $(prefix)/share
-mandir      ?= $(datarootdir)/man
-man1dir     ?= $(mandir)/man1
+prefix        ?= /usr/local
+exec_prefix   ?= $(prefix)
+bindir        ?= $(exec_prefix)/bin
+datarootdir   ?= $(prefix)/share
+mandir        ?= $(datarootdir)/man
+man1dir       ?= $(mandir)/man1
 
-OWN         ?= root
-GRP         ?= wheel
+OWN-GNU/Linux ?= root
+GRP-GNU/Linux ?= bin
 
-FMOD        ?= 0644
-XMOD        ?= 0755
+OWN-FreeBSD   ?= wheel
+GRP-FreeBSD   ?= bin
 
-IFLAGS      ?= -o $(OWN) -g $(GRP)
+FMOD          ?= 0644
+XMOD          ?= 0755
 
-toinstall ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
+INSTALL       ?= install
+IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
+
+toinstall ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
 common_objs = symbol.o init.o error.o math.o lex.o
 toclean += $(common_objs) lex.c
-
 
 hoc_objs = hoc.o $(common_objs)
 hoc_libs = -lm 
@@ -46,6 +50,9 @@ uninstall:
 	gzip < $< > $@
 
 $(bindir)/hoc: hoc
+	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
+
+$(bindir)/hoc-sin-prec: hoc-sin-prec
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
 
 $(man1dir)/hoc.1.gz: hoc.1.gz

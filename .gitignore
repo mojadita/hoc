@@ -2,6 +2,7 @@ hoc-sin-prec.c
 hoc-sin-prec
 hoc.c
 hoc
+hoc.1.gz
 y.tab.h
 y.tab.c
 *.o

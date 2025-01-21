@@ -63,7 +63,7 @@ list: /* nothing */
     | list asgn  final
     | list expr  final     { /* si se escribe ; entonces
                               * hacer salto de linea */
-                             printf( "\t%.8g\n", $2 );
+                             printf( "\t"OUTPUT_FMT"\n", $2 );
                              /* lookup retorna un Symbol *, asi que
                               * el valor retornado por lookup puede
                               * ser usado para acceder directamente

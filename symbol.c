@@ -37,7 +37,7 @@ static Symbol *lista_simbolos = NULL;
 Symbol *
 install(
         const char *name,
-        sym_type    typ,
+        int         typ,
         double      val)
 {
     Symbol *ret_val = malloc(sizeof *ret_val);

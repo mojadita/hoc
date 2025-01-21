@@ -4,18 +4,11 @@
 
 #include <setjmp.h>
 
-typedef enum sym_type {
-    UNDEF,
-    VAR,
-    BLTIN,
-    BLTIN0,
-    BLTIN1,
-    BLTIN2,
-} sym_type;
+#define OUTPUT_FMT   "%32.8g"
 
 typedef struct Symbol {                   /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
-    sym_type       type;                  /* tipo del simbolo:
+    int            type;                  /* tipo del simbolo:
                                            * VAR, BLTIN[012], UNDEF */
     union {
         double     val;                   /* si el tipo es VAR */
@@ -35,7 +28,7 @@ typedef struct Symbol {                   /* Symbol table entry */
  * en el parser (en diferentes partes) para asignar variables. */
 Symbol *install(
         const char *name,
-        sym_type    typ,
+        int         typ,
         double      val);
 
 /* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
@@ -47,6 +40,7 @@ Symbol *lookup(
  * variables predefinidas. */
 void init(void);  /* install constants and built-ins in table */
 void execerror(const char *fmt, ...);
+int yylex(void);
 
 extern jmp_buf begin;
 extern int lineno;

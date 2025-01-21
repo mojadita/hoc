@@ -43,7 +43,7 @@ list: /* nothing */
     | list final
     /* | list asig final */
     | list asg_exp final {/*Si se escribe ; ó \n entonces hacer salto de linea*/
-                         printf("%32.8g\n", $2);
+                         printf("\t"OUTPUT_FMT"\n", $2);
                          /* lookup retorna un Symbol *, asi que
                           * el valor retornado por lookup puede
                           * ser usado para acceder directamente
