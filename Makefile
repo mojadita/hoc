@@ -19,7 +19,7 @@ IFLAGS      ?= -o $(OWN) -g $(GRP)
 
 toinstall ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
 
-common_objs = symbol.o init.o error.o math.o yylex.o
+common_objs = symbol.o init.o error.o math.o lex.o
 toclean += $(common_objs) lex.c
 
 
@@ -59,6 +59,10 @@ hoc: $(hoc_objs)
 
 hoc-sin-prec: $(hoc-sin-prec_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc-sin-prec_objs) $(hoc-sin-prec_libs)
+
+y.tab.h hoc.c: hoc.y
+	$(YACC) -d hoc.y
+	mv -f y.tab.c hoc.c
 
 hoc.o: hoc.c hoc.h
 symbol.o: symbol.c hoc.h

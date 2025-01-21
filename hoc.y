@@ -33,7 +33,13 @@ jmp_buf begin;
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
- * la directiva %token */
+ * la directiva %token.
+ *
+ * LCU: Tue Jan 21 10:55:22 EET 2025
+ * definimos los mismos tokens aqui que en hoc-sin-prec.y, para
+ * asegurar que se asignaran los mismos valores, y no habra
+ * problemas al construir ambos ejecutables.
+ */
 %token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST

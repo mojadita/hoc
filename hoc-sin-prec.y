@@ -26,11 +26,17 @@ jmp_buf begin;
     double val;
     Symbol *sym;
 }
-
+/*
+ * LCU: Tue Jan 21 10:58:10 EET 2025
+ * definimos los mismos tokens aqui que en hoc-sin-prec.y, para
+ * asegurar que se asignaran los mismos valores, y no habra
+ * problemas al construir ambos ejecutables.
+ */
 %token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %type  <val> expr term fact asig prim asg_exp
+%left UNARY /* to ensure same y.tab.h with hoc.y's */
 
 %%
 
