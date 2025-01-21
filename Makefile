@@ -1,9 +1,27 @@
 RM      ?= rm -f
-targets  = hoc hoc-sin-prec
+targets  = hoc hoc-sin-prec hoc.1.gz
 toclean += $(targets)
 
-common_objs = symbol.o init.o error.o math.o lex.o
+prefix      ?= /usr/local
+exec_prefix ?= $(prefix)
+bindir      ?= $(exec_prefix)/bin
+datarootdir ?= $(prefix)/share
+mandir      ?= $(datarootdir)/man
+man1dir     ?= $(mandir)/man1
+
+OWN         ?= root
+GRP         ?= wheel
+
+FMOD        ?= 0644
+XMOD        ?= 0755
+
+IFLAGS      ?= -o $(OWN) -g $(GRP)
+
+toinstall ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
+
+common_objs = symbol.o init.o error.o math.o yylex.o
 toclean += $(common_objs) lex.c
+
 
 hoc_objs = hoc.o $(common_objs)
 hoc_libs = -lm 
@@ -16,6 +34,22 @@ toclean          += hoc-sin-prec.o hoc-sin-prec.c
 ##  Crea un fichero donde se gurda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets)
 	date > $@
+
+install: $(toinstall)
+
+uninstall:
+	$(RM) $(toinstall)
+
+.SUFFIXES: .1.gz .1
+
+.1.1.gz:
+	gzip < $< > $@
+
+$(bindir)/hoc: hoc
+	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
+
+$(man1dir)/hoc.1.gz: hoc.1.gz
+	-$(INSTALL) $(IFLAGS) -m $(FMOD) $? $@
 
 clean:
 	$(RM) $(toclean)

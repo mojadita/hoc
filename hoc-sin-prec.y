@@ -29,14 +29,14 @@ jmp_buf begin;
 
 %token ERROR
 %token <val> NUMBER
-%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 CONST
+%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %type  <val> expr term fact asig prim asg_exp
 
 %%
 
 list: /* nothing */
     | list final
-    | list asig final
+    /* | list asig final */
     | list asg_exp final {/*Si se escribe ; ó \n entonces hacer salto de linea*/
                          printf("%32.8g\n", $2);
                          /* lookup retorna un Symbol *, asi que
@@ -65,11 +65,16 @@ asig: VAR '=' asg_exp     { if ($1->type == CONST) {
                                     $1->name); }
     ;
 
+asg_exp
+    : asig
+    | expr
+    ;
+
 expr: term
     | '-' term      { $$ = -$2;      }
     | '+' term      { $$ =  $2;      }
-    | asg_exp '+' term { $$ =  $1 + $3; }
-    | asg_exp '-' term { $$ =  $1 - $3; }
+    | expr '+' term { $$ =  $1 + $3; }
+    | expr '-' term { $$ =  $1 - $3; }
     ;
 
 term: fact
@@ -88,11 +93,6 @@ fact: prim '^' fact { $$ = Pow($1, $3); }
     | prim
     ;
 
-asg_exp
-    : asig
-    | expr
-    ;
-
 prim: NUMBER
     | '(' asg_exp ')'  { $$ = $2; }
     | VAR           { if ($1->type == UNDEF) {
@@ -106,7 +106,17 @@ prim: NUMBER
     | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
     | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }
+	| VAR    '(' asg_exp ',' asg_exp ',' lista_expr ')' {
+			execerror("functions (%s) with large list "
+					"parameters are not yet implemented",
+					$1->name);
+	}
     ;
+
+lista_expr
+	: asg_exp
+	| lista_expr ',' asg_exp
+	;
 
 %%
 

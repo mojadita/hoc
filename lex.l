@@ -25,6 +25,7 @@ extern int lineno;
 			yylval.sym = s;
 			return s->type == UNDEF ? VAR : s->type;
 		}
+
 \n      {   lineno++;
 			return '\n';
 		}
