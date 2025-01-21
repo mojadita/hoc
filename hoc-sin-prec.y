@@ -36,7 +36,6 @@ jmp_buf begin;
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %type  <val> expr term fact asig prim asg_exp
-%left UNARY /* to ensure same y.tab.h with hoc.y's */
 
 %%
 
