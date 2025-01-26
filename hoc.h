@@ -1,6 +1,8 @@
 /* hoc.h -- tipos y funciones relacionados con la tabla de simbolos.
  * Date: Fri Dec 27 14:57:20 -05 2024
  */
+#ifndef HOC_H
+#define HOC_H
 
 #include <setjmp.h>
 
@@ -45,3 +47,18 @@ int yylex(void);
 extern jmp_buf begin;
 extern int lineno;
 extern char *progname;
+
+typedef union Datum { /* interpreter stack type */
+        double val;
+        Symbol *sym;
+} Datum;
+
+extern Datum pop(void);
+
+typedef void (*Inst)(void); /* machine instruction */
+
+#define STOP (Inst) 0
+
+extern Inst prog[];
+
+#endif /* HOC_H */

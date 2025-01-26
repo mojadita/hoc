@@ -24,7 +24,7 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
-common_objs = symbol.o init.o error.o math.o lex.o
+common_objs = symbol.o init.o error.o math.o code.o lex.o
 toclean += $(common_objs) lex.c
 
 hoc_objs = hoc.o $(common_objs)

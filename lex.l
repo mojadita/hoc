@@ -12,25 +12,27 @@ extern int lineno;
 [ \t]    ;  /* saltar blancos y tabuladores */
 
 ([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
-			sscanf(yytext, "%lf", &yylval.val);
-			return NUMBER;
-		}   /* Un numero punto flotante  */
+			double dbl;
+            sscanf(yytext, "%lf", &dbl);
+			yylval.sym = install("", NUMBER, dbl);
+            return NUMBER;
+        }   /* Un numero punto flotante  */
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
-			Symbol *s;
-			if ((s = lookup(yytext)) == NULL) { 
-				/* no esta, lo instalamos */
-				s = install(yytext, UNDEF, 0.0);
-			}
-			yylval.sym = s;
-			return s->type == UNDEF ? VAR : s->type;
-		}
+            Symbol *s;
+            if ((s = lookup(yytext)) == NULL) {
+                /* no esta, lo instalamos */
+                s = install(yytext, UNDEF, 0.0);
+            }
+            yylval.sym = s;
+            return s->type == UNDEF ? VAR : s->type;
+        }
 
 \n      {   lineno++;
-			return '\n';
-		}
+            return '\n';
+        }
 
-.		return yytext[0];
+.       return yytext[0];
 
 %%
 
@@ -39,6 +41,6 @@ extern int lineno;
  *  o poner la opcion %option noyywrap arriba. */
 int yywrap()
 {
-	return 1;
+    return 1;
 }
 #endif

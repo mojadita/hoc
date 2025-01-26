@@ -111,17 +111,17 @@ prim: NUMBER
     | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
     | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
     | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }
-	| VAR    '(' asg_exp ',' asg_exp ',' lista_expr ')' {
-			execerror("functions (%s) with large list "
-					"parameters are not yet implemented",
-					$1->name);
-	}
+    | VAR    '(' asg_exp ',' asg_exp ',' lista_expr ')' {
+            execerror("functions (%s) with large list "
+                    "parameters are not yet implemented",
+                    $1->name);
+    }
     ;
 
 lista_expr
-	: asg_exp
-	| lista_expr ',' asg_exp
-	;
+    : asg_exp
+    | lista_expr ',' asg_exp
+    ;
 
 %%
 

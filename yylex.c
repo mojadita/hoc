@@ -36,7 +36,8 @@ yylex(void)   /* hoc1 */
          * la variable yylval (se usa el campo correspondiente
          * de la union de acuerdo al tipo declarado para el token
          * en la directiva %token arriba. */
-        if (scanf("%lf", &yylval.val) != 1) {
+        double d;
+        if (scanf("%lf", &d) != 1) {
 #if 1
             /*  Esta es la condicion que sempre se cumple  */
             /*  Leer un solo caracter  */
@@ -54,6 +55,7 @@ yylex(void)   /* hoc1 */
 #endif
             return ERROR;
         }
+        yylval.sym = install("", NUMBER, d);
         return NUMBER;  /* retornando tipo de token  */
     }
     if (isalpha(c)) {

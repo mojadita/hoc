@@ -15,10 +15,11 @@
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
+#include "code.h"
 
 static void yyerror(char *);
 
-/*  Necersario para hacer setjmp y longjmp */
+/*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
 %}
@@ -28,8 +29,8 @@ jmp_buf begin;
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    double val;
-    Symbol *sym;
+    Inst   *inst; /* machine instruction */
+    Symbol *sym; /* symbol table pointer */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
@@ -41,12 +42,11 @@ jmp_buf begin;
  * problemas al construir ambos ejecutables.
  */
 %token ERROR
-%token <val> NUMBER
+%token <sym> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 
 /* la directiva %type indica los tipos de datos de los diferentes
  * simbolos no terminales, definidos en la gramatica */
-%type  <val> expr asgn
 
 %right '='         /* right associative, minimum precedence */
 %left  '+' '-'     /* left associative, same precedence */
@@ -59,67 +59,40 @@ jmp_buf begin;
 /*  Area de definicion de reglas gramaticales */
 
 list: /* nothing */
-    | list       final
-    | list asgn  final
-    | list expr  final     { /* si se escribe ; entonces
-                              * hacer salto de linea */
-                             printf( "\t"OUTPUT_FMT"\n", $2 );
-                             /* lookup retorna un Symbol *, asi que
-                              * el valor retornado por lookup puede
-                              * ser usado para acceder directamente
-                              * a la variable, como si lo hubieramos
-                              * asignado a una variable intermedia.
-                              *   Symbol *interm = lookup("prev");
-                              *   interm->u.val  = $2;
-                              */
-                             lookup("prev")->u.val = $2;
-                           }
-    | list error final {  yyerrok;  }
+    | list       '\n'
+    | list asgn  final { code2((Inst)pop, STOP); return 1; }
+    | list expr  final { code2(print, STOP); return 1; }
+    | list error final { yyerrok; }
     ;
 
-asgn: VAR '=' expr         { if ($1->type == CONST) {
-                                 execerror("intento de asignar la constante %s",
-                                    $1->name);
-                             }
-                             $$ = $1->u.val = $3;
-                             $1->type = VAR;
-                           }
-    | CONST '=' expr       { execerror("No se puede asignar la constante %s",
-                                    $1->name); }
+asgn: VAR   '=' expr   {
+                         if ($1->type != VAR && $1->type != UNDEF) {
+                            execerror("symbol '%s' is not a variable\n",
+                                      $1->name);
+                         }
+                         code3(varpush, (Inst)$1, assign); }
+    | CONST '=' expr   { execerror("No se puede asignar la constante %s",
+                                   $1->name); }
     ;
 
 final: '\n' | ';' ;
 
-expr: NUMBER            /* { $$ = $1; } */
-    | VAR               { if ($1->type == UNDEF) {
-                              execerror(
-                                  "undefined variable '%s'",
-                                  $1->name);
-                          }
-                          $$ = $1->u.val;
-                        }
-    | CONST                         { $$ = $1->u.val; }
+expr: NUMBER                        { code2(constpush, (Inst)$1); }
+    | VAR                           { code3(varpush,   (Inst)$1, eval); }
+    | CONST                         { code3(varpush,   (Inst)$1, eval); }
     | asgn                          /* asignacion */
-    | BLTIN0 '(' ')'                { $$ = $1->u.ptr0(); }
-    | BLTIN1 '(' expr ')'           { $$ = $1->u.ptr1($3); }
-    | BLTIN2 '(' expr ',' expr ')'  { $$ = $1->u.ptr2($3, $5); }
-    | expr '+' expr                 { $$ = $1 + $3; }
-    | expr '-' expr                 { $$ = $1 - $3; }
-    | expr '%' expr                 { if ($3 == 0) {
-                                          execerror(
-                                              "error modulo 0");
-                                      }
-                                      $$ = fmod($1, $3); }
-    | expr '*' expr                 { $$ = $1 * $3; }
-    | expr '/' expr                 { if ($3 == 0) {
-                                          execerror(
-                                              "division por 0");
-                                      }
-                                      $$ = $1 / $3; }
-    | '(' expr ')'                  { $$ = $2; }
-    | expr '^' expr                 { $$ = Pow($1, $3); }
-    | '+' expr %prec UNARY          { $$ =  $2; } /* new */
-    | '-' expr %prec UNARY          { $$ = -$2; } /* new */
+    | BLTIN0 '(' ')'                { code2(bltin0, (Inst)$1); printf("\tBLTIN0 Rule in action\n"); }
+    | BLTIN1 '(' expr ')'           { code2(bltin1, (Inst)$1); printf("\tBLTIN1 Rule in action\n"); }
+    | BLTIN2 '(' expr ',' expr ')'  { code2(bltin2, (Inst)$1); printf("\tBLTIN2 rule in action\n"); }
+    | expr '+' expr                 { code(add); }
+    | expr '-' expr                 { code(sub); }
+    | expr '%' expr                 { code(mod); }
+    | expr '*' expr                 { code(mul); }
+    | expr '/' expr                 { code(divi); }
+    | '(' expr ')'
+    | expr '^' expr                 { code(pwr); }
+    | '+' expr %prec UNARY
+    | '-' expr %prec UNARY          { code(neg); } /* new */
     ;
 
 /* Fin Area de definicion de reglas gramaticales */
@@ -134,7 +107,8 @@ main(int argc, char *argv[]) /* hoc1 */
     progname = argv[0];
     init();
     setjmp(begin);
-    yyparse();
+    for (initcode(); yyparse(); initcode())
+        execute(prog);
     return EXIT_SUCCESS;
 } /* main */
 
