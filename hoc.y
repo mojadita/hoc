@@ -61,7 +61,10 @@ jmp_buf begin;
 list: /* nothing */
     | list       '\n'
     | list asgn  final { code2((Inst)pop, STOP); return 1; }
-    | list expr  final { code2(print, STOP); return 1; }
+    | list expr  final {
+                         code3(varpush, (Inst)lookup("prev"), assign);
+                         code2(print, STOP);
+                         return 1; }
     | list error final { yyerrok; }
     ;
 
