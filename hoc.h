@@ -38,6 +38,8 @@ Symbol *install(
 Symbol *lookup(
         const char *name);
 
+void list_symbols(void);
+
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */
 void init(void);  /* install constants and built-ins in table */

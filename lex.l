@@ -12,11 +12,15 @@ extern int lineno;
 [ \t]    ;  /* saltar blancos y tabuladores */
 
 ([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
-			double dbl;
+            double dbl;
             sscanf(yytext, "%lf", &dbl);
-			yylval.sym = install("", NUMBER, dbl);
+            yylval.sym = install("", NUMBER, dbl);
             return NUMBER;
         }   /* Un numero punto flotante  */
+
+"?"     {
+            list_symbols();
+        }
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
             Symbol *s;

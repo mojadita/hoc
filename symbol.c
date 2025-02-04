@@ -5,8 +5,10 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "hoc.h"
+#include "y.tab.h"
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -78,3 +80,42 @@ Symbol *lookup(
     /* p == NULL */
     return NULL;
 } /* lookup */
+
+
+#define V(_nam) { .name = #_nam, .type = _nam, }
+static struct type2char {
+    char *name;
+    int type;
+} tab_types[] = {
+    V(ERROR),
+    V(NUMBER),
+    V(VAR),
+    V(BLTIN0),
+    V(BLTIN1),
+    V(BLTIN2),
+    V(UNDEF),
+    V(CONST),
+#undef V
+    {NULL, 0,}
+};
+
+static const char *lookup_type(int typ)
+{
+    for (struct type2char *p = tab_types; p->name; p++) {
+        if (typ == p->type)
+            return p->name;
+    }
+    return "UNKNOWN";
+}
+
+void list_symbols(void)
+{
+    for (   Symbol *p = lista_simbolos;
+            p != NULL;
+            p = p->next)
+    {
+        printf("'%s'/%s\n",
+            p->name,
+            lookup_type(p->type));
+    }
+} /* list_symbols */
