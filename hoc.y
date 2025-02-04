@@ -60,8 +60,10 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
-    | list asgn  final { code2((Inst)pop, STOP); return 1; }
-    | list expr  final {
+	| list asgn  ';'  { code((Inst)pop); }
+	| list expr  ';'  { code(print); }
+    | list asgn  '\n' { code2((Inst)pop, STOP); return 1; }
+    | list expr  '\n' {
                          code3(varpush, (Inst)lookup("prev"), assign);
                          code2(print, STOP);
                          return 1; }

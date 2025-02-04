@@ -52,7 +52,7 @@ void execute(Inst *p) /* run the machine */
 {
 	P("\n");
 	for (pc = p; *pc != STOP;) {
-		(**pc++)();
+		(*pc++)();
 	}
 }
 
@@ -181,7 +181,7 @@ void bltin0(void) /* evaluate built-in on top of stack */
 	Datum d;
 	/* d.val = (*((Symbol *)(*pc++))->u.bltn0)(); */
 	d.val = sym->u.ptr0();
-	P(": %s() -> %.8lg", sym->name, d.val);
+	P(": %s() -> %.8lg\n", sym->name, d.val);
 	push(d);
 }
 
@@ -196,7 +196,7 @@ void bltin1(void) /* evaluate built-in with one argument */
 	P(": d = %.8lg\n", d.val );
 	/* d.val = (*((Symbol *)(*pc++))->u.bltn1)( d.val ); */
 	d.val = sym->u.ptr1( d.val );
-	P(": %s(d) -> %.8lg", sym->name, d.val);
+	P(": %s(d) -> %.8lg\n", sym->name, d.val);
 	push(d);
 }
 
