@@ -12,6 +12,7 @@
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
+#include "code.h"
 
 void warning(const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
@@ -23,7 +24,7 @@ jmp_buf begin;
 %}
 
 %union {
-    double val;
+    Inst *val;
     Symbol *sym;
 }
 /*
@@ -35,15 +36,14 @@ jmp_buf begin;
 %token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
-%type  <val> expr term fact asig prim asg_exp
+/* %type  <val> expr term fact asig prim asg_exp */
 
 %%
 
 list: /* nothing */
     | list final
-    | list asg_exp ';'
-    | list asg_exp '\n' {/*Si se escribe ; ó \n entonces hacer salto de linea*/
-                         printf("\t"OUTPUT_FMT"\n", $2);
+    | list asg_exp ';'  { code2((Inst)pop, STOP); return 1; }
+    | list asg_exp '\n' { /*Si se escribe ; ó \n entonces hacer salto de linea*/
                          /* lookup retorna un Symbol *, asi que
                           * el valor retornado por lookup puede
                           * ser usado para acceder directamente
@@ -52,20 +52,16 @@ list: /* nothing */
                           *   Symbol *interm = lookup("prev");
                           *   interm->u.val  = $2;
                           */
-                         lookup("prev")->u.val = $2;
+						 code3(varpush, (Inst)lookup("prev"), assign);
+						 code2(print, STOP);
+						 return 1;
                       }
     | list error final {  yyerrok;  }
     ;
 
 final:  '\n' | ';';    /* Regla para evaular si el caracter es '\n' ó ';'  */
 
-asig: VAR '=' asg_exp     { if ($1->type == CONST) {
-                                 execerror("intento de asignar la constante %s",
-                                    $1->name);
-                             }
-                             $$ = $1->u.val = $3;
-                             $1->type = VAR;
-                           }
+asig: VAR '=' asg_exp     { code3(varpush, (Inst)$1, assign); }
     | CONST '=' asg_exp    { execerror("No se puede asignar la constante %s",
                                     $1->name); }
     ;
@@ -76,46 +72,34 @@ asg_exp
     ;
 
 expr: term
-    | '-' term      { $$ = -$2;      }
-    | '+' term      { $$ =  $2;      }
-    | expr '+' term { $$ =  $1 + $3; }
-    | expr '-' term { $$ =  $1 - $3; }
+    | '-' term      { code(neg);      }
+    | '+' term
+    | expr '+' term { code(add); }
+    | expr '-' term { code(sub); }
     ;
 
 term: fact
-    | term '*' fact { $$ = $1 * $3; }
-    | term '/' fact { if ($3 == 0) {
-                          execerror("error /0");
-                      }
-                      $$ = $1 / $3; }
-    | term '%' fact { if ($3 == 0) {
-                          execerror("error modulo 0");
-                      }
-                      $$ = fmod($1, $3); }
+    | term '*' fact { code(mul); }
+    | term '/' fact { code(divi); }
+    | term '%' fact { code(mod); }
     ;
 
-fact: prim '^' fact { $$ = Pow($1, $3); }
+fact: prim '^' fact { code(pwr); }
     | prim
     ;
 
-prim: NUMBER
-    | '(' asg_exp ')'  { $$ = $2; }
-    | VAR           { if ($1->type == UNDEF) {
-                          execerror(
-                              "undefined variable '%s'",
-                              $1->name);
-                      }
-                      $$ = $1->u.val;
-                    }
-    | CONST                              { $$ = $1->u.val; }
-    | BLTIN0 '(' ')'                     { $$ = $1->u.ptr0(); }
-    | BLTIN1 '(' asg_exp ')'             { $$ = $1->u.ptr1($3); }
-    | BLTIN2 '(' asg_exp ',' asg_exp ')' { $$ = $1->u.ptr2($3, $5); }
+prim: NUMBER          { code2(constpush, (Inst)$1); }
+    | '(' asg_exp ')'
+    | VAR           { code3(varpush, (Inst)$1, eval); }
+    | CONST         { code3(varpush, (Inst)$1, eval); }
+    | BLTIN0 '(' ')'                     { code2(bltin0, (Inst)$1); }
+    | BLTIN1 '(' asg_exp ')'             { code2(bltin1, (Inst)$1); }
+    | BLTIN2 '(' asg_exp ',' asg_exp ')' { code2(bltin2, (Inst)$1); }
     | VAR    '(' asg_exp ',' asg_exp ',' lista_expr ')' {
-            execerror("functions (%s) with large list "
-                    "parameters are not yet implemented",
-                    $1->name);
-    }
+              execerror("functions (%s) with large list "
+						"parameters are not yet implemented",
+						$1->name);
+    		}
     ;
 
 lista_expr
@@ -134,7 +118,8 @@ main(int argc, char *argv[]) /* hoc1 */
     progname = argv[0];
     init();
     setjmp(begin);
-    yyparse();
+	for (initcode(); yyparse(); initcode())
+		execute(prog);
     return EXIT_SUCCESS;
 }
 
