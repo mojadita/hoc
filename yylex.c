@@ -55,7 +55,7 @@ yylex(void)   /* hoc1 */
 #endif
             return ERROR;
         }
-        yylval.sym = install("", NUMBER, d);
+		yylval.val = d;
         return NUMBER;  /* retornando tipo de token  */
     }
     if (isalpha(c)) {
@@ -69,7 +69,7 @@ yylex(void)   /* hoc1 */
         if (c != EOF) ungetc(c, stdin);
         *p = '\0';
         if ((s = lookup(sbuf)) == NULL)
-            s = install(sbuf, UNDEF, 0.0);
+            s = install(sbuf, UNDEF, 0.0, NULL);
         /* el valor que se usa en el interprete */
         yylval.sym = s;
         return s->type == UNDEF

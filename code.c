@@ -6,13 +6,13 @@
 #include "y.tab.h"
 
 #define NSTACK 256
-static Datum stack[NSTACK];   /* the stack */
+static Datum  stack[NSTACK];   /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
 #define NPROG 2000   /* 2000 celdas para instrucciones */
-Inst  prog[NPROG];   /* the machine */
-Inst  *progp;        /* next free cell for code generation */
-Inst  *pc;           /* program counter during execution */
+Cell  prog[NPROG];   /* the machine */
+Cell *progp;        /* next free cell for code generation */
+Cell *pc;           /* program counter during execution */
 
 #define P(_fmt, ...) \
 	printf("%s:%d: %s"_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
@@ -39,28 +39,57 @@ Datum pop(void)    /* pops Datum and rturn top element from stack */
     return *--stackp;
 }
 
-Inst *code(Inst f) /* install one instruction of operand */
+Cell *code_inst(Inst f) /* install one instruction of operand */
 {
-	Inst *oprogp = progp;
+	Cell *oprogp = progp;
+
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
-	*progp++ = f;
+
+	(progp++)->inst = f;
 	return oprogp;
 }
 
-void execute(Inst *p) /* run the machine */
+Cell *code_sym(Symbol *s) /* install one instruction of operand */
+{
+	Cell *oprogp = progp;
+
+	if (progp >= &prog[NPROG])
+		execerror("program too big");
+
+	(progp++)->sym = s;
+	return oprogp;
+}
+
+Cell *code_val(double val) /* install one instruction of operand */
+{
+	Cell *oprogp = progp;
+
+	if (progp >= &prog[NPROG])
+		execerror("program too big");
+
+	(progp++)->val = val;
+	return oprogp;
+}
+
+void execute(Cell *p) /* run the machine */
 {
 	P("\n");
-	for (pc = p; *pc != STOP;) {
-		(*pc++)();
+	for (pc = p; pc->inst != STOP;) {
+		(pc++)->inst();
 	}
+}
+
+void drop(void) /* drops the top of stack */
+{
+	pop();
 }
 
 void constpush(void) /* push constant onto stack */
 {
 	P("\n");
 	Datum d;
-	d.val = ((Symbol *)*pc++)->u.val;
+	d.val = (pc++)->val;
 	P(": %.8lg\n", d.val);
 	push(d);
 }
@@ -69,7 +98,7 @@ void varpush(void)   /* push variable onto stack */
 {
 	P("\n");
 	Datum d;
-	d.sym = (Symbol *)(*pc++);
+	d.sym = (pc++)->sym;
 	P(": %s\n", d.sym->name);
 	push(d);
 }
@@ -177,7 +206,7 @@ void print(void) /* pop top value from stack, print it */
 void bltin0(void) /* evaluate built-in on top of stack */
 {
 	P("\n");
-	Symbol *sym = (Symbol *)(*pc++);
+	Symbol *sym = (pc++)->sym;
 	Datum d;
 	/* d.val = (*((Symbol *)(*pc++))->u.bltn0)(); */
 	d.val = sym->u.ptr0();
@@ -191,7 +220,7 @@ void bltin1(void) /* evaluate built-in with one argument */
 	//Datum d = pop();
 	//d.val   = (*(double(*)(double))(*pc++))(d.val);
 
-	Symbol *sym = (Symbol *)(*pc++);
+	Symbol *sym = (pc++)->sym;
 	Datum d = pop();
 	P(": d = %.8lg\n", d.val );
 	/* d.val = (*((Symbol *)(*pc++))->u.bltn1)( d.val ); */
@@ -208,7 +237,7 @@ void bltin2(void) /* evaluate built-in with two arguments */
 
 
 	P("\n");
-	Symbol *sym = (Symbol *)(*pc++);
+	Symbol *sym = (pc++)->sym;
 	Datum d2 = pop();
 	Datum d1 = pop();
 	P( " d1 = %lg, d2 = %lg\n", d1.val, d2.val );

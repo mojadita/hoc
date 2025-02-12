@@ -12,6 +12,7 @@ typedef struct Symbol {                   /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
                                            * VAR, BLTIN[012], UNDEF */
+	const char    *help;                  /* help text (optional) */
     union {
         double     val;                   /* si el tipo es VAR */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
@@ -31,7 +32,8 @@ typedef struct Symbol {                   /* Symbol table entry */
 Symbol *install(
         const char *name,
         int         typ,
-        double      val);
+        double      val,
+		const char *help);
 
 /* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
  * simbolo no existe. */
@@ -61,6 +63,12 @@ typedef void (*Inst)(void); /* machine instruction */
 
 #define STOP (Inst) 0
 
-extern Inst prog[];
+typedef union {
+	Inst    inst;
+	Symbol *sym;
+	double  val;
+} Cell;
+
+extern Cell prog[];
 
 #endif /* HOC_H */

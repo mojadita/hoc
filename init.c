@@ -28,24 +28,25 @@ static struct builtin { /* built-ins-1 */
     char *name;
     double (*func)();
     int  type;
+	const char *help;
 } builtins[] = {
-    "rand",  Rand,     BLTIN0,
-    "sin",   sin,      BLTIN1,
-    "cos",   cos,      BLTIN1,
-    "tan",   tan,      BLTIN1,
-    "asin",  asin,     BLTIN1,
-    "acos",  acos,     BLTIN1,
-    "atan",  atan,     BLTIN1,
-    "log",   log,      BLTIN1,
-    "log10", log10,    BLTIN1,
-    "exp",   exp,      BLTIN1,
-    "sqrt",  Sqrt,     BLTIN1,
-    "int",   integer,  BLTIN1,
-    "abs",   fabs,     BLTIN1,
-    "atan2", atan2,    BLTIN2,
-    "pow",   Pow,      BLTIN2,
-    "inv",   inverso,  BLTIN1,
-    "ops",   opuesto,  BLTIN1,
+    "rand",  Rand,     BLTIN0, "rand()",
+    "sin",   sin,      BLTIN1, "sin(x)",
+    "cos",   cos,      BLTIN1, "cos(x)",
+    "tan",   tan,      BLTIN1, "tan(x)",
+    "asin",  asin,     BLTIN1, "asin(x)",
+    "acos",  acos,     BLTIN1, "acos(x)",
+    "atan",  atan,     BLTIN1, "atan(x)",
+    "log",   log,      BLTIN1, "log(x)",
+    "log10", log10,    BLTIN1, "log10(x)",
+    "exp",   exp,      BLTIN1, "exp(x)",
+    "sqrt",  Sqrt,     BLTIN1, "sqrt(x)",
+    "int",   integer,  BLTIN1, "int(x)",
+    "abs",   fabs,     BLTIN1, "abs(x)",
+    "atan2", atan2,    BLTIN2, "atan2(y,x)",
+    "pow",   Pow,      BLTIN2, "pow(x,y)",
+    "inv",   inverso,  BLTIN1, "inv(x)",
+    "ops",   opuesto,  BLTIN1, "ops(x)",
     NULL,    NULL,
 };
 
@@ -55,14 +56,14 @@ void init(void)  /* install constants and built-ins in table */
     Symbol *s;
 
     for (i = 0; consts[i].name != NULL; i++) {
-        install(consts[i].name, CONST, consts[i].cval);
+        install(consts[i].name, CONST, consts[i].cval, NULL);
     }
 
     for (   struct builtin *p = builtins;
             p->name;
             p++)
     {
-        s = install(p->name, p->type, 0.0);
+        s = install(p->name, p->type, 0.0, p->help);
         switch(p->type) {
             case BLTIN0: s->u.ptr0 = p->func; break;
             case BLTIN1: s->u.ptr1 = p->func; break;

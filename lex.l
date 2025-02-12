@@ -12,9 +12,7 @@ extern int lineno;
 [ \t]    ;  /* saltar blancos y tabuladores */
 
 ([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
-            double dbl;
-            sscanf(yytext, "%lf", &dbl);
-            yylval.sym = install("", NUMBER, dbl);
+            sscanf(yytext, "%lf", &yylval.val);
             return NUMBER;
         }   /* Un numero punto flotante  */
 
@@ -26,7 +24,7 @@ extern int lineno;
             Symbol *s;
             if ((s = lookup(yytext)) == NULL) {
                 /* no esta, lo instalamos */
-                s = install(yytext, UNDEF, 0.0);
+                s = install(yytext, UNDEF, 0.0, NULL);
             }
             yylval.sym = s;
             return s->type == UNDEF ? VAR : s->type;

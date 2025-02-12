@@ -40,7 +40,8 @@ Symbol *
 install(
         const char *name,
         int         typ,
-        double      val)
+        double      val,
+		const char *help)
 {
     Symbol *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
@@ -51,6 +52,7 @@ install(
 
     ret_val->type   = typ;
     ret_val->u.val  = val;
+	ret_val->help   = help;
 
     ret_val->next   = lista_simbolos;
     lista_simbolos  = ret_val;
@@ -110,12 +112,32 @@ static const char *lookup_type(int typ)
 
 void list_symbols(void)
 {
+	int col = 0;
+
     for (   Symbol *p = lista_simbolos;
             p != NULL;
             p = p->next)
     {
-        printf("'%s'/%s\n",
-            p->name,
-            lookup_type(p->type));
+        /*
+        printf("%s-%s\n",
+				p->help
+					? p->help
+					: p->name,
+				lookup_type(p->type));
+        */
+
+		/*   80 Col  para 4 columnas en cada fila  */
+		char workspace[40];
+		snprintf(workspace, sizeof workspace,
+			"%s-%s",
+			p->help ? p->help : p->name,
+			lookup_type(p->type));
+        printf("\033[40;1;33m%-20s\033[0m", workspace);
+		if (++col == 4) {
+			col = 0;
+			puts("");
+		}
     }
+	if (col != 0)
+		puts("");
 } /* list_symbols */

@@ -3,14 +3,14 @@
 
 #include "hoc.h"
 
-#define code2(c1, c2) code(c1); code(c2)
-#define code3(c1, c2, c3) code(c1); code(c2); code(c3)
-
 void initcode(void);  /* initalize for code generation */
 void push(Datum d);  /* push d onto stack */
 Datum pop(void);    /* pops Datum and rturn top element from stack */
-Inst *code(Inst f); /* install one instruction of operand */
-void execute(Inst *p); /* run the machine */
+void drop(void);    /* deletes the top stack value */
+Cell *code_inst(Inst f); /* encodes one instruction of operand */
+Cell *code_sym(Symbol *s); /* encodes one symbol in a Cell */
+Cell *code_val(double val); /* encodes a double value in a Cell */
+void execute(Cell *p); /* run the machine */
 void constpush(void); /* push constant onto stack */
 void varpush(void);   /* push variable onto stack */
 void add(void); /* add top two elements on stack */

@@ -31,6 +31,7 @@ jmp_buf begin;
 %union {
     Inst   *inst; /* machine instruction */
     Symbol *sym; /* symbol table pointer */
+	double  val; /* double value */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
@@ -42,7 +43,7 @@ jmp_buf begin;
  * problemas al construir ambos ejecutables.
  */
 %token ERROR
-%token <sym> NUMBER
+%token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -60,12 +61,12 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
-	| list asgn  ';'  { code((Inst)pop); }
-	| list expr  ';'  { code(print); }
-    | list asgn  '\n' { code2((Inst)pop, STOP); return 1; }
+	| list asgn  ';'  { code_inst(drop); }
+	| list expr  ';'  { code_inst(print); }
+    | list asgn  '\n' { code_inst(drop); code_inst(STOP); return 1; }
     | list expr  '\n' {
-                         code3(varpush, (Inst)lookup("prev"), assign);
-                         code2(print, STOP);
+                         code_inst(varpush); code_sym(lookup("prev")); code_inst(assign);
+                         code_inst(print); code_inst(STOP);
                          return 1; }
     | list error final { yyerrok; }
     ;
@@ -75,29 +76,29 @@ asgn: VAR   '=' expr   {
                             execerror("symbol '%s' is not a variable\n",
                                       $1->name);
                          }
-                         code3(varpush, (Inst)$1, assign); }
+                         code_inst(varpush); code_sym($1); code_inst(assign); }
     | CONST '=' expr   { execerror("No se puede asignar la constante %s",
                                    $1->name); }
     ;
 
 final: '\n' | ';' ;
 
-expr: NUMBER                        { code2(constpush, (Inst)$1); }
-    | VAR                           { code3(varpush,   (Inst)$1, eval); }
-    | CONST                         { code3(varpush,   (Inst)$1, eval); }
+expr: NUMBER                        { code_inst(constpush); code_val($1); }
+    | VAR                           { code_inst(varpush);   code_sym($1); code_inst(eval); }
+    | CONST                         { code_inst(varpush);   code_sym($1); code_inst(eval); }
     | asgn                          /* asignacion */
-    | BLTIN0 '(' ')'                { code2(bltin0, (Inst)$1); printf("\tBLTIN0 Rule in action\n"); }
-    | BLTIN1 '(' expr ')'           { code2(bltin1, (Inst)$1); printf("\tBLTIN1 Rule in action\n"); }
-    | BLTIN2 '(' expr ',' expr ')'  { code2(bltin2, (Inst)$1); printf("\tBLTIN2 rule in action\n"); }
-    | expr '+' expr                 { code(add); }
-    | expr '-' expr                 { code(sub); }
-    | expr '%' expr                 { code(mod); }
-    | expr '*' expr                 { code(mul); }
-    | expr '/' expr                 { code(divi); }
+    | BLTIN0 '(' ')'                { code_inst(bltin0);    code_sym($1); printf("\tBLTIN0 Rule in action\n"); }
+    | BLTIN1 '(' expr ')'           { code_inst(bltin1);    code_sym($1); printf("\tBLTIN1 Rule in action\n"); }
+    | BLTIN2 '(' expr ',' expr ')'  { code_inst(bltin2);    code_sym($1); printf("\tBLTIN2 rule in action\n"); }
+    | expr '+' expr                 { code_inst(add); }
+    | expr '-' expr                 { code_inst(sub); }
+    | expr '%' expr                 { code_inst(mod); }
+    | expr '*' expr                 { code_inst(mul); }
+    | expr '/' expr                 { code_inst(divi); }
     | '(' expr ')'
-    | expr '^' expr                 { code(pwr); }
+    | expr '^' expr                 { code_inst(pwr); }
     | '+' expr %prec UNARY
-    | '-' expr %prec UNARY          { code(neg); } /* new */
+    | '-' expr %prec UNARY          { code_inst(neg); } /* new */
     ;
 
 /* Fin Area de definicion de reglas gramaticales */
