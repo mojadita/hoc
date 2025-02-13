@@ -6,11 +6,11 @@
 #include "y.tab.h"
 
 #define NSTACK 256
-static Datum  stack[NSTACK];   /* the stack */
+static Datum  stack[NSTACK];  /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
-#define NPROG 2000   /* 2000 celdas para instrucciones */
-Cell  prog[NPROG];   /* the machine */
+#define NPROG 2000  /* 2000 celdas para instrucciones */
+Cell  prog[NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
 
@@ -82,167 +82,154 @@ void execute(Cell *p) /* run the machine */
 
 void drop(void) /* drops the top of stack */
 {
+	P("\n");
 	pop();
 }
 
 void constpush(void) /* push constant onto stack */
 {
 	P("\n");
-	Datum d;
-	d.val = (pc++)->val;
-	P(": %.8lg\n", d.val);
-	push(d);
-}
-
-void varpush(void)   /* push variable onto stack */
-{
-	P("\n");
-	Datum d;
-	d.sym = (pc++)->sym;
-	P(": %s\n", d.sym->name);
+	Datum d = (pc++)->val;
+	P(": -> %.8lg\n", d);
 	push(d);
 }
 
 void add(void) /* add top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val += d2.val;
-	P(": sum -> %lg\n", d1.val);
-	push(d1);
+	Datum p2 = pop(),
+		  p1 = pop(),
+		  res = p1 + p2;
+	P(": %lg + %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void sub(void) /* subtract top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val -= d2.val;
-	P(": -> %lg\n", d1.val);
-	push(d1);
+	Datum p2 = pop(),
+		  p1 = pop(),
+		  res = p1 - p2;
+	P(": %lg - %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void mul(void) /* multiply top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val *= d2.val;
-	P(": -> %lg\n", d1.val);
-	push(d1);
+	Datum p2 = pop(),
+		  p1 = pop(),
+		  res = p1 * p2;
+	P(": %lg * %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void divi(void) /* divide top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val /= d2.val;
-	push(d1);
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 / p2;
+	P(": %lg / %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void mod(void) /* mod top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val = fmod(d1.val, d2.val);
-	P(": -> %lg\n", d1.val);
-	push(d1);
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = fmod(p1, p2);
+	P(": %lg %% %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void neg(void) /* change sign top element on stack */
 {
 	P("\n");
-	Datum d = pop();
-	P(": d=%lg\n", d.val);
-	d.val = -d.val;
-	P(": -> %lg\n", d.val);
-	push(d);
+	Datum d   = pop(),
+	      res = -d;
+	P(": d=%lg -> %lg\n",
+			d, res);
+	push(res);
 }
 
 void pwr(void) /* pow top two elements on stack */
 {
 	P("\n");
-	Datum d2 = pop(), d1 = pop();
-	P(": d1=%lg, d2=%lg\n", d1.val, d2.val);
-	d1.val = pow(d1.val, d2.val);
-	P(": -> %lg\n", d1.val);
-	push(d1);
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = pow(p1, p2);
+	P(": p1=%lg, d2=%lg -> %lg\n",
+			p1, p2, res);
+	push(res);
 }
 
 void eval(void) /* evaluate variable on stack */
 {
 	P("\n");
-	Datum d;
-	d = pop();
-	P(": d1=%s\n", d.sym->name);
-	if (d.sym->type == UNDEF)
-		execerror("undefined variable '%s'", d.sym->name);
-	d.val = d.sym->u.val;
-	P(": -> %lg\n", d.val);
-	push(d);
+	Symbol *sym = (pc++)->sym;
+	if (sym->type == UNDEF)
+		execerror("undefined variable '%s'",
+				sym->name);
+	P(": %s -> %lg\n",
+		sym->name, sym->val);
+	push(sym->val);
 }
 
 void assign(void) /* assign top value to next value */
 {
 	P("\n");
-	Datum d1 = pop(),
-		  d2 = pop();
-	P(": d1 = '%s', d2 = %.8lg\n", d1.sym->name, d2.val);
-	d1.sym->u.val = d2.val;
-	d1.sym->type  = VAR;
-	push(d2);
+	Symbol *sym = (pc++)->sym;
+	Datum   d   = pop();
+	P(": %.8lg -> %s\n",
+			d, sym->name);
+	sym->val = d;
+	sym->type  = VAR;
+	push(d);
 }
 		
 void print(void) /* pop top value from stack, print it */
 {
 	P("\n");
 	Datum d = pop();
-	printf("\t\t%32.8g\n", d.val);
+	printf("\t\t%32.8g\n", d);
 }
 
 void bltin0(void) /* evaluate built-in on top of stack */
 {
 	P("\n");
 	Symbol *sym = (pc++)->sym;
-	Datum d;
-	/* d.val = (*((Symbol *)(*pc++))->u.bltn0)(); */
-	d.val = sym->u.ptr0();
-	P(": %s() -> %.8lg\n", sym->name, d.val);
-	push(d);
+	Datum   res = sym->ptr0();
+	P(": %s() -> %.8lg\n",
+		sym->name, res);
+	push(res);
 }
 
 void bltin1(void) /* evaluate built-in with one argument */
 {
 	P("\n");
-	//Datum d = pop();
-	//d.val   = (*(double(*)(double))(*pc++))(d.val);
-
 	Symbol *sym = (pc++)->sym;
-	Datum d = pop();
-	P(": d = %.8lg\n", d.val );
-	/* d.val = (*((Symbol *)(*pc++))->u.bltn1)( d.val ); */
-	d.val = sym->u.ptr1( d.val );
-	P(": %s(d) -> %.8lg\n", sym->name, d.val);
-	push(d);
+	Datum p   = pop(),
+	      res = sym->ptr1( p );
+	P(": %s(%.8lg) -> %.8lg\n",
+		sym->name, p, res);
+	push(res);
 }
 
 void bltin2(void) /* evaluate built-in with two arguments */
 {
-	//Datum d2 = pop(), d1 = pop();
-	//d1.val = (*(double(*)(double, double))(*pc++))(d1.val, d2.val);
-	//push(d);
-
-
 	P("\n");
 	Symbol *sym = (pc++)->sym;
-	Datum d2 = pop();
-	Datum d1 = pop();
-	P( " d1 = %lg, d2 = %lg\n", d1.val, d2.val );
-	/* d.val = (*((Symbol *)(*pc++))->u.bltn1)( d.val ); */
-	d1.val = sym->u.ptr2( d1.val, d2.val );
-	P(": %s(d1, d2) -> %.8lg\n", sym->name, d1.val);
-	push(d1);
+	Datum p2 = pop(),
+	      p1 = pop(),
+	     res = sym->ptr2( p1, p2 );
+	P(": %s(%.8lg, %.8lg) -> %.8lg\n",
+		sym->name, p1, p2, res);
+	push(res);
 }

@@ -18,7 +18,11 @@ typedef struct Symbol {                   /* Symbol table entry */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
-    } u;
+    }  /* no hay nombre de campo */ ;
+	   /* union anonima, el nombre del campo no existe, de forma que los
+		* nombres de los campos de la union pueden usarse directamente desde
+		* la estructura Symbol.  Esto ***solo*** es valido en C, y no en 
+		* C++ */
     struct Symbol *next;                  /* enlace al siguiente
                                            * simbolo de la tabla.*/
 } Symbol;
@@ -52,10 +56,7 @@ extern jmp_buf begin;
 extern int lineno;
 extern char *progname;
 
-typedef union Datum { /* interpreter stack type */
-        double val;
-        Symbol *sym;
-} Datum;
+typedef double Datum;
 
 extern Datum pop(void);
 

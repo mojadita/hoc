@@ -16,12 +16,13 @@ static struct { /* constants */
     char *name;
     double cval;
 } consts[] = {
-    "PI",   M_PI,
-    "E",    M_E,
-    "DEG",  180.0/M_PI,
-    "PHI",  1.61803398874989484820,
-    "prev", 0.0,
-    NULL,   0.0,
+    "PI",      M_PI,
+    "E",       M_E,
+    "DEG",     180.0/M_PI,
+    "PHI",     1.61803398874989484820,
+    "prev",    0.0,
+    "version", 4.1,
+    NULL,      0.0,
 };
 
 static struct builtin { /* built-ins-1 */
@@ -65,9 +66,9 @@ void init(void)  /* install constants and built-ins in table */
     {
         s = install(p->name, p->type, 0.0, p->help);
         switch(p->type) {
-            case BLTIN0: s->u.ptr0 = p->func; break;
-            case BLTIN1: s->u.ptr1 = p->func; break;
-            case BLTIN2: s->u.ptr2 = p->func; break;
+            case BLTIN0: s->ptr0 = p->func; break;
+            case BLTIN1: s->ptr1 = p->func; break;
+            case BLTIN2: s->ptr2 = p->func; break;
         }
     }
 }

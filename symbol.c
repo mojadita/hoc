@@ -51,7 +51,7 @@ install(
     strcpy(ret_val->name, name);
 
     ret_val->type   = typ;
-    ret_val->u.val  = val;
+    ret_val->val  = val;
 	ret_val->help   = help;
 
     ret_val->next   = lista_simbolos;
@@ -132,7 +132,7 @@ void list_symbols(void)
 			"%s-%s",
 			p->help ? p->help : p->name,
 			lookup_type(p->type));
-        printf("\033[40;1;33m%-20s\033[0m", workspace);
+        printf("\033[1;36;40m%-20s\033[0m", workspace);
 		if (++col == 4) {
 			col = 0;
 			puts("");

@@ -31,7 +31,12 @@ void warning(const char *fmt, ...)    /* print warning message */
 /* print warning message */
 void vwarning(const char *fmt, va_list args)
 {
+    /*
     fprintf(stderr,  "%s:", progname);
     vfprintf(stderr, fmt, args);
     fprintf(stderr,  " cerca de la linea %d\n", lineno);
+    */
+    fprintf(stderr,  "\033[1;37;33m%s:\033[0m", progname);
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr,  " \033[1;33mcerca de la linea %d\033[0m\n", lineno);
 } /* vwarning */

@@ -19,6 +19,8 @@
 
 static void yyerror(char *);
 
+char *PRG_NAME = NULL;
+
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
@@ -65,7 +67,8 @@ list: /* nothing */
 	| list expr  ';'  { code_inst(print); }
     | list asgn  '\n' { code_inst(drop); code_inst(STOP); return 1; }
     | list expr  '\n' {
-                         code_inst(varpush); code_sym(lookup("prev")); code_inst(assign);
+						 code_inst(assign);
+						 code_sym(lookup("prev"));
                          code_inst(print); code_inst(STOP);
                          return 1; }
     | list error final { yyerrok; }
@@ -76,16 +79,28 @@ asgn: VAR   '=' expr   {
                             execerror("symbol '%s' is not a variable\n",
                                       $1->name);
                          }
-                         code_inst(varpush); code_sym($1); code_inst(assign); }
+						 code_inst(assign);
+						 code_sym($1);
+					   }
     | CONST '=' expr   { execerror("No se puede asignar la constante %s",
                                    $1->name); }
     ;
 
 final: '\n' | ';' ;
 
-expr: NUMBER                        { code_inst(constpush); code_val($1); }
-    | VAR                           { code_inst(varpush);   code_sym($1); code_inst(eval); }
-    | CONST                         { code_inst(varpush);   code_sym($1); code_inst(eval); }
+expr: NUMBER                        { code_inst(constpush);
+                                      code_val($1); }
+    | VAR                           { code_inst(eval);
+									  code_sym($1); }
+    | CONST                         { code_inst(eval);
+									  code_sym($1); 
+                                      if ( strcmp($1->name, "version")==0 )
+										   printf( "\t\033[1;33;40m%s "
+                                                   "\033[0;36;40mcalculator version "
+                                                   "\033[1;33;40m%.1g\033[0m\n",
+                                                   PRG_NAME,
+                                                   $1->val );
+									}
     | asgn                          /* asignacion */
     | BLTIN0 '(' ')'                { code_inst(bltin0);    code_sym($1); printf("\tBLTIN0 Rule in action\n"); }
     | BLTIN1 '(' expr ')'           { code_inst(bltin1);    code_sym($1); printf("\tBLTIN1 Rule in action\n"); }
@@ -111,6 +126,7 @@ int
 main(int argc, char *argv[]) /* hoc1 */
 {
     progname = argv[0];
+    PRG_NAME = argv[0];
     init();
     setjmp(begin);
     for (initcode(); yyparse(); initcode())
@@ -120,5 +136,6 @@ main(int argc, char *argv[]) /* hoc1 */
 
 static void yyerror(char *s)   /* called for yacc syntax error */
 {
-    warning("%s", s);
+    //warning("%s", s);
+    warning(" \033[1;32m%s", s);
 }

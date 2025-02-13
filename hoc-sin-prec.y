@@ -18,6 +18,8 @@ void warning( const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
 void yyerror( char *);
 
+char *PRG_NAME = NULL;
+
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
 
@@ -50,11 +52,10 @@ list: /* nothing */
                             * a la variable, como si lo hubieramos
                             * asignado a una variable intermedia.
                             *   Symbol *interm = lookup("prev");
-                            *   interm->u.val  = $2;
+                            *   interm->val  = $2;
                             */
-                           code_inst(varpush);
-						   code_sym(lookup("prev"));
 						   code_inst(assign);
+						   code_sym(lookup("prev"));
                            code_inst(print);
 						   code_inst(STOP);
 						   return 1;
@@ -66,9 +67,9 @@ list: /* nothing */
 
 final:  '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 
-asig: VAR   '=' asg_exp  { code_inst(varpush);
-						   code_sym($1);
+asig: VAR   '=' asg_exp  {
 						   code_inst(assign);
+						   code_sym($1);
 						 }
     | CONST '=' asg_exp  { execerror("No se puede asignar la constante %s",
                                     $1->name);
@@ -101,13 +102,19 @@ prim: NUMBER                             { code_inst(constpush);
                                            code_val($1);
 										 }
     | '(' asg_exp ')'
-    | VAR                                { code_inst(varpush);
-										   code_sym($1);
+    | VAR                                {
 										   code_inst(eval);
+										   code_sym($1);
 										 }
-    | CONST                              { code_inst(varpush);
-										   code_sym($1);
+    | CONST                              {
 										   code_inst(eval);
+										   code_sym($1);
+                                           if ( strcmp($1->name, "version")==0 )
+                                                printf( "\t\033[1;33;40m%s "
+                                                        "\033[0;36;40mcalculator version "
+                                                        "\033[1;33;40m%.1g\033[0m\n",
+                                                        PRG_NAME,
+                                                        $1->val );
 										 }
     | BLTIN0 '(' ')'                     { code_inst(bltin0);
 										   code_sym($1);
@@ -139,6 +146,7 @@ int
 main(int argc, char *argv[]) /* hoc1 */
 {
     progname = argv[0];
+    PRG_NAME = argv[0];
     init();
     setjmp(begin);
     for (initcode(); yyparse(); initcode())
@@ -148,5 +156,6 @@ main(int argc, char *argv[]) /* hoc1 */
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
-    warning("%s", s);
+    //warning("%s", s);
+    warning(" \033[1;32m%s", s);
 }
