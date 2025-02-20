@@ -14,8 +14,18 @@ Cell  prog[NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
 
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
+#if DEBUG
 #define P(_fmt, ...) \
 	printf("%s:%d: %s"_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#else
+#define P(_fmt, ...)
+#endif
+
+#define P2(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
 
 void initcode(void)  /* initalize for code generation */
 {
@@ -39,12 +49,20 @@ Datum pop(void)    /* pops Datum and rturn top element from stack */
     return *--stackp;
 }
 
-Cell *code_inst(Inst f) /* install one instruction of operand */
+void drop(void) /* drops the top of stack */
+{
+	P("\n");
+	pop();
+}
+
+Cell *code_inst(Inst f, const char *name) /* install one instruction of operand */
 {
 	Cell *oprogp = progp;
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
+
+	P2("0x%04x: %s\n", (int)(oprogp - prog), name);
 
 	(progp++)->inst = f;
 	return oprogp;
@@ -56,6 +74,7 @@ Cell *code_sym(Symbol *s) /* install one instruction of operand */
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
+	P2("0x%04x: Symbol '%s'\n", (int)(oprogp - prog), s->name);
 
 	(progp++)->sym = s;
 	return oprogp;
@@ -67,23 +86,33 @@ Cell *code_val(double val) /* install one instruction of operand */
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
+	P2("0x%04x: DATA %.10g\n", (int)(oprogp - prog), val);
 
 	(progp++)->val = val;
 	return oprogp;
 }
 
+Cell *code_cel(Cell *cel) /* install one reference to Cell */
+{
+	Cell *oprogp = progp;
+
+	if (progp >= &prog[NPROG])
+		execerror("program too big");
+	P2("0x%04x: REF [0x%04x]\n",
+			(int)(oprogp - prog),
+			(int)(cel - prog));
+
+	(progp++)->cel = cel;
+	return oprogp;
+}
+
 void execute(Cell *p) /* run the machine */
 {
-	P("\n");
+	P(" \033[1;33mBEGIN\033[m\n");
 	for (pc = p; pc->inst != STOP;) {
 		(pc++)->inst();
 	}
-}
-
-void drop(void) /* drops the top of stack */
-{
-	P("\n");
-	pop();
+	P(" \033[1;33mEND\033[m\n");
 }
 
 void constpush(void) /* push constant onto stack */
@@ -231,5 +260,144 @@ void bltin2(void) /* evaluate built-in with two arguments */
 	     res = sym->ptr2( p1, p2 );
 	P(": %s(%.8lg, %.8lg) -> %.8lg\n",
 		sym->name, p1, p2, res);
+	push(res);
+}
+
+void whilecode(void) /* execute the while loop */
+{
+	P("\n");
+	Cell *savepc = pc;  /* savepc[0] loop body address */
+						/* savepc[1] is the loop end address */
+						/* savepc + 2 is the cond starting point */
+	P(" execute cond code\n");
+	execute(savepc + 2);  /* execute cond code */
+	Datum d = pop();     /* pop the boolean data */
+	while (d) {
+	    P(" execute body code\n");
+		execute(savepc[0].cel); /* execute body */
+	    P(" execute cond code\n");
+		execute(savepc + 2);    /* execute cond again */
+		d = pop();
+	}
+	P(" END while loop\n");
+	pc = savepc[1].cel;
+}
+
+void ifcode(void) /* execute the if statement */
+{
+	P("\n");
+	Cell *savepc = pc;  /* savepc[0] then statement address */
+						/* savepc[1] else statement address */
+						/* savepc[2] next statement address */
+						/* savepc + 3 first cond evaluation instruction */
+	P(" execute cond code\n");
+	execute(savepc + 3); /* execute cond code */
+	Datum d = pop();    /* pop the boolean data */
+	if (d) {
+		P(" execute THEN code\n");
+		execute(savepc[0].cel);
+	} else if (savepc[1].cel) {
+		P(" execute ELSE code\n");
+		execute(savepc[1].cel);
+	}
+	P(" END\n");
+	execute(savepc[2].cel);
+}
+
+void ge(void) /* greater or equal */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 >= p2;
+	P(": %lg >= %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void le(void) /* less or equal */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 <= p2;
+	P(": %lg <= %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void gt(void) /* greater than */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 > p2;
+	P(": %lg > %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void lt(void) /* less than */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 < p2;
+	P(": %lg < %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void eq(void) /* equal */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 == p2;
+	P(": %lg == %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void ne(void) /* not equal */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 != p2;
+	P(": %lg != %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void not(void) /* not */
+{
+	P("\n");
+	Datum p  = pop(),
+		  res = ! p;
+	P(": ! %lg -> %lg\n",
+			p, res);
+	push(res);
+}
+
+void and(void)              /* and */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 && p2;
+	P(": %lg && %lg -> %lg\n",
+			p1, p2, res);
+	push(res);
+}
+
+void or(void)               /* or */
+{
+	P("\n");
+	Datum p2  = pop(),
+		  p1  = pop(),
+		  res = p1 || p2;
+	P(": %lg || %lg -> %lg\n",
+			p1, p2, res);
 	push(res);
 }

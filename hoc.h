@@ -64,11 +64,15 @@ typedef void (*Inst)(void); /* machine instruction */
 
 #define STOP (Inst) 0
 
-typedef union {
+typedef union Cell Cell;
+
+/*  Celda de Memoria RAM donde se instala el programa  */
+union Cell {
 	Inst    inst;
 	Symbol *sym;
 	double  val;
-} Cell;
+	Cell   *cel;
+};
 
 extern Cell prog[];
 

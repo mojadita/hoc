@@ -67,11 +67,17 @@ hoc: $(hoc_objs)
 hoc-sin-prec: $(hoc-sin-prec_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc-sin-prec_objs) $(hoc-sin-prec_libs)
 
-y.tab.h hoc.c: hoc.y
-	$(YACC) -d hoc.y
-	mv -f y.tab.c hoc.c
+# hoc.c: hoc.y
+# 	$(YACC) -d hoc.y
+# 	mv -f y.tab.c hoc.c
+#	rm -f y.tab.c
 
-hoc.o: hoc.c hoc.h
-symbol.o: symbol.c hoc.h
-init.o: init.c hoc.h y.tab.h
-yylex.o: hoc.h y.tab.h
+# code.c error.c hoc.c init.c math.c pepe.c symbol.c yylex.c
+code.o: code.c hoc.h y.tab.h
+error.o: error.c hoc.h error.h
+hoc.o: hoc.c hoc.h error.h math.h code.h 
+init.o: init.c hoc.h y.tab.h math.h code.h
+math.o: math.c error.h
+pepe.o: pepe.c 
+symbol.o: symbol.c hoc.h y.tab.h
+yylex.o: yylex.c hoc.h y.tab.h

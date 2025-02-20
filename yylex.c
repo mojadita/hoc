@@ -11,6 +11,17 @@
 
 extern int lineno;
 
+static int follow(int expected, int ifyes, int ifno)
+{
+	int c = fgetc(stdin);
+	if (c == EOF)
+		return 0;
+	if (c == expected)
+		return ifyes;
+	ungetc(c, stdin);
+	return ifno;
+} /* follow */
+
 /*  Esta funcion produce un TOKEN  */
 int
 yylex(void)   /* hoc1 */
@@ -76,8 +87,14 @@ yylex(void)   /* hoc1 */
                 ? VAR
                 : s->type;
     }
-    /*  Salto de linea normal  */
-    if (c == '\n') lineno++;
-
+	switch(c) {
+	case '>': return follow('=', GE,  '>');
+	case '<': return follow('=', LE,  '<');
+	case '=': return follow('=', EQ,  '=');
+	case '!': return follow('=', NE,  '!');
+	case '|': return follow('|', OR,  '|');
+	case '&': return follow('&', AND, '&');
+	case '\n': lineno++; return '\n';
+	}
     return c;
 } /* yylex */

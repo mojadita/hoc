@@ -8,6 +8,7 @@
 #include "hoc.h"
 #include "y.tab.h"
 #include "math.h"
+#include "code.h"
 
 double integer(double x);
 double Rand(void);
@@ -21,7 +22,7 @@ static struct { /* constants */
     "DEG",     180.0/M_PI,
     "PHI",     1.61803398874989484820,
     "prev",    0.0,
-    "version", 4.1,
+    "version", 5.0,
     NULL,      0.0,
 };
 
@@ -31,23 +32,23 @@ static struct builtin { /* built-ins-1 */
     int  type;
 	const char *help;
 } builtins[] = {
-    "rand",  Rand,     BLTIN0, "rand()",
-    "sin",   sin,      BLTIN1, "sin(x)",
-    "cos",   cos,      BLTIN1, "cos(x)",
-    "tan",   tan,      BLTIN1, "tan(x)",
-    "asin",  asin,     BLTIN1, "asin(x)",
-    "acos",  acos,     BLTIN1, "acos(x)",
-    "atan",  atan,     BLTIN1, "atan(x)",
-    "log",   log,      BLTIN1, "log(x)",
-    "log10", log10,    BLTIN1, "log10(x)",
-    "exp",   exp,      BLTIN1, "exp(x)",
-    "sqrt",  Sqrt,     BLTIN1, "sqrt(x)",
-    "int",   integer,  BLTIN1, "int(x)",
-    "abs",   fabs,     BLTIN1, "abs(x)",
-    "atan2", atan2,    BLTIN2, "atan2(y,x)",
-    "pow",   Pow,      BLTIN2, "pow(x,y)",
-    "inv",   inverso,  BLTIN1, "inv(x)",
-    "ops",   opuesto,  BLTIN1, "ops(x)",
+    "rand",  Rand,      BLTIN0, "rand()",
+    "sin",   sin,       BLTIN1, "sin(x)",
+    "cos",   cos,       BLTIN1, "cos(x)",
+    "tan",   tan,       BLTIN1, "tan(x)",
+    "asin",  asin,      BLTIN1, "asin(x)",
+    "acos",  acos,      BLTIN1, "acos(x)",
+    "atan",  atan,      BLTIN1, "atan(x)",
+    "log",   log,       BLTIN1, "log(x)",
+    "log10", log10,     BLTIN1, "log10(x)",
+    "exp",   exp,       BLTIN1, "exp(x)",
+    "sqrt",  Sqrt,      BLTIN1, "sqrt(x)",
+    "int",   integer,   BLTIN1, "int(x)",
+    "abs",   fabs,      BLTIN1, "abs(x)",
+    "atan2", atan2,     BLTIN2, "atan2(y,x)",
+    "pow",   Pow,       BLTIN2, "pow(x,y)",
+    "inv",   inverso,   BLTIN1, "inv(x)",
+    "ops",   opuesto,   BLTIN1, "ops(x)",
     NULL,    NULL,
 };
 
