@@ -3,8 +3,9 @@ hoc-sin-prec
 hoc.c
 hoc
 hoc.1.gz
-y.tab.h
-y.tab.c
+hoc.tab.h
+hoc-sin-prec.tab.h
 *.o
 BUILD_DATE.txt
 *~
+.depend

@@ -1,0 +1,61 @@
+
+   $  hoc
+		  instruccion : IF
+	   |   cell[0] = instruccion IF 
+	   |   savepc+1 = cell[0] 
+	   |   savepc+2 = &dir_RAM
+	   |   savepc+3 = &dir_RAM
+	   |
+	   |_  ifcode( condicion )
+	       savepc+0
+		   {
+			     expresion
+			   | VAR=val
+			   | VAR=expresion
+		   } 
+		   STOP
+		   savepc+1
+		   {
+			     expresion
+			   | VAR=val
+			   | VAR=expresion
+		   } 
+		   STOP
+		   savepc+2
+
+
+
+- Tabla de sibolos:
+Contiene todo aquello que dinamicamente le damos un nombre en el programa.
+Nombres Variables, Constantes, Nombres de la funaicone internas que usa HOC,
+
+- Install:
+  Estmoa agragando un sibmoblo en la tabla.
+
+- code:  
+         code_inst:  Insala una instruccion, se llama a la macro.
+					 pasamos el nombre de la funcion.
+         cade_val:   asignamos un valor double, algo que se va ameter en la Pila.
+         code sim:   Metemos una referenica a la tabla de simbolos.
+		 code_cel:   Una referenia a una celda de memoria.
+					 Son las celdas con las instrucciones del programa.
+
+-  execute:   Ejecuta todas las sentencias que hay en una cadena.
+              desde la celda inciai hastai la celdA STOP
+
+-  Sentencia Sentece es lo mismo que un statement o estamente o una instruccion.
+              Se trata de una instruccion del lenguaje que se esta definiendo.
+
+
+   Initi.c   aqui se definen e instalaln todas las funciones BUILT-IN y las constantes.
+			 aqui se le asgina un puntero a cada funcion BUILT-in.
+			 Todos los BUILT-INs estan definidos en code.c
+
+   code.c   Aqui se definen las funciones del programa hoc.
+
+
+
+/*  Expresiones regulares  */
+*	Varias repeticiones de lo que esta entre los corchetes de la izquierda.
+?
+[0-9]					Solo permite un digito entre 0 y 9

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "hoc.h"
-#include "y.tab.h"
+#include "hoc.tab.h"
 
 #define NSTACK 256
 static Datum  stack[NSTACK];  /* the stack */
@@ -31,6 +31,11 @@ void initcode(void)  /* initalize for code generation */
 {
     stackp = stack;
     progp  = prog;
+}
+
+int stacksize(void) /* return the stack size */
+{
+	return stackp - stack;
 }
 
 void push(Datum d)  /* push d onto stack */
@@ -100,7 +105,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 		execerror("program too big");
 	P2("0x%04x: REF [0x%04x]\n",
 			(int)(oprogp - prog),
-			(int)(cel - prog));
+			(int)(cel ? cel - prog : 0));
 
 	(progp++)->cel = cel;
 	return oprogp;
@@ -216,10 +221,9 @@ void assign(void) /* assign top value to next value */
 	P("\n");
 	Symbol *sym = (pc++)->sym;
 	Datum   d   = pop();
-	P(": %.8lg -> %s\n",
-			d, sym->name);
-	sym->val = d;
-	sym->type  = VAR;
+	P(": %.8lg -> %s\n", d, sym->name);
+	sym->val    = d;
+	sym->type   = VAR;
 	push(d);
 }
 		

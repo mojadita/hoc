@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #include "hoc.h"
-#include "y.tab.h"
+#include "hoc.tab.h"
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -46,9 +46,8 @@ install(
     Symbol *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
 
-    ret_val->name   = malloc(strlen(name)+1);
+    ret_val->name   = strdup(name);
     assert(ret_val->name != NULL);
-    strcpy(ret_val->name, name);
 
     ret_val->type   = typ;
     ret_val->val  = val;
@@ -82,7 +81,6 @@ Symbol *lookup(
     /* p == NULL */
     return NULL;
 } /* lookup */
-
 
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
@@ -127,11 +125,15 @@ void list_symbols(void)
         */
 
 		/*   80 Col  para 4 columnas en cada fila  */
-		char workspace[40];
-		snprintf(workspace, sizeof workspace,
-			"%s-%s",
+		char workspace[80], *s = workspace;
+		size_t sz = sizeof workspace;
+		int n = snprintf(s, sz, "%s-%s",
 			p->help ? p->help : p->name,
 			lookup_type(p->type));
+		s += n; sz -= n;
+		if (p->type == VAR) {
+			snprintf(s, sz, "(%.5lg)", p->val);
+		}
         printf("\033[1;36;40m%-20s\033[0m", workspace);
 		if (++col == 4) {
 			col = 0;

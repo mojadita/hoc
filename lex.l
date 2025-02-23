@@ -1,20 +1,22 @@
 %{
+
 #include "hoc.h"
-#include "y.tab.h"
+#include "hoc.tab.h"
 #include "code.h"
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifndef UQ_LEX_DEBUG
+//#warning UQ_LEX_DEBUG deberia ser configurado en config.mk
+#define UQ_LEX_DEBUG 0
 #endif
 
-#if DEBUG
+#if UQ_LEX_DEBUG  /*   {{ */
 #define P(_fmt, ...)                      \
 	printf("%s:%d:%s "_fmt,               \
 			__FILE__, __LINE__, __func__, \
 			##__VA_ARGS__)
-#else
+#else /* UQ_LEX_DEBUG  }{ */
 #define P(_fmt, ...)
-#endif
+#endif /* UQ_LEX_DEBUG }} */
 
 extern int lineno;
 
@@ -26,12 +28,14 @@ static struct reserved_word { /* reserved statements */
 	{ .name = "else",  .tokn = ELSE  },
 	{ .name = "while", .tokn = WHILE },
 	{ .name = "print", .tokn = PRINT },
+	{ .name = "symbs", .tokn = SYMBS },
 	{ .name = NULL }
 };
 
 %}
 
 %option noyywrap
+%x COMMENT
 
 %%
 
@@ -40,19 +44,24 @@ static struct reserved_word { /* reserved statements */
 
 ([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
             sscanf(yytext, "%lf", &yylval.val);
-			P("number %g\n", yylval.val);
+			P("number %g (%d)\n", yylval.val, NUMBER);
             return NUMBER;
         }   /* Un numero punto flotante  */
 
-"?"     {
-            list_symbols();
-        }
+"/*"    {   BEGIN COMMENT;
+			printf("%s", yytext);
+		}
+<COMMENT>. { ECHO; }
+<COMMENT>"*/" {
+	        printf("%s\n", yytext);	
+			BEGIN INITIAL;
+		}
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
            	struct reserved_word *rw;
 			for (rw = reserved_words; rw->name; rw++) {
 				if (strcmp(rw->name, yytext) == 0) {
-					P("reserved word %s, token %d\n",
+					P("reserved word %s, (%d)\n",
 						rw->name, rw->tokn);
 					return rw->tokn;
 				}
@@ -63,25 +72,28 @@ static struct reserved_word { /* reserved statements */
                 s = install(yytext, UNDEF, 0.0, NULL);
             }
             yylval.sym = s;
-			P("symbol <%s>\n", s->name);
+			P("symbol <%s> (%d)\n", s->name, s->type);
             return s->type == UNDEF ? VAR : s->type; }
 
-">="    { P("operador %s\n", yytext); return GE; }
-"<="    { P("operador %s\n", yytext); return LE; }
-"=="    { P("operador %s\n", yytext); return EQ; }
-"!="    { P("operador %s\n", yytext); return NE; }
-"&&"    { P("operador %s\n", yytext); return AND; }
-"||"    { P("operador %s\n", yytext); return OR; }
+">="    { P("operador %s (%d)\n", yytext, GE); return GE; }
+"<="    { P("operador %s (%d)\n", yytext, LE); return LE; }
+"=="    { P("operador %s (%d)\n", yytext, EQ); return EQ; }
+"!="    { P("operador %s (%d)\n", yytext, NE); return NE; }
+"&&"    { P("operador %s (%d)\n", yytext, AND); return AND; }
+"||"    { P("operador %s (%d)\n", yytext, OR); return OR; }
 
 \n      {   lineno++;
-			P("salto de linea\n");
+			P("salto de linea (%d)\n", '\n');
             return '\n';
         }
 
 #.*     ;
 
-.       { P("symbol/operator '%c'\n", yytext[0]); return yytext[0]; }
-<<EOF>> { P("EOF\n"); return 0; }
+.       { P("symbol/operator '%c' (%d)\n",
+				yytext[0], yytext[0]);
+		  return yytext[0]; }
+
+<<EOF>> { P("EOF (0)\n"); return 0; }
 
 %%
 

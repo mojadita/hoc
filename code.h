@@ -41,5 +41,6 @@ void ne(void);               /* not equal */
 void not(void);              /* not */
 void and(void);              /* and */
 void or(void);               /* or */
+int stacksize(void);         /* return the stack size */
 
 #endif /* CODE_H */

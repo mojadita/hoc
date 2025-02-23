@@ -24,7 +24,8 @@ char *PRG_NAME = NULL;
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
-#define CODE_INST(F) code_inst(F, #F)
+#define CODE_INST(F) code_inst(F, "\033[36m"#F"\033[m")
+#define CODE_STOP() code_inst(STOP, "\033[33mSTOP\033[m")
 
 %}
 /* continuamos el area de definicion y configuracion
@@ -50,7 +51,7 @@ jmp_buf begin;
 %token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
-%token <sym> PRINT UNDEF WHILE IF ELSE
+%token       PRINT WHILE IF ELSE SYMBS
 %type  <cel> stmt asgn expr stmtlist cond while if end
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -71,14 +72,14 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
-    | list asgn  '\n'  { CODE_INST(drop); CODE_INST(STOP); return 1; }
-	| list stmt  '\n'  { CODE_INST(STOP); return 1; }
-    | list expr  '\n'  { CODE_INST(assign);
+	| list stmt  '\n'  { CODE_STOP(); return 1; }
+    | list asgn  '\n'  { CODE_INST(assign);
 						 code_sym(lookup("prev"));
                          CODE_INST(print);
-						 CODE_INST(STOP);
+						 CODE_STOP();
                          return 1; }
-    | list error finish { yyerrok; }
+    | list error finish { yyerrok;
+						  return 1; }
     ;
 
 finish: '\n' | ';' ;
@@ -92,12 +93,11 @@ asgn: VAR   '=' expr   {
 						 CODE_INST(assign);
 						 code_sym($1);
 					   }
-    | CONST '=' expr   { execerror("No se puede asignar la constante %s",
-                                   $1->name); }
     ;
 
 stmt: expr ';'                      { CODE_INST(drop); } 
     | PRINT expr ';'                { CODE_INST(print); $$ = $2; }
+	| SYMBS ';'                     { $$ = CODE_INST(list_symbols); }
 	| while cond stmt end           {
 									  ($1)[1].cel =  $3; /* body of loop */
 									  ($1)[2].cel =  $4; /* end, if cond fails */
@@ -114,7 +114,7 @@ stmt: expr ';'                      { CODE_INST(drop); }
  	| '{' stmtlist '}'              { $$ = $2; }
 	;
 
-cond: '(' expr ')'                  { CODE_INST(STOP); $$ = $2; }
+cond: '(' expr ')'                  { CODE_STOP(); $$ = $2; }
     ;
 
 while
@@ -129,7 +129,7 @@ if  : IF                            { $$ = CODE_INST(ifcode);
                                            code_cel(NULL); }
 	;
 
-end : /* nothing */                 { CODE_INST(STOP); $$ = progp; }
+end : /* nothing */                 { CODE_STOP(); $$ = progp; }
     ;
 
 stmtlist
@@ -191,8 +191,10 @@ main(int argc, char *argv[]) /* hoc1 */
     PRG_NAME = argv[0];
     init();
     setjmp(begin);
-    for (initcode(); parse(); initcode())
+    for (initcode(); parse(); initcode()) {
         execute(prog);
+		printf("Stack size after execution: %d\n", stacksize());
+	}
     return EXIT_SUCCESS;
 } /* main */
 

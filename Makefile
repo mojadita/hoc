@@ -22,14 +22,14 @@ XMOD          ?= 0755
 INSTALL       ?= install
 IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
-toinstall ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
+toinstall     ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
-common_objs = symbol.o init.o error.o math.o code.o lex.o
-toclean += $(common_objs) lex.c
+common_objs    = symbol.o init.o error.o math.o code.o lex.o
+toclean       += $(common_objs) lex.c
 
-hoc_objs = hoc.o $(common_objs)
-hoc_libs = -lm 
-toclean += hoc.o hoc.c y.tab.h
+hoc_objs       = hoc.o $(common_objs)
+hoc_libs       = -lm 
+toclean       += hoc.o hoc.c y.tab.h
 
 hoc-sin-prec_objs = hoc-sin-prec.o $(common_objs)
 hoc-sin-prec_libs = -lm 
@@ -38,6 +38,7 @@ toclean          += hoc-sin-prec.o hoc-sin-prec.c
 ##  Crea un fichero donde se gurda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets)
 	date > $@
+toclean += BUILD_DATE.txt
 
 install: $(toinstall)
 
@@ -67,17 +68,18 @@ hoc: $(hoc_objs)
 hoc-sin-prec: $(hoc-sin-prec_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc-sin-prec_objs) $(hoc-sin-prec_libs)
 
-# hoc.c: hoc.y
-# 	$(YACC) -d hoc.y
-# 	mv -f y.tab.c hoc.c
-#	rm -f y.tab.c
+##
+##  Crear un .c a partir de un .y
+.y.c:
+	$(YACC) -d $<
+	mv -f y.tab.c $@
+	mv -f y.tab.h $*.tab.h
 
 # code.c error.c hoc.c init.c math.c pepe.c symbol.c yylex.c
-code.o: code.c hoc.h y.tab.h
+code.o: code.c hoc.h hoc-sin-prec.c
 error.o: error.c hoc.h error.h
 hoc.o: hoc.c hoc.h error.h math.h code.h 
-init.o: init.c hoc.h y.tab.h math.h code.h
+init.o: init.c hoc.h hoc.o math.h code.h
 math.o: math.c error.h
-pepe.o: pepe.c 
-symbol.o: symbol.c hoc.h y.tab.h
-yylex.o: yylex.c hoc.h y.tab.h
+symbol.o: symbol.c hoc.h hoc.o
+yylex.o: yylex.c hoc.h hoc.o

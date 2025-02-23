@@ -6,7 +6,7 @@
 #include <math.h>
 
 #include "hoc.h"
-#include "y.tab.h"
+#include "hoc.tab.h"
 #include "math.h"
 #include "code.h"
 
