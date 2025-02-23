@@ -36,8 +36,8 @@ jmp_buf begin;
 %union {
     Inst    inst; /* machine instruction */
     Symbol *sym; /* symbol table pointer */
-	double  val; /* double value */
-	Cell   *cel; /* Cell reference */
+    double  val; /* double value */
+    Cell   *cel; /* Cell reference */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
@@ -72,92 +72,88 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
-	| list stmt  '\n'  { CODE_STOP(); return 1; }
-    | list asgn  '\n'  { CODE_INST(assign);
-						 code_sym(lookup("prev"));
-                         CODE_INST(print);
-						 CODE_STOP();
-                         return 1; }
-    | list error finish { yyerrok;
-						  return 1; }
+    | list stmt  '\n'      { CODE_STOP(); return 1; }
+    | list asgn  '\n'      { CODE_INST(assign);
+                             code_sym(lookup("prev"));
+                             CODE_INST(print);
+                             CODE_STOP();
+                             return 1; }
+    | list error finish    { yyerrok;
+                             return 1; }
     ;
 
 finish: '\n' | ';' ;
 
-asgn: VAR   '=' expr   {
-                         if ($1->type != VAR && $1->type != UNDEF) {
-                            execerror("symbol '%s' is not a variable\n",
-                                      $1->name);
-                         }
-						 $$ = $3;
-						 CODE_INST(assign);
-						 code_sym($1);
-					   }
+stmt: asgn ';'             { CODE_INST(drop); }
+    | PRINT asgn ';'       { CODE_INST(print); $$ = $2; }
+    | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
+    | while cond stmt end  { $1[1].cel = $3;   /* body of loop */
+                             $1[2].cel = $4;   /* end, if cond fails */ }
+    | if    cond stmt end  { $1[1].cel = $3;   /* then part */
+                             $1[3].cel = $4;   /* end, if cond fails */ }
+    | if    cond stmt end ELSE stmt end {
+                             $1[1].cel = $3;   /* then part */
+                             $1[2].cel = $6;   /* else part, if cond fails */
+                             $1[3].cel = $7;   /* end */ }
+    | '{' stmtlist '}'     { $$ = $2; }
     ;
 
-stmt: expr ';'                      { CODE_INST(drop); } 
-    | PRINT expr ';'                { CODE_INST(print); $$ = $2; }
-	| SYMBS ';'                     { $$ = CODE_INST(list_symbols); }
-	| while cond stmt end           {
-									  ($1)[1].cel =  $3; /* body of loop */
-									  ($1)[2].cel =  $4; /* end, if cond fails */
-									}
-	| if cond stmt end              {
-									  ($1)[1].cel = $3; /* then part */
-									  ($1)[3].cel = $4; /* end, if cond fails */
-									}
-    | if cond stmt end ELSE stmt end {
-									  ($1)[1].cel = $3; /* then part */
-									  ($1)[2].cel = $6; /* else part, if cond fails */
-									  ($1)[3].cel = $7; /* end */
-									}
- 	| '{' stmtlist '}'              { $$ = $2; }
-	;
-
-cond: '(' expr ')'                  { CODE_STOP(); $$ = $2; }
+cond: '(' asgn ')'         { CODE_STOP(); $$ = $2; }
     ;
 
-while
-    : WHILE                         { $$ = CODE_INST(whilecode);
-										   code_cel(NULL);
-										   code_cel(NULL); }
-	;
-
-if  : IF                            { $$ = CODE_INST(ifcode);
-                                           code_cel(NULL);
-                                           code_cel(NULL);
-                                           code_cel(NULL); }
-	;
-
-end : /* nothing */                 { CODE_STOP(); $$ = progp; }
+while : WHILE              { $$ = CODE_INST(whilecode);
+                                  code_cel(NULL);
+                                  code_cel(NULL); }
     ;
 
-stmtlist
-    : /* nothing */                 { $$ = progp; }
-	| stmtlist '\n'
-	| stmtlist stmt
-	;
+if  : IF                   { $$ = CODE_INST(ifcode);
+                                  code_cel(NULL);
+                                  code_cel(NULL);
+                                  code_cel(NULL); }
+    ;
+
+end : /* nothing */        { CODE_STOP(); $$ = progp; }
+    ;
+
+stmtlist: /* empty */      { $$ = progp; }
+    | stmtlist '\n'
+    | stmtlist stmt
+    ;
+
+asgn: VAR   '=' asgn       { if ($1->type != VAR && $1->type != UNDEF) {
+                                 execerror("symbol '%s' is not a variable\n",
+                                           $1->name);
+                             }
+                             $$ = $3;
+                             CODE_INST(assign);
+                             code_sym($1); }
+    | expr
+    ;
 
 expr: NUMBER                        { $$ = CODE_INST(constpush);
                                            code_val($1); }
     | VAR                           { $$ = CODE_INST(eval);
-									       code_sym($1); }
+                                           code_sym($1); }
 
     | CONST                         { CODE_INST(eval);
-									  code_sym($1); 
-									}
-    | asgn                          /* asignacion equivalente a { $$ = $1; } */
-    | BLTIN0 '(' ')'                { $$ = CODE_INST(bltin0);    code_sym($1); printf("\tBLTIN0 Rule in action\n"); }
-    | BLTIN1 '(' expr ')'           { $$ = CODE_INST(bltin1);    code_sym($1); printf("\tBLTIN1 Rule in action\n"); }
-    | BLTIN2 '(' expr ',' expr ')'  { $$ = CODE_INST(bltin2);    code_sym($1); printf("\tBLTIN2 rule in action\n"); }
-	| expr '>' expr                 { CODE_INST(gt);  }
-	| expr '<' expr                 { CODE_INST(lt);  }
-	| expr EQ  expr  /* == */       { CODE_INST(eq);  }
-	| expr NE  expr  /* != */       { CODE_INST(ne);  }
-	| expr GE  expr  /* >= */       { CODE_INST(ge);  }
-	| expr LE  expr  /* <= */       { CODE_INST(le);  }
-	| expr AND expr  /* && */       { CODE_INST(and); }
-	| expr OR  expr  /* || */       { CODE_INST(or);  }
+                                      code_sym($1); }
+    | BLTIN0 '(' ')'                { $$ = CODE_INST(bltin0);
+                                           code_sym($1);
+                                      printf("\tBLTIN0 Rule in action\n"); }
+    | BLTIN1 '(' expr ')'           { $$ = CODE_INST(bltin1);
+                                           code_sym($1);
+                                      printf("\tBLTIN1 Rule in action\n"); }
+    | BLTIN2 '(' expr ',' expr ')'  { $$ = CODE_INST(bltin2);
+                                           code_sym($1);
+                                      printf("\tBLTIN2 rule in action\n"); }
+    | expr '>' expr                 { CODE_INST(gt);  }
+    | expr '<' expr                 { CODE_INST(lt);  }
+    | expr EQ  expr  /* == */       { CODE_INST(eq);  }
+    | expr NE  expr  /* != */       { CODE_INST(ne);  }
+    | expr GE  expr  /* >= */       { CODE_INST(ge);  }
+    | expr LE  expr  /* <= */       { CODE_INST(le);  }
+    | expr AND expr  /* && */       { CODE_INST(and); }
+    | expr OR  expr  /* || */       { CODE_INST(or);  }
     | expr '+' expr                 { CODE_INST(add); }
     | expr '-' expr                 { CODE_INST(sub); }
     | expr '%' expr                 { CODE_INST(mod); }
@@ -167,7 +163,7 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | expr '^' expr                 { CODE_INST(pwr); }
     | '+' expr %prec UNARY          { $$ = $2; }
     | '-' expr %prec UNARY          { CODE_INST(neg); $$ = $2; } /* new */
-	| '!' expr %prec UNARY          { CODE_INST(not); $$ = $2; } /* not */
+    | '!' expr %prec UNARY          { CODE_INST(not); $$ = $2; } /* not */
     ;
 
 /* Fin Area de definicion de reglas gramaticales */
@@ -178,10 +174,10 @@ int   lineno = 1;   /* numero de linea */
 
 int parse(void)
 {
-	printf("%s:%d:%s \033[1;36mBEGIN\033[m\n", __FILE__, __LINE__, __func__);
-	int res = yyparse();
-	printf("%s:%d:%s \033[1;36mEND\033[m\n", __FILE__, __LINE__, __func__);
-	return res;
+    printf("%s:%d:%s \033[1;36mBEGIN\033[m\n", __FILE__, __LINE__, __func__);
+    int res = yyparse();
+    printf("%s:%d:%s \033[1;36mEND\033[m\n", __FILE__, __LINE__, __func__);
+    return res;
 }
 
 int
@@ -193,8 +189,8 @@ main(int argc, char *argv[]) /* hoc1 */
     setjmp(begin);
     for (initcode(); parse(); initcode()) {
         execute(prog);
-		printf("Stack size after execution: %d\n", stacksize());
-	}
+        printf("Stack size after execution: %d\n", stacksize());
+    }
     return EXIT_SUCCESS;
 } /* main */
 
