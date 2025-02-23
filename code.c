@@ -79,7 +79,7 @@ Cell *code_sym(Symbol *s) /* install one instruction of operand */
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
-	P2("0x%04x: Symbol '%s'\n", (int)(oprogp - prog), s->name);
+	P2("      : Symbol '%s'\n", s->name);
 
 	(progp++)->sym = s;
 	return oprogp;
@@ -91,7 +91,7 @@ Cell *code_val(double val) /* install one instruction of operand */
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
-	P2("0x%04x: DATA %.10g\n", (int)(oprogp - prog), val);
+	P2("      : DATA %.10g\n", val);
 
 	(progp++)->val = val;
 	return oprogp;
@@ -103,8 +103,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 
 	if (progp >= &prog[NPROG])
 		execerror("program too big");
-	P2("0x%04x: REF [0x%04x]\n",
-			(int)(oprogp - prog),
+	P2("      : REF [0x%04x]\n",
 			(int)(cel ? cel - prog : 0));
 
 	(progp++)->cel = cel;
