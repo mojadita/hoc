@@ -52,6 +52,7 @@ jmp_buf begin;
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
+%token       OR AND GE LE EQ NE UNARY
 %type  <cel> stmt asgn expr stmtlist cond while if end
 
 /* la directiva %type indica los tipos de datos de los diferentes
