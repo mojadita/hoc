@@ -24,8 +24,8 @@ char *PRG_NAME = NULL;
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
-#define CODE_INST(F) code_inst(F, "\033[36m"#F"\033[m")
-#define CODE_STOP() code_inst(STOP, "\033[33mSTOP\033[m")
+#define CODE_INST(I) code_inst(I,    "\033[36m"#I"\033[m")
+#define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
 %}
 /* continuamos el area de definicion y configuracion
