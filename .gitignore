@@ -5,6 +5,7 @@ hoc
 hoc.1.gz
 hoc.tab.h
 hoc-sin-prec.tab.h
+lex.c
 *.o
 BUILD_DATE.txt
 *~

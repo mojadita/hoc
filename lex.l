@@ -3,6 +3,7 @@
 #include "hoc.h"
 #include "hoc.tab.h"
 #include "code.h"
+#include "reserved_words.h"
 
 #ifndef UQ_LEX_DEBUG
 //#warning UQ_LEX_DEBUG deberia ser configurado en config.mk
@@ -19,18 +20,6 @@
 #endif /* UQ_LEX_DEBUG }} */
 
 extern int lineno;
-
-static struct reserved_word { /* reserved statements */
-	char *name;
-	int   tokn;
-} reserved_words[] = {
-	{ .name = "if",    .tokn = IF    },
-	{ .name = "else",  .tokn = ELSE  },
-	{ .name = "while", .tokn = WHILE },
-	{ .name = "print", .tokn = PRINT },
-	{ .name = "symbs", .tokn = SYMBS },
-	{ .name = NULL }
-};
 
 %}
 
@@ -58,13 +47,11 @@ static struct reserved_word { /* reserved statements */
 		}
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
-           	struct reserved_word *rw;
-			for (rw = reserved_words; rw->name; rw++) {
-				if (strcmp(rw->name, yytext) == 0) {
-					P("reserved word %s, (%d)\n",
-						rw->name, rw->tokn);
-					return rw->tokn;
-				}
+           	const reserved_word *rw = rw_lookup(yytext);
+			if (rw) {
+				P("reserved word %s -> %s(%d)\n",
+					rw->name, rw->tokn_str, rw->tokn);
+				return rw->tokn;
 			}
             Symbol *s;
             if ((s = lookup(yytext)) == NULL) {
@@ -72,7 +59,7 @@ static struct reserved_word { /* reserved statements */
                 s = install(yytext, UNDEF, 0.0, NULL);
             }
             yylval.sym = s;
-			P("symbol <%s> (%d)\n", s->name, s->type);
+			P("Symbol <%s> (%d)\n", s->name, s->type);
             return s->type == UNDEF ? VAR : s->type; }
 
 ">="    { P("operador %s (%d)\n", yytext, GE); return GE; }

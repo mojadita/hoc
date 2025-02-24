@@ -26,7 +26,7 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall     ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
-common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX)
+common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) reserved_words.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
@@ -77,12 +77,16 @@ hoc-sin-prec: $(hoc-sin-prec_objs)
 	mv -f y.tab.c $@
 	mv -f y.tab.h $*.tab.h
 
-# code.c error.c hoc-sin-prec.c hoc.c init.c math.c symbol.c yylex.c
-code.o: code.c hoc.h hoc.c
+hoc.tab.h: hoc.c
+
+# code.c error.c hoc-sin-prec.c hoc.c init.c math.c reserved_words.c symbol.c yylex.c
+code.o: code.c hoc.h hoc.tab.h
 error.o: error.c hoc.h error.h
 hoc-sin-prec.o: hoc-sin-prec.c hoc.h error.h math.h code.h 
 hoc.o: hoc.c hoc.h error.h math.h code.h 
-init.o: init.c hoc.h hoc.c math.h code.h
+init.o: init.c hoc.h hoc.tab.h math.h code.h
 math.o: math.c error.h
-symbol.o: symbol.c hoc.h hoc.c
-yylex.o: yylex.c hoc.h hoc.c
+reserved_words.o: reserved_words.c hoc.h hoc.tab.h reserved_words.h
+symbol.o: symbol.c hoc.h hoc.tab.h
+yylex.o: yylex.c hoc.h hoc.tab.h
+lex.o: lex.c hoc.h hoc.tab.h code.h reserved_words.h 
