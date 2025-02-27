@@ -8,7 +8,6 @@ extern Cell *progp;          /* next free cell for code generation */
 void initcode(void);         /* initalize for code generation */
 void push(Datum        d);   /* push d onto stack */
 Datum pop(void);             /* pops Datum and rturn top element from stack */
-void drop(void);             /* deletes the top stack value */
 Cell *code_inst(
         Inst           f,
 		const char    *name);/* encodes one instruction of operand */
@@ -16,6 +15,8 @@ Cell *code_sym(Symbol *s);   /* encodes one symbol in a Cell */
 Cell *code_val(double  val); /* encodes a double value in a Cell */
 Cell *code_cel(Cell   *cel); /* install one reference to Cell */
 void execute(Cell     *p);   /* run the machine */
+/* instructions */
+void drop(void);             /* deletes the top stack value */
 void constpush(void);        /* push constant onto stack */
 void add(void);              /* add top two elements on stack */
 void sub(void);              /* subtract top two elements on stack */
@@ -41,6 +42,7 @@ void ne(void);               /* not equal */
 void not(void);              /* not */
 void and(void);              /* and */
 void or(void);               /* or */
+
 int stacksize(void);         /* return the stack size */
 
 #endif /* CODE_H */

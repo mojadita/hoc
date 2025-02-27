@@ -14,18 +14,25 @@ Cell  prog[NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
 
-#ifndef DEBUG
-#define DEBUG 0
+#ifndef DEBUG_P1
+#define DEBUG_P1 1
+#endif
+#ifndef DEBUG_P2
+#define DEBUG_P2 1
 #endif
 
-#if DEBUG
+#if DEBUG_P1
 #define P(_fmt, ...) \
 	printf("%s:%d: %s"_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 #else
 #define P(_fmt, ...)
 #endif
 
+#if DEBUG_P2
 #define P2(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
+#else
+#define P2(_fmt, ...)
+#endif
 
 void initcode(void)  /* initalize for code generation */
 {
