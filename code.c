@@ -280,7 +280,7 @@ void whilecode(void) /* execute the while loop */
 						/* savepc[1] is the loop end address */
 						/* savepc + 2 is the cond starting point */
 	P(" execute cond code\n");
-	execute(savepc + 2);  /* execute cond code */
+	execute(savepc + 2); /* execute cond code */
 	Datum d = pop();     /* pop the boolean data */
 	while (d) {
 	    P(" execute body code\n");
@@ -311,7 +311,7 @@ void ifcode(void) /* execute the if statement */
 		execute(savepc[1].cel);
 	}
 	P(" END\n");
-	execute(savepc[2].cel);
+	pc = savepc[2].cel;
 }
 
 void ge(void) /* greater or equal */
