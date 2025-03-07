@@ -18,8 +18,6 @@ void warning( const char *fmt, ...);
 void vwarning(const char *fmt, va_list args);
 void yyerror( char *);
 
-char *PRG_NAME = NULL;
-
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
 
@@ -168,31 +166,6 @@ prim: '(' asig ')'          { $$ = $2; }
     ;
 
 %%
-
-char *progname;     /* for error messages */
-int   lineno = 1;   /* numero de linea */
-
-int parse(void)
-{
-    printf("%s:%d:%s \033[1;36mBEGIN\033[m\n", __FILE__, __LINE__, __func__);
-    int res = yyparse();
-    printf("%s:%d:%s \033[1;36mEND\033[m\n", __FILE__, __LINE__, __func__);
-    return res;
-}
-
-int
-main(int argc, char *argv[]) /* hoc1 */
-{
-    progname = argv[0];
-    PRG_NAME = argv[0];
-    init();
-    setjmp(begin);
-    for (initcode(); parse(); initcode()) {
-        execute(prog);
-        printf("Stack size after execution: %d\n", stacksize());
-    }
-    return EXIT_SUCCESS;
-}
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {

@@ -50,6 +50,8 @@ void list_symbols(void);
  * variables predefinidas. */
 void init(void);  /* install constants and built-ins in table */
 void execerror(const char *fmt, ...);
+
+int yyparse(void);
 int yylex(void);
 
 extern jmp_buf begin;
