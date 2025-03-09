@@ -42,6 +42,7 @@ void ne(void);               /* not equal */
 void not(void);              /* not */
 void and(void);              /* and */
 void or(void);               /* or */
+void readopcode(void);       /* read to var */
 
 int stacksize(void);         /* return the stack size */
 

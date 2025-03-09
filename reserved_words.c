@@ -19,11 +19,15 @@
 	}
 
 static const reserved_word reserved_words[] = {
-	RW(if,    IF),
-	RW(else,  ELSE),
-	RW(while, WHILE),
-	RW(print, PRINT),
-	RW(symbs, SYMBS),
+	RW(if,     IF),
+	RW(else,   ELSE),
+	RW(while,  WHILE),
+	RW(print,  PRINT),
+	RW(symbs,  SYMBS),
+	RW(func,   FUNC),
+	RW(proc,   PROC),
+	RW(return, RETURN),
+	RW(read,   READ),
 
 	{ .name = NULL }
 };

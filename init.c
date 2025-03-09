@@ -22,7 +22,7 @@ static struct { /* constants */
     "DEG",     180.0/M_PI,
     "PHI",     1.61803398874989484820,
     "prev",    0.0,
-    "version", 5.2,
+    "version", 6.0,
     NULL,      0.0,
 };
 

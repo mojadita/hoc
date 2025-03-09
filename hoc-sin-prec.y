@@ -31,6 +31,7 @@ jmp_buf begin;
     Symbol *sym;  /* puntero a simbolo */
     double  val;  /* valor double */
     Cell   *cel;  /* referencia a Cell */
+    int     num;  /* valor entero, para $<num> */
 }
 /*
  * LCU: Tue Jan 21 10:58:10 EET 2025
@@ -44,6 +45,8 @@ jmp_buf begin;
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE
 %token       UNARY
+%token <num> ARG
+%token       FUNC PROC RETURN READ
 %type  <cel> stmt cond stmtlist while if end asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim
 
@@ -67,6 +70,8 @@ final: '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 stmt: asig ';'             { CODE_INST(drop); }
     | PRINT asig ';'       { CODE_INST(print); $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
+    | READ VAR ';'         { $$ = CODE_INST(readopcode);
+                                  code_sym($2); }
     | while cond stmt end  { $1[1].cel = $3; /* cuerpo del bucle */
                              $1[2].cel = $4; /* posicion sig. a end */ }
     | if cond stmt end     { $1[1].cel = $3; /* posicion parte then */

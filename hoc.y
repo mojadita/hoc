@@ -36,6 +36,7 @@ jmp_buf begin;
     Symbol *sym; /* symbol table pointer */
     double  val; /* double value */
     Cell   *cel; /* Cell reference */
+    int     num; /* valor entero, para $<n> */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
@@ -51,6 +52,8 @@ jmp_buf begin;
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE UNARY
+%token <num> ARG
+%token       FUNC PROC RETURN READ
 %type  <cel> stmt asgn expr stmtlist cond while if end
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -86,6 +89,8 @@ finish: '\n' | ';' ;
 stmt: asgn ';'             { CODE_INST(drop); }
     | PRINT asgn ';'       { CODE_INST(print); $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
+    | READ VAR ';'         { $$ = CODE_INST(readopcode);
+                                  code_sym($2); }
     | while cond stmt end  { $1[1].cel = $3;   /* body of loop */
                              $1[2].cel = $4;   /* end, if cond fails */ }
     | if    cond stmt end  { $1[1].cel = $3;   /* then part */

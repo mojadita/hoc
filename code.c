@@ -411,3 +411,15 @@ void or(void)               /* or */
 			p1, p2, res);
 	push(res);
 }
+
+void readopcode(void)               /* readopcode */
+{
+	P("\n");
+	Symbol *sym = (pc++)->sym;
+	if (scanf("%lg", &sym->val) != 1) {
+		execerror("Lectura incorrecta del valor de la variable %s\n",
+				  sym->name);
+	}
+	P(": %.8lg -> %s\n", sym->val, sym->name);
+	sym->type   = VAR;
+}
