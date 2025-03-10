@@ -10,7 +10,7 @@ void push(Datum        d);   /* push d onto stack */
 Datum pop(void);             /* pops Datum and rturn top element from stack */
 Cell *code_inst(
         Inst           f,
-		const char    *name);/* encodes one instruction of operand */
+        const char    *name);/* encodes one instruction of operand */
 Cell *code_sym(Symbol *s);   /* encodes one symbol in a Cell */
 Cell *code_val(double  val); /* encodes a double value in a Cell */
 Cell *code_cel(Cell   *cel); /* install one reference to Cell */

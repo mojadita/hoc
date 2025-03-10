@@ -9,9 +9,9 @@
 typedef struct reserved_word reserved_word;
 
 struct reserved_word { /* reserved statements */
-	const char * name;
-	int          tokn;
-	const char * tokn_str;
+    const char * name;
+    int          tokn;
+    const char * tokn_str;
 };
 
 const reserved_word *rw_lookup(char *lexeme);

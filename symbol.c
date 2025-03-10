@@ -41,7 +41,7 @@ install(
         const char *name,
         int         typ,
         double      val,
-		const char *help)
+        const char *help)
 {
     Symbol *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
@@ -51,7 +51,7 @@ install(
 
     ret_val->type   = typ;
     ret_val->val  = val;
-	ret_val->help   = help;
+    ret_val->help   = help;
 
     ret_val->next   = lista_simbolos;
     lista_simbolos  = ret_val;
@@ -110,7 +110,7 @@ static const char *lookup_type(int typ)
 
 void list_symbols(void)
 {
-	int col = 0;
+    int col = 0;
 
     for (   Symbol *p = lista_simbolos;
             p != NULL;
@@ -118,28 +118,28 @@ void list_symbols(void)
     {
         /*
         printf("%s-%s\n",
-				p->help
-					? p->help
-					: p->name,
-				lookup_type(p->type));
+                p->help
+                    ? p->help
+                    : p->name,
+                lookup_type(p->type));
         */
 
-		/*   80 Col  para 4 columnas en cada fila  */
-		char workspace[80], *s = workspace;
-		size_t sz = sizeof workspace;
-		int n = snprintf(s, sz, "%s-%s",
-			p->help ? p->help : p->name,
-			lookup_type(p->type));
-		s += n; sz -= n;
-		if (p->type == VAR) {
-			snprintf(s, sz, "(%.5lg)", p->val);
-		}
+        /*   80 Col  para 4 columnas en cada fila  */
+        char workspace[80], *s = workspace;
+        size_t sz = sizeof workspace;
+        int n = snprintf(s, sz, "%s-%s",
+            p->help ? p->help : p->name,
+            lookup_type(p->type));
+        s += n; sz -= n;
+        if (p->type == VAR) {
+            snprintf(s, sz, "(%.5lg)", p->val);
+        }
         printf("\033[1;36;40m%-20s\033[0m", workspace);
-		if (++col == 4) {
-			col = 0;
-			puts("");
-		}
+        if (++col == 4) {
+            col = 0;
+            puts("");
+        }
     }
-	if (col != 0)
-		puts("");
+    if (col != 0)
+        puts("");
 } /* list_symbols */

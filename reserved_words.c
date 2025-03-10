@@ -13,33 +13,33 @@
 #include "reserved_words.h"
 
 #define RW(_nam, _tok) {   \
-		.name     = #_nam, \
-		.tokn     =  _tok, \
-		.tokn_str = #_tok, \
-	}
+        .name     = #_nam, \
+        .tokn     =  _tok, \
+        .tokn_str = #_tok, \
+    }
 
 static const reserved_word reserved_words[] = {
-	RW(if,     IF),
-	RW(else,   ELSE),
-	RW(while,  WHILE),
-	RW(print,  PRINT),
-	RW(symbs,  SYMBS),
-	RW(func,   FUNC),
-	RW(proc,   PROC),
-	RW(return, RETURN),
-	RW(read,   READ),
+    RW(if,     IF),
+    RW(else,   ELSE),
+    RW(while,  WHILE),
+    RW(print,  PRINT),
+    RW(symbs,  SYMBS),
+    RW(func,   FUNC),
+    RW(proc,   PROC),
+    RW(return, RETURN),
+    RW(read,   READ),
 
-	{ .name = NULL }
+    { .name = NULL }
 };
 
 const reserved_word *
 rw_lookup(
-		char        *lex)
+        char        *lex)
 {
-	for (	const reserved_word *rw = reserved_words;
-			rw->name;
-			rw++)
-		if (strcmp(rw->name, lex) == 0)
-			return rw;
-	return NULL;
+    for (   const reserved_word *rw = reserved_words;
+            rw->name;
+            rw++)
+        if (strcmp(rw->name, lex) == 0)
+            return rw;
+    return NULL;
 } /* rw_lookup */

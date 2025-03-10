@@ -5,6 +5,7 @@
 #define HOC_H
 
 #include <setjmp.h>
+#include <stdio.h>
 
 #define OUTPUT_FMT   "%32.8g"
 
@@ -12,17 +13,17 @@ typedef struct Symbol {                   /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
                                            * VAR, BLTIN[012], UNDEF */
-	const char    *help;                  /* help text (optional) */
+    const char    *help;                  /* help text (optional) */
     union {
         double     val;                   /* si el tipo es VAR */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
     }  /* no hay nombre de campo */ ;
-	   /* union anonima, el nombre del campo no existe, de forma que los
-		* nombres de los campos de la union pueden usarse directamente desde
-		* la estructura Symbol.  Esto ***solo*** es valido en C, y no en 
-		* C++ */
+       /* union anonima, el nombre del campo no existe, de forma que los
+        * nombres de los campos de la union pueden usarse directamente desde
+        * la estructura Symbol.  Esto ***solo*** es valido en C, y no en
+        * C++ */
     struct Symbol *next;                  /* enlace al siguiente
                                            * simbolo de la tabla.*/
 } Symbol;
@@ -37,7 +38,7 @@ Symbol *install(
         const char *name,
         int         typ,
         double      val,
-		const char *help);
+        const char *help);
 
 /* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
  * simbolo no existe. */
@@ -53,6 +54,8 @@ void execerror(const char *fmt, ...);
 
 int yyparse(void);
 int yylex(void);
+FILE *yysetfilename(const char *fn);
+void yysetFILE(FILE *in);
 
 extern jmp_buf begin;
 extern int lineno;
@@ -70,10 +73,10 @@ typedef union Cell Cell;
 
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell {
-	Inst    inst;
-	Symbol *sym;
-	double  val;
-	Cell   *cel;
+    Inst    inst;
+    Symbol *sym;
+    double  val;
+    Cell   *cel;
 };
 
 extern Cell prog[];

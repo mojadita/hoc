@@ -25,7 +25,6 @@ extern int lineno;
 
 %option noyywrap
 %x COMMENT
-%x INSTR
 
 %%
 
@@ -61,61 +60,19 @@ extern int lineno;
             }
             yylval.sym = s;
             P("Symbol <%s> (%d)\n", s->name, s->type);
-            return s->type == UNDEF ? VAR : s->type; }
+            return s->type == UNDEF ? VAR : s->type;
+        }
 "$"[1-9][0-9]*  {
             sscanf(yytext+1, "%d", &yylval.num);
             P("nombre de parametro: %s\n", yytext);
             return ARG;
         }
 
-\"      {
-            BEGIN INSTR;
-            P("comienzo de cadena\n");
+\"([^\"\n]|\\.)*\" {
+            P("cadena de caracteres: %s\n", yytext);
         }
-<INSTR>\" {
-            BEGIN INITIAL;
-            P("FIN de cadena\n");
-        }
-<INSTR>\\[0abefnrtv\\"']  {
-            P("secuencia de escape simple en cadena: %s\n", yytext);
-            switch (yytext[1]) {
-            case '0':
-            case 'a':
-            case 'b':
-            case 'e':
-            case 'f':
-            case 'n':
-            case 'r':
-            case 't':
-            case 'v':
-            case '\\':
-            case '"':
-            case '\'': ;
-            }
-        }
-<INSTR>\\.  {
-            P("secuencia de escape simple en cadena: %s -> %s\n", yytext, yytext + 1);
-        }
-
-<INSTR>\\[oO][0-7][0-7]?[0-7]? {
-            P("Caracter Octal %s\n", yytext);
-        }
-<INSTR>\\[xX][0-9A-Fa-f][0-9A-Fa-f] {
-            P("Caracter Hex %s\n", yytext);
-        }
-<INSTR>\\u[0-9a-fA-F]{4} {
-            P("Caracter UTF16 %s\n", yytext);
-        }
-<INSTR>\\U[0-9a-fA-F]{8} {
-            P("Codepoint UNICODE %s\n", yytext);
-        }
-
-<INSTR>\n  {
-            P("\\n dentro de cadena, error\n");
-            return ERROR;
-        }
-<INSTR>. {
-            P("Caracter %s\n", yytext);
+\"([^\"\n]|\\.)*\n {
+            execerror("cadena de caracteres no terminada: %s", yytext);
         }
 
 ">="    { P("operador %s (%d)\n", yytext, GE); return GE; }
@@ -139,6 +96,21 @@ extern int lineno;
 <<EOF>> { P("EOF (0)\n"); return 0; }
 
 %%
+
+FILE *yysetfilename(const char *fn)
+{
+    FILE *ret_val = fopen(fn, "r");
+    if (ret_val) {
+        yysetFILE(ret_val);
+    }
+    return ret_val;
+} /* yysetfilename */
+
+void yysetFILE(FILE *in)
+{
+    yyrestart(in);
+    BEGIN INITIAL;
+} /* yysetFILE */
 
 #if 0
 /*  Si esta funcion no se escribe, debemos enlazar con -ll

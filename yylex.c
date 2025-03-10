@@ -13,13 +13,13 @@ extern int lineno;
 
 static int follow(int expected, int ifyes, int ifno)
 {
-	int c = fgetc(stdin);
-	if (c == EOF)
-		return 0;
-	if (c == expected)
-		return ifyes;
-	ungetc(c, stdin);
-	return ifno;
+    int c = fgetc(stdin);
+    if (c == EOF)
+        return 0;
+    if (c == expected)
+        return ifyes;
+    ungetc(c, stdin);
+    return ifno;
 } /* follow */
 
 /*  Esta funcion produce un TOKEN  */
@@ -66,7 +66,7 @@ yylex(void)   /* hoc1 */
 #endif
             return ERROR;
         }
-		yylval.val = d;
+        yylval.val = d;
         return NUMBER;  /* retornando tipo de token  */
     }
     if (isalpha(c)) {
@@ -87,14 +87,14 @@ yylex(void)   /* hoc1 */
                 ? VAR
                 : s->type;
     }
-	switch(c) {
-	case '>': return follow('=', GE,  '>');
-	case '<': return follow('=', LE,  '<');
-	case '=': return follow('=', EQ,  '=');
-	case '!': return follow('=', NE,  '!');
-	case '|': return follow('|', OR,  '|');
-	case '&': return follow('&', AND, '&');
-	case '\n': lineno++; return '\n';
-	}
+    switch(c) {
+    case '>': return follow('=', GE,  '>');
+    case '<': return follow('=', LE,  '<');
+    case '=': return follow('=', EQ,  '=');
+    case '!': return follow('=', NE,  '!');
+    case '|': return follow('|', OR,  '|');
+    case '&': return follow('&', AND, '&');
+    case '\n': lineno++; return '\n';
+    }
     return c;
 } /* yylex */
