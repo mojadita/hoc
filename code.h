@@ -14,7 +14,11 @@ Cell *code_inst(
 Cell *code_sym(Symbol *s);   /* encodes one symbol in a Cell */
 Cell *code_val(double  val); /* encodes a double value in a Cell */
 Cell *code_cel(Cell   *cel); /* install one reference to Cell */
+Cell *code_int(int val);     /* install one integer on Cell */
 void execute(Cell     *p);   /* run the machine */
+void define(Symbol *symb, int type); /* put func/proc in symbol table */
+void end_define(void);       /* housekeeping after function definition */
+
 /* instructions */
 void drop(void);             /* deletes the top stack value */
 void constpush(void);        /* push constant onto stack */
@@ -45,7 +49,6 @@ void or(void);               /* or */
 void readopcode(void);       /* read to var */
 void procret(void);          /* return from proc */
 void funcret(void);          /* return from func */
-void define(Symbol *sp);     /* put func/proc in symbol table */
 void call(void);             /* call a function */
 void procret(void);          /* return from proc */
 void funcret(void);          /* return from func */

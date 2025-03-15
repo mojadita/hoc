@@ -29,7 +29,8 @@
 static Datum  stack[NSTACK];  /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
-#define NPROG 2000  /* 2000 celdas para instrucciones */
+#define NPROG 10000 /* 10000 celdas para instrucciones */
+
 Cell  prog[NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
@@ -84,44 +85,44 @@ void drop(void) /* drops the top of stack */
 
 Cell *code_inst(Inst f, const char *name) /* install one instruction of operand */
 {
-    Cell *oprogp = progp;
+    Cell *old_progp = progp;
 
     if (progp >= &prog[NPROG])
         execerror("program too big");
 
-    P2("0x%04x: %s\n", (int)(oprogp - prog), name);
+    P2("0x%04x: %s\n", (int)(old_progp - prog), name);
 
     (progp++)->inst = f;
-    return oprogp;
+    return old_progp;
 }
 
 Cell *code_sym(Symbol *s) /* install one instruction of operand */
 {
-    Cell *oprogp = progp;
+    Cell *old_progp = progp;
 
     if (progp >= &prog[NPROG])
         execerror("program too big");
     P2("      : Symbol '%s'\n", s->name);
 
     (progp++)->sym = s;
-    return oprogp;
+    return old_progp;
 }
 
 Cell *code_val(double val) /* install one instruction of operand */
 {
-    Cell *oprogp = progp;
+    Cell *old_progp = progp;
 
     if (progp >= &prog[NPROG])
         execerror("program too big");
     P2("      : DATA %.10g\n", val);
 
     (progp++)->val = val;
-    return oprogp;
+    return old_progp;
 }
 
 Cell *code_cel(Cell *cel) /* install one reference to Cell */
 {
-    Cell *oprogp = progp;
+    Cell *old_progp = progp;
 
     if (progp >= &prog[NPROG])
         execerror("program too big");
@@ -129,7 +130,17 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
             (int)(cel ? cel - prog : 0));
 
     (progp++)->cel = cel;
-    return oprogp;
+    return old_progp;
+}
+
+Cell *code_int(int val) /* install one integer on Cell */
+{
+	Cell *old_progp = progp;
+	if (progp >= prog + NPROG)
+		execerror("program too big");
+	P2("       : INT [%d]\n", val);
+	(progp++)->num = val;
+	return old_progp;
 }
 
 void execute(Cell *p) /* run the machine */
@@ -444,16 +455,28 @@ void readopcode(void)               /* readopcode */
 	push(sym->val);
 }
 
-void define(Symbol *sp) /* put func/proc in symbol table */
+void end_define(void)
 {
-	sp->defn = progbase;  /* start of code */
+	/* adjust progbase to point to the code starting point */
 	progbase = progp;     /* next code starts here */
+}
+
+Cell *define(Symbol *symb, int type)
+{
+	if (symb->type != UNDEF) {
+		execerror("symbol redefinition not allowed (%s)\n",
+				symb->name);
+	}
+	symb->type = type;
+	symb->defn = progp;
+
+	return progp;
 }
 
 void call(void)   /* call a function */
 {
 	Symbol *sp = pc[0].sym; /* symbol table entry
-						   * for function */
+						     * for function */
 	if (fp == frame)
 		execerror("Llamada a '%s' demasiado profunda\n",
 			sp->name);

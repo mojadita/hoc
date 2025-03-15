@@ -25,8 +25,8 @@ jmp_buf begin;
 #define CODE_INST(I) code_inst(I,    "\033[36m"#I"\033[m")
 #define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
-int indef_proc,
-	indef_func;
+int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
+	indef_func;  /* 1 si estamos en una definicion de funcion */
 
 %}
 /* continuamos el area de definicion y configuracion
@@ -55,11 +55,15 @@ int indef_proc,
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
-%token       OR AND GE LE EQ NE UNARY
+%token       OR AND GE LE EQ NE
+%token       UNARY
 %token <num> ARG
-%token       FUNC PROC RETURN READ
+%token <int> FUNC PROC
+%token       RETURN READ
+%token <sym> FUNCTION PROCEDURE
 %token <str> STRING
-%type  <cel> stmt asgn expr stmtlist cond while if end
+%type  <cel> stmt asig expr stmtlist cond while if end
+%type  <num> arglist_opt arglist
 
 /* la directiva %type indica los tipos de datos de los diferentes
  * simbolos no terminales, definidos en la gramatica */
@@ -80,25 +84,26 @@ int indef_proc,
 list: /* nothing */
     | list       '\n'
     | list defn  '\n'
-    | list stmt  '\n'      { CODE_STOP(); return 1; }
-    | list asgn  '\n'      { CODE_INST(assign);
+    | list stmt  '\n'      { CODE_STOP();
+							 return 1; }
+    | list asig  '\n'      { CODE_INST(assign);
                              code_sym(lookup("prev"));
                              CODE_INST(print);
                              CODE_STOP();
                              return 1; }
-    | list error finish    { yyerrok;
+    | list error final     { yyerrok;
                              return 1; }
     ;
 
-finish: '\n' | ';' ;
+final: '\n' | ';' ;
 
-stmt: asgn        ';'      { CODE_INST(drop); }
+stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(&indef_proc, "return");
 							 $$ = CODE_INST(procret); }
     | RETURN expr ';'      { defnonly(&indef_func, "return <expr>");
 							 $$ = $2;
 							 CODE_INST(funcret); }
-    | PRINT  asgn ';'      { CODE_INST(print); $$ = $2; }
+    | PRINT  asig ';'      { CODE_INST(print); $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(list_symbols); }
     | while cond stmt end  { $1[1].cel = $3;   /* body of loop */
                              $1[2].cel = $4;   /* end, if cond fails */ }
@@ -109,9 +114,13 @@ stmt: asgn        ';'      { CODE_INST(drop); }
                              $1[2].cel = $6;   /* else part, if cond fails */
                              $1[3].cel = $7;   /* end */ }
     | '{' stmtlist '}'     { $$ = $2; }
+    | PROCEDURE '(' arglist_opt ')' ';' {
+                             $$ = CODE_INST(call); /* instruction */
+                                  code_sym($1);    /* symbol associated to proc */
+                                  code_int($3);    /* number of arguments */ }
     ;
 
-cond: '(' asgn ')'         { CODE_STOP(); $$ = $2; }
+cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
     ;
 
 while : WHILE              { $$ = CODE_INST(whilecode);
@@ -133,7 +142,7 @@ stmtlist: /* empty */      { $$ = progp; }
     | stmtlist stmt
     ;
 
-asgn: VAR   '=' asgn       { if ($1->type != VAR && $1->type != UNDEF) {
+asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                                  execerror("symbol '%s' is not a variable\n",
                                            $1->name);
                              }
@@ -179,9 +188,38 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | '!' expr %prec UNARY          { CODE_INST(not); $$ = $2; } /* not */
     | READ '(' VAR ')'              { $$ = CODE_INST(readopcode);
                                            code_sym($3); }
+    | FUNCTION '(' arglist_opt ')' {
+                              $$ = CODE_INST(call); /* instruction */
+                              code_sym($1);         /* function symbol */
+                              code_int($3);         /* number of arguments */ }
     ;
 
-defn: ;
+arglist_opt
+	: arglist
+	| /* empty */           { $$ = 0; }
+	;
+
+arglist
+	: arglist ',' asig      { $$ = $1 + 1; }
+	| asig                  { $$ = 1; }
+	;
+
+defn: proc_head '(' ')' stmt {
+                              CODE_INST(procret);
+							  end_define();
+							  indef_proc    = 0; }
+    | func_head '(' ')' stmt {
+                              CODE_INST(funcret);
+							  end_define();
+							  indef_func    = 0; }
+proc_head
+	: PROC VAR              {
+							  define($2, PROCEDURE);
+							  indef_proc    = 1; }
+func_head
+    : FUNC VAR              {
+                              define($2, FUNCTION);
+							  indef_func    = 1; }
 
 /* Fin Area de definicion de reglas gramaticales */
 %%
