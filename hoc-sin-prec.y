@@ -24,6 +24,9 @@ jmp_buf begin;
 #define CODE_INST(F) code_inst(F,    "\033[36m"#F"\033[m")
 #define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
+int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
+	indef_func;  /* 1 si estamos en una definicion de funcion */
+
 %}
 
 %union {
@@ -32,7 +35,9 @@ jmp_buf begin;
     double  val;  /* valor double */
     Cell   *cel;  /* referencia a Cell */
     int     num;  /* valor entero, para $<num> */
+    char   *str;  /* cadena de caracteres */
 }
+
 /*
  * LCU: Tue Jan 21 10:58:10 EET 2025
  * definimos los mismos tokens aqui que en hoc-sin-prec.y, para
@@ -47,6 +52,7 @@ jmp_buf begin;
 %token       UNARY
 %token <num> ARG
 %token       FUNC PROC RETURN READ
+%token <str> STRING
 %type  <cel> stmt cond stmtlist while if end asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim
 
@@ -54,6 +60,7 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
+    | list defn  '\n'
     | list stmt  '\n'  { CODE_STOP();  /* para que execute() pare al final */
                          return 1; }
     | list asig  '\n'  { CODE_INST(assign);
@@ -68,10 +75,13 @@ list: /* nothing */
 final: '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 
 stmt: asig ';'             { CODE_INST(drop); }
+    | RETURN      ';'      { defnonly(&indef_proc, "return");
+							 $$ = CODE_INST(procret); }
+    | RETURN expr ';'      { defnonly(&indef_func, "return <expr>");
+							 $$ = $2;
+							 CODE_INST(funcret); }
     | PRINT asig ';'       { CODE_INST(print); $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
-    | READ VAR ';'         { $$ = CODE_INST(readopcode);
-                                  code_sym($2); }
     | while cond stmt end  { $1[1].cel = $3; /* cuerpo del bucle */
                              $1[2].cel = $4; /* posicion sig. a end */ }
     | if cond stmt end     { $1[1].cel = $3; /* posicion parte then */
@@ -168,8 +178,11 @@ prim: '(' asig ')'          { $$ = $2; }
     | BLTIN2 '(' asig ',' asig ')'
                             { $$ = CODE_INST(bltin2);
                                    code_sym($1); }
+    | READ '(' VAR ')'      { $$ = CODE_INST(readopcode);
+                                   code_sym($3); }
     ;
 
+defn: ;
 %%
 
 void yyerror(char *s)   /* called for yacc syntax error */

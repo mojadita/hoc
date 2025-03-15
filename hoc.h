@@ -9,7 +9,10 @@
 
 #define OUTPUT_FMT   "%32.8g"
 
-typedef struct Symbol {                   /* Symbol table entry */
+typedef union  Cell   Cell;
+typedef struct Symbol Symbol;
+
+struct Symbol {                           /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
                                            * VAR, BLTIN[012], UNDEF */
@@ -19,14 +22,15 @@ typedef struct Symbol {                   /* Symbol table entry */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
+		Cell      *defn;
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
         * nombres de los campos de la union pueden usarse directamente desde
         * la estructura Symbol.  Esto ***solo*** es valido en C, y no en
         * C++ */
-    struct Symbol *next;                  /* enlace al siguiente
+    Symbol        *next;                  /* enlace al siguiente
                                            * simbolo de la tabla.*/
-} Symbol;
+};
 
 /* instala un nuevo simbolo en la tabla de simbolos, inicializado
  * con el nombre, tipo y valor correspondiente.
@@ -69,14 +73,14 @@ typedef void (*Inst)(void); /* machine instruction */
 
 #define STOP (Inst) 0
 
-typedef union Cell Cell;
-
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell {
-    Inst    inst;
-    Symbol *sym;
-    double  val;
-    Cell   *cel;
+    Inst        inst;
+    Symbol     *sym;
+    double      val;
+    Cell       *cel;
+	const char *str;
+	int         num;
 };
 
 extern Cell prog[];

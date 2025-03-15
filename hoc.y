@@ -25,6 +25,9 @@ jmp_buf begin;
 #define CODE_INST(I) code_inst(I,    "\033[36m"#I"\033[m")
 #define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
+int indef_proc,
+	indef_func;
+
 %}
 /* continuamos el area de definicion y configuracion
  * de yacc */
@@ -33,10 +36,11 @@ jmp_buf begin;
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
     Inst    inst; /* machine instruction */
-    Symbol *sym; /* symbol table pointer */
-    double  val; /* double value */
-    Cell   *cel; /* Cell reference */
-    int     num; /* valor entero, para $<n> */
+    Symbol *sym;  /* symbol table pointer */
+    double  val;  /* double value */
+    Cell   *cel;  /* Cell reference */
+    int     num;  /* valor entero, para $<n> */
+    char   *str;  /* cadena de caracteres */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
@@ -54,6 +58,7 @@ jmp_buf begin;
 %token       OR AND GE LE EQ NE UNARY
 %token <num> ARG
 %token       FUNC PROC RETURN READ
+%token <str> STRING
 %type  <cel> stmt asgn expr stmtlist cond while if end
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -74,6 +79,7 @@ jmp_buf begin;
 
 list: /* nothing */
     | list       '\n'
+    | list defn  '\n'
     | list stmt  '\n'      { CODE_STOP(); return 1; }
     | list asgn  '\n'      { CODE_INST(assign);
                              code_sym(lookup("prev"));
@@ -86,11 +92,14 @@ list: /* nothing */
 
 finish: '\n' | ';' ;
 
-stmt: asgn ';'             { CODE_INST(drop); }
-    | PRINT asgn ';'       { CODE_INST(print); $$ = $2; }
-    | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
-    | READ VAR ';'         { $$ = CODE_INST(readopcode);
-                                  code_sym($2); }
+stmt: asgn        ';'      { CODE_INST(drop); }
+    | RETURN      ';'      { defnonly(&indef_proc, "return");
+							 $$ = CODE_INST(procret); }
+    | RETURN expr ';'      { defnonly(&indef_func, "return <expr>");
+							 $$ = $2;
+							 CODE_INST(funcret); }
+    | PRINT  asgn ';'      { CODE_INST(print); $$ = $2; }
+    | SYMBS       ';'      { $$ = CODE_INST(list_symbols); }
     | while cond stmt end  { $1[1].cel = $3;   /* body of loop */
                              $1[2].cel = $4;   /* end, if cond fails */ }
     | if    cond stmt end  { $1[1].cel = $3;   /* then part */
@@ -168,7 +177,11 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | '+' expr %prec UNARY          { $$ = $2; }
     | '-' expr %prec UNARY          { CODE_INST(neg); $$ = $2; } /* new */
     | '!' expr %prec UNARY          { CODE_INST(not); $$ = $2; } /* not */
+    | READ '(' VAR ')'              { $$ = CODE_INST(readopcode);
+                                           code_sym($3); }
     ;
+
+defn: ;
 
 /* Fin Area de definicion de reglas gramaticales */
 %%

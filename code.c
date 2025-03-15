@@ -5,15 +5,6 @@
 #include "hoc.h"
 #include "hoc.tab.h"
 
-#define NSTACK 256
-static Datum  stack[NSTACK];  /* the stack */
-static Datum *stackp;         /* next free cell on stack */
-
-#define NPROG 2000  /* 2000 celdas para instrucciones */
-Cell  prog[NPROG];  /* the machine */
-Cell *progp;        /* next free cell for code generation */
-Cell *pc;           /* program counter during execution */
-
 #ifndef DEBUG_P1
 #define DEBUG_P1 1
 #endif
@@ -34,10 +25,34 @@ Cell *pc;           /* program counter during execution */
 #define P2(_fmt, ...)
 #endif
 
+#define NSTACK 256
+static Datum  stack[NSTACK];  /* the stack */
+static Datum *stackp;         /* next free cell on stack */
+
+#define NPROG 2000  /* 2000 celdas para instrucciones */
+Cell  prog[NPROG];  /* the machine */
+Cell *progp;        /* next free cell for code generation */
+Cell *pc;           /* program counter during execution */
+Cell *progbase = prog; /* start of current subprogram */
+int   returning;    /* 1 if return stmt seen */
+
+typedef struct Frame { /* proc/func call stack frame */
+	Symbol *sp;        /* symbol table entry */
+	Cell   *retpc;     /* where to resume after return */
+	Datum  *argn;      /* n-th argument on stack */
+	int     nargs;     /* number of arguments */
+} Frame;
+
+#define NFRAME 100
+Frame frame[NFRAME];
+Frame *fp;             /* frame pointer */
+
 void initcode(void)  /* initalize for code generation */
 {
-    stackp = stack;
-    progp  = prog;
+    progp     = progbase;
+    stackp    = stack;
+	fp        = frame + NFRAME;
+	returning = 0;
 }
 
 int stacksize(void) /* return the stack size */
@@ -120,7 +135,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 void execute(Cell *p) /* run the machine */
 {
     P(" \033[1;33mBEGIN\033[m\n");
-    for (pc = p; pc->inst != STOP;) {
+    for (pc = p; pc->inst != STOP && !returning;) {
         (pc++)->inst();
     }
     P(" \033[1;33mEND\033[m\n");
@@ -290,7 +305,9 @@ void whilecode(void) /* execute the while loop */
         d = pop();
     }
     P(" END while loop\n");
-    pc = savepc[1].cel;
+	if (!returning) {
+		pc = savepc[1].cel;
+	}
 }
 
 void ifcode(void) /* execute the if statement */
@@ -311,7 +328,9 @@ void ifcode(void) /* execute the if statement */
         execute(savepc[1].cel);
     }
     P(" END\n");
-    pc = savepc[2].cel;
+	if (!returning) {
+		pc = savepc[2].cel;
+	}
 }
 
 void ge(void) /* greater or equal */
@@ -422,4 +441,72 @@ void readopcode(void)               /* readopcode */
     }
     P(": %.8lg -> %s\n", sym->val, sym->name);
     sym->type   = VAR;
+	push(sym->val);
+}
+
+void define(Symbol *sp) /* put func/proc in symbol table */
+{
+	sp->defn = progbase;  /* start of code */
+	progbase = progp;     /* next code starts here */
+}
+
+void call(void)   /* call a function */
+{
+	Symbol *sp = pc[0].sym; /* symbol table entry
+						   * for function */
+	if (fp == frame)
+		execerror("Llamada a '%s' demasiado profunda\n",
+			sp->name);
+	fp--;
+	fp->sp = sp;
+	fp->nargs = pc[1].num;
+	fp->retpc = pc + 2;
+	fp->argn  = stackp - 1; /* pointer to last argument */
+	execute(sp->defn);
+	returning = 0;
+}
+
+void procret(void) /* return from proc */
+{
+	for (int i = 0; i < fp->nargs; i++) {
+		drop(); /* pop arguments */
+	}
+
+	pc        = fp->retpc;
+	returning = 1;
+	++fp;
+}
+
+void funcret(void) /* return from func */
+{
+	Datum d = pop();  /* preserve function return value */
+	procret();
+	push(d);
+}
+
+Datum *getarg(void)    /* return a pointer to argument */
+{
+	int arg = pc[0].num;
+	return &fp->argn[arg - fp->nargs];
+}
+
+void argeval(void) /* push argument onto stack */
+{
+	push(*getarg());
+}
+
+void argassign(void) /* store top of stack in argument */
+{
+	push(*getarg() = pop()); /* pop the top, assign to arg,
+							  * then push it again */
+}
+
+void prstr(void) /* print string */
+{
+	printf("%s", pc++[0].str);
+}
+
+void prexpr(void)  /* print numeric value */
+{
+	printf("%.8g ", pop());
 }

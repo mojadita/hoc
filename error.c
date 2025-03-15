@@ -40,3 +40,11 @@ void vwarning(const char *fmt, va_list args)
     vprintf(fmt, args);
     printf(" \033[1;33mcerca de la linea %d\033[0m\n", lineno);
 } /* vwarning */
+
+void defnonly(int *cual, const char *name)
+{
+	if (!*cual) {
+		execerror("'%s': debe usarse dentro de una definicion proc/func.\n",
+				  name);
+	}
+}

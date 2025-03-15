@@ -43,6 +43,17 @@ void not(void);              /* not */
 void and(void);              /* and */
 void or(void);               /* or */
 void readopcode(void);       /* read to var */
+void procret(void);          /* return from proc */
+void funcret(void);          /* return from func */
+void define(Symbol *sp);     /* put func/proc in symbol table */
+void call(void);             /* call a function */
+void procret(void);          /* return from proc */
+void funcret(void);          /* return from func */
+Datum *getarg(void);         /* return a pointer to argument */
+void argeval(void);          /* push argument onto stack */
+void argassign(void);        /* store top of stack in argument */
+void prstr(void);            /* print string */
+void prexpr(void);           /* print numeric value */
 
 int stacksize(void);         /* return the stack size */
 
