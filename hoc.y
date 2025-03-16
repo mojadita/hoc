@@ -25,6 +25,20 @@ jmp_buf begin;
 #define CODE_INST(I) code_inst(I,    "\033[36m"#I"\033[m")
 #define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
+#ifndef UQ_HOC_DEBUG
+//#warning UQ_HOC_DEBUG deberia ser configurado en config.mk
+#define UQ_HOC_DEBUG 1
+#endif
+
+#if UQ_HOC_DEBUG  /*   {{ */
+#define P(_fmt, ...)                      \
+    printf("%s:%d:%s "_fmt,               \
+            __FILE__, __LINE__, __func__, \
+            ##__VA_ARGS__)
+#else /* UQ_HOC_DEBUG  }{ */
+#define P(_fmt, ...)
+#endif /* UQ_HOC_DEBUG }} */
+
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 	indef_func;  /* 1 si estamos en una definicion de funcion */
 
@@ -98,9 +112,9 @@ list: /* nothing */
 final: '\n' | ';' ;
 
 stmt: asig        ';'      { CODE_INST(drop); }
-    | RETURN      ';'      { defnonly(&indef_proc, "return");
+    | RETURN      ';'      { defnonly(indef_proc, "return");
 							 $$ = CODE_INST(procret); }
-    | RETURN expr ';'      { defnonly(&indef_func, "return <expr>");
+    | RETURN expr ';'      { defnonly(indef_func, "return <expr>");
 							 $$ = $2;
 							 CODE_INST(funcret); }
     | PRINT  asig ';'      { CODE_INST(print); $$ = $2; }
@@ -116,8 +130,8 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | '{' stmtlist '}'     { $$ = $2; }
     | PROCEDURE '(' arglist_opt ')' ';' {
                              $$ = CODE_INST(call); /* instruction */
-                                  code_sym($1);    /* symbol associated to proc */
-                                  code_int($3);    /* number of arguments */ }
+                                  code_sym($1);    /* symbol associated to proc*/
+                                  code_num($3);    /* number of arguments */ }
     ;
 
 cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
@@ -149,6 +163,11 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              $$ = $3;
                              CODE_INST(assign);
                              code_sym($1); }
+	| ARG   '=' asig       { defnonly(indef_proc || indef_func, "$%d assign", $1);
+							 $$ = $3;
+							 CODE_INST(argassign);
+							 code_num($1);
+						   }
     | expr
     ;
 
@@ -156,6 +175,11 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
                                            code_val($1); }
     | VAR                           { $$ = CODE_INST(eval);
                                            code_sym($1); }
+	| ARG                           { defnonly(indef_proc || indef_func,
+												"$%d assign", $1);
+									  $$ = CODE_INST(argeval);
+                                           code_num($1);
+									}
 
     | CONST                         { CODE_INST(eval);
                                       code_sym($1); }
@@ -191,7 +215,7 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | FUNCTION '(' arglist_opt ')' {
                               $$ = CODE_INST(call); /* instruction */
                               code_sym($1);         /* function symbol */
-                              code_int($3);         /* number of arguments */ }
+                              code_num($3);         /* number of arguments */ }
     ;
 
 arglist_opt
@@ -207,17 +231,25 @@ arglist
 defn: proc_head '(' ')' stmt {
                               CODE_INST(procret);
 							  end_define();
-							  indef_proc    = 0; }
+							  indef_proc    = 0;
+							  P("FIN DEFINICION PROCEDIMIENTO\n");
+							}
     | func_head '(' ')' stmt {
+							  CODE_INST(constpush);
+							  code_val(0.0);
                               CODE_INST(funcret);
 							  end_define();
-							  indef_func    = 0; }
+							  indef_func    = 0;
+							  P("FIN DEFINICION FUNCION\n");
+							}
 proc_head
 	: PROC VAR              {
+							  P("DEFINIENDO EL PROCEDIMIENTO '%s'\n", $2->name);
 							  define($2, PROCEDURE);
 							  indef_proc    = 1; }
 func_head
     : FUNC VAR              {
+							  P("DEFINIENDO LA FUNCION '%s'\n", $2->name);
                               define($2, FUNCTION);
 							  indef_func    = 1; }
 

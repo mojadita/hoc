@@ -4,6 +4,7 @@
 #include "hoc.h"
 
 extern Cell *progp;          /* next free cell for code generation */
+extern Cell *progbase;       /* pointer to first program instruction */
 
 void initcode(void);         /* initalize for code generation */
 void push(Datum        d);   /* push d onto stack */
@@ -14,7 +15,7 @@ Cell *code_inst(
 Cell *code_sym(Symbol *s);   /* encodes one symbol in a Cell */
 Cell *code_val(double  val); /* encodes a double value in a Cell */
 Cell *code_cel(Cell   *cel); /* install one reference to Cell */
-Cell *code_int(int val);     /* install one integer on Cell */
+Cell *code_num(int val);     /* install one integer on Cell */
 void execute(Cell     *p);   /* run the machine */
 void define(Symbol *symb, int type); /* put func/proc in symbol table */
 void end_define(void);       /* housekeeping after function definition */

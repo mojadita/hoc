@@ -38,7 +38,7 @@ Cell *progbase = prog; /* start of current subprogram */
 int   returning;    /* 1 if return stmt seen */
 
 typedef struct Frame { /* proc/func call stack frame */
-	Symbol *sp;        /* symbol table entry */
+	Symbol *sym;       /* symbol table entry */
 	Cell   *retpc;     /* where to resume after return */
 	Datum  *argn;      /* n-th argument on stack */
 	int     nargs;     /* number of arguments */
@@ -46,7 +46,7 @@ typedef struct Frame { /* proc/func call stack frame */
 
 #define NFRAME 100
 Frame frame[NFRAME];
-Frame *fp;             /* frame pointer */
+Frame *fp     = frame + NFRAME;      /* frame pointer */
 
 void initcode(void)  /* initalize for code generation */
 {
@@ -133,7 +133,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
     return old_progp;
 }
 
-Cell *code_int(int val) /* install one integer on Cell */
+Cell *code_num(int val) /* install one integer on Cell */
 {
 	Cell *old_progp = progp;
 	if (progp >= prog + NPROG)
@@ -475,42 +475,68 @@ Cell *define(Symbol *symb, int type)
 
 void call(void)   /* call a function */
 {
-	Symbol *sp = pc[0].sym; /* symbol table entry
-						     * for function */
-	if (fp == frame)
+    P("\n");
+
+	Symbol *sym  = pc[0].sym;
+
+	if (fp == frame) {
 		execerror("Llamada a '%s' demasiado profunda\n",
-			sp->name);
+			sym->name);
+	}
+	 
 	fp--;
-	fp->sp = sp;
-	fp->nargs = pc[1].num;
-	fp->retpc = pc + 2;
-	fp->argn  = stackp - 1; /* pointer to last argument */
-	execute(sp->defn);
+	fp->sym      = sym;
+	fp->nargs    = pc[1].num;
+	fp->retpc    = pc + 2;
+	fp->argn     = stackp - 1; /* pointer to last argument */
+	P("execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x\n",
+		(int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
+		sym->name, fp->nargs, (int)(fp->retpc - prog));
+	execute(sym->defn);
+
+	if (fp >= frame + NPROG) {
+		execerror("Smatching stack, la pila esta corrompida\n");
+	}
+	P("return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x\n",
+		(int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
+		sym->name, fp->nargs, (int)(fp->retpc - prog));
+	pc        = fp->retpc;
 	returning = 0;
+	++fp;
 }
 
-void procret(void) /* return from proc */
+static void ret(void)
 {
 	for (int i = 0; i < fp->nargs; i++) {
 		drop(); /* pop arguments */
 	}
 
-	pc        = fp->retpc;
 	returning = 1;
-	++fp;
+}
+
+void procret(void) /* return from proc */
+{
+    P("\n");
+	ret();
 }
 
 void funcret(void) /* return from func */
 {
+    P("\n");
 	Datum d = pop();  /* preserve function return value */
-	procret();
+	ret();
 	push(d);
 }
 
 Datum *getarg(void)    /* return a pointer to argument */
 {
 	int arg = pc[0].num;
-	return &fp->argn[arg - fp->nargs];
+	if (arg > fp->nargs) {
+		execerror("Accessing arg $%d while only %d "
+			"args have been passed\n",
+			arg, fp->nargs);
+	}
+	return fp->argn - fp->nargs + arg;
 }
 
 void argeval(void) /* push argument onto stack */

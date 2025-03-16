@@ -72,7 +72,7 @@ static void process(FILE *in)
 {
     setjmp(begin);
     for (initcode(); parse(); initcode()) {
-        execute(prog);
+        execute(progbase);
         printf("Stack size after execution: %d\n", stacksize());
     }
 } /* process */

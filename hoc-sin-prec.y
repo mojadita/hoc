@@ -79,9 +79,9 @@ list: /* nothing */
 final: '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 
 stmt: asig ';'             { CODE_INST(drop); }
-    | RETURN      ';'      { defnonly(&indef_proc, "return;");
+    | RETURN      ';'      { defnonly(indef_proc, "return;");
                              $$ = CODE_INST(procret); }
-    | RETURN expr ';'      { defnonly(&indef_func, "return <expr>;");
+    | RETURN expr ';'      { defnonly(indef_func, "return <expr>;");
                              $$ = $2;
                              CODE_INST(funcret); }
     | PRINT asig ';'       { CODE_INST(print); $$ = $2; }
@@ -98,7 +98,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | PROCEDURE '(' arglist_opt ')' ';' {
                              $$ = CODE_INST(call); /* instruction */
                                   code_sym($1);    /* symbol associated to proc */
-                                  code_int($3);    /* number of arguments */ }
+                                  code_num($3);    /* number of arguments */ }
     ;
 
 cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
@@ -130,6 +130,12 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              $$ = $3;
                              CODE_INST(assign);
                              code_sym($1); }
+	| ARG   '=' asig       {
+							 defnonly(indef_proc || indef_func, "$%d assign", $1);
+							 $$ = $3;
+							 CODE_INST(argassign);
+							 code_num($1);
+						   }
     | expr_or
     ;
 
@@ -177,6 +183,11 @@ prim: '(' asig ')'          { $$ = $2; }
                                    code_val($1); }
     | VAR                   { $$ = CODE_INST(eval);
                                    code_sym($1); }
+	| ARG                   { defnonly(indef_proc || indef_func,
+									   "$%d assign", $1);
+						      $$ = CODE_INST(argeval);
+                              code_num($1);
+						    }
     | CONST                 { $$ = CODE_INST(eval);
                                    code_sym($1); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0);
@@ -191,7 +202,7 @@ prim: '(' asig ')'          { $$ = $2; }
     | FUNCTION '(' arglist_opt ')' {
                               $$ = CODE_INST(call); /* instruction */
                               code_sym($1);         /* function symbol */
-                              code_int($3);         /* number of arguments */ }
+                              code_num($3);         /* number of arguments */ }
     ;
 
 arglist_opt
@@ -209,6 +220,8 @@ defn: proc_head '(' ')' stmt {
 							  end_define();
 							  indef_proc = 0; }
     | func_head '(' ')' stmt {
+							  CODE_INST(constpush);
+							  code_val(0.0);
                               CODE_INST(funcret);
 							  end_define();
 							  indef_func = 0; }

@@ -1,3 +1,4 @@
+CFLAGS         = -g -O0
 RM            ?= rm -f
 targets        = hoc hoc-sin-prec hoc.1.gz
 toclean       += $(targets)
