@@ -74,14 +74,14 @@ static char *deescape(char *in);
         }
 
 \"([^\"\n]|\\.)*\" {
-			yylval.str = deescape(yytext);
+            yylval.str = deescape(yytext);
             P("cadena de caracteres: %s -> [%s]\n",
-				yytext, yylval.str);
-			return STRING;
+                yytext, yylval.str);
+            return STRING;
         }
 \"([^\"\n]|\\.)*\n {
             execerror("cadena de caracteres no terminada: %s",
-				yytext);
+                yytext);
         }
 
 ">="    { P("operador %s (%d)\n", yytext, GE); return GE; }
@@ -124,49 +124,49 @@ void yysetFILE(FILE *in)
 static char *
 deescape(char *in)
 {
-	char *ret_val = strdup(in + 1),
-		 *src     = ret_val,
-		 *dst     = ret_val;
-	assert(ret_val != NULL);
-	for (; *src != '"'; src++) {
-		char c = *src;
-		switch (c) {
-			case '\\':
-				src++; c = *src;
-				switch(c) {
-					case 'a': *dst++ = '\a'; break;
-					case 'b': *dst++ = '\b'; break;
-					case 'e': *dst++ = '\e'; break;
-					case 'f': *dst++ = '\f'; break;
-					case 'n': *dst++ = '\n'; break;
-					case 'r': *dst++ = '\r'; break;
-					case 't': *dst++ = '\t'; break;
-					case 'v': *dst++ = '\v'; break;
-					case '0': case '1': case '2': case '3':
-					case '4': case '5': case '6': case '7': {
-							c = c - '0';
-							P("leemos digito %d\n", c);
-							int i;
-							for (i = 0; i < 2; i++) {
-								src++;
-								if (*src < '0' || *src > '7')
-									break;
-								P("c(%d) ->", c);
-								c *= 8; c += *src - '0';
-								P(" c(%d)\n", c);
-							}
-							if (i < 2) src--;
-							*dst++ = c;
-							break;
-						}
-					default: *dst++ = *src; break;
-				} /* switch */
-				break;
-			default: *dst++ = *src; break;
-		} /* switch */
-	} /* for */
-	*dst = '\0';
-	return ret_val;
+    char *ret_val = strdup(in + 1),
+         *src     = ret_val,
+         *dst     = ret_val;
+    assert(ret_val != NULL);
+    for (; *src != '"'; src++) {
+        char c = *src;
+        switch (c) {
+            case '\\':
+                src++; c = *src;
+                switch(c) {
+                    case 'a': *dst++ = '\a'; break;
+                    case 'b': *dst++ = '\b'; break;
+                    case 'e': *dst++ = '\e'; break;
+                    case 'f': *dst++ = '\f'; break;
+                    case 'n': *dst++ = '\n'; break;
+                    case 'r': *dst++ = '\r'; break;
+                    case 't': *dst++ = '\t'; break;
+                    case 'v': *dst++ = '\v'; break;
+                    case '0': case '1': case '2': case '3':
+                    case '4': case '5': case '6': case '7': {
+                            c = c - '0';
+                            P("leemos digito %d\n", c);
+                            int i;
+                            for (i = 0; i < 2; i++) {
+                                src++;
+                                if (*src < '0' || *src > '7')
+                                    break;
+                                P("c(%d) ->", c);
+                                c *= 8; c += *src - '0';
+                                P(" c(%d)\n", c);
+                            }
+                            if (i < 2) src--;
+                            *dst++ = c;
+                            break;
+                        }
+                    default: *dst++ = *src; break;
+                } /* switch */
+                break;
+            default: *dst++ = *src; break;
+        } /* switch */
+    } /* for */
+    *dst = '\0';
+    return ret_val;
 } /* deescape */
 
 #if 0

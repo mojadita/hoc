@@ -14,7 +14,8 @@
 
 #if DEBUG_P1
 #define P(_fmt, ...) \
-    printf("%s:%d: %s"_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+    printf("%s:%d:[%04x] %s"_fmt, __FILE__, __LINE__, \
+        (int)(pc - prog - 1), __func__, ##__VA_ARGS__)
 #else
 #define P(_fmt, ...)
 #endif
@@ -29,7 +30,7 @@
 static Datum  stack[NSTACK];  /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
-#define NPROG 10000 /* 10000 celdas para instrucciones */
+#define NPROG 2000 /* 10000 celdas para instrucciones */
 
 Cell  prog[NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
@@ -38,22 +39,24 @@ Cell *progbase = prog; /* start of current subprogram */
 int   returning;    /* 1 if return stmt seen */
 
 typedef struct Frame { /* proc/func call stack frame */
-	Symbol *sym;       /* symbol table entry */
-	Cell   *retpc;     /* where to resume after return */
-	Datum  *argn;      /* n-th argument on stack */
-	int     nargs;     /* number of arguments */
+    Symbol *sym;       /* symbol table entry */
+    Cell   *retpc;     /* where to resume after return */
+    Datum  *argn;      /* n-th argument on stack */
+    int     nargs;     /* number of arguments */
 } Frame;
 
 #define NFRAME 100
 Frame frame[NFRAME];
 Frame *fp     = frame + NFRAME;      /* frame pointer */
 
+static Datum *getarg(int arg);    /* return a pointer to argument */
+
 void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
     stackp    = stack;
-	fp        = frame + NFRAME;
-	returning = 0;
+    fp        = frame + NFRAME;
+    returning = 0;
 }
 
 int stacksize(void) /* return the stack size */
@@ -135,12 +138,12 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 
 Cell *code_num(int val) /* install one integer on Cell */
 {
-	Cell *old_progp = progp;
-	if (progp >= prog + NPROG)
-		execerror("program too big");
-	P2("       : INT [%d]\n", val);
-	(progp++)->num = val;
-	return old_progp;
+    Cell *old_progp = progp;
+    if (progp >= prog + NPROG)
+        execerror("program too big");
+    P2("       : INT [%d]\n", val);
+    (progp++)->num = val;
+    return old_progp;
 }
 
 void execute(Cell *p) /* run the machine */
@@ -305,20 +308,22 @@ void whilecode(void) /* execute the while loop */
     Cell *savepc = pc;  /* savepc[0] loop body address */
                         /* savepc[1] is the loop end address */
                         /* savepc + 2 is the cond starting point */
-    P(" execute cond code\n");
+    P(" execute cond code [%04lx]\n", savepc + 2 - prog);
     execute(savepc + 2); /* execute cond code */
     Datum d = pop();     /* pop the boolean data */
-    while (d) {
-        P(" execute body code\n");
+    while (d != 0) {
+        P(" execute body code [%04lx]\n", savepc[0].cel - prog);
         execute(savepc[0].cel); /* execute body */
-        P(" execute cond code\n");
+        P(" execute cond code [%04lx]\n", savepc + 2 - prog);
         execute(savepc + 2);    /* execute cond again */
         d = pop();
     }
-    P(" END while loop\n");
-	if (!returning) {
-		pc = savepc[1].cel;
-	}
+    P(" END while loop");
+    if (!returning) {
+        printf(" [%04lx]", savepc[1].cel - prog);
+        pc = savepc[1].cel;
+    }
+    printf("\n");
 }
 
 void ifcode(void) /* execute the if statement */
@@ -328,20 +333,22 @@ void ifcode(void) /* execute the if statement */
                         /* savepc[1] else statement address */
                         /* savepc[2] next statement address */
                         /* savepc + 3 first cond evaluation instruction */
-    P(" execute cond code\n");
+    P(" execute cond code [%04lx]\n", savepc + 3 - prog);
     execute(savepc + 3); /* execute cond code */
     Datum d = pop();    /* pop the boolean data */
     if (d) {
-        P(" execute THEN code\n");
+        P(" execute THEN code [%04lx]\n", savepc[0].cel - prog);
         execute(savepc[0].cel);
     } else if (savepc[1].cel) {
-        P(" execute ELSE code\n");
+        P(" execute ELSE code [%04lx]\n", savepc[1].cel - prog);
         execute(savepc[1].cel);
     }
-    P(" END\n");
-	if (!returning) {
-		pc = savepc[2].cel;
-	}
+    P(" END");
+    if (!returning) {
+        printf(" [%04lx]", savepc[2].cel - prog);
+        pc = savepc[2].cel;
+    }
+    printf("\n");
 }
 
 void ge(void) /* greater or equal */
@@ -452,110 +459,127 @@ void readopcode(void)               /* readopcode */
     }
     P(": %.8lg -> %s\n", sym->val, sym->name);
     sym->type   = VAR;
-	push(sym->val);
+    push(sym->val);
 }
 
 void end_define(void)
 {
-	/* adjust progbase to point to the code starting point */
-	progbase = progp;     /* next code starts here */
+    /* adjust progbase to point to the code starting point */
+    progbase = progp;     /* next code starts here */
 }
 
 Cell *define(Symbol *symb, int type)
 {
-	if (symb->type != UNDEF) {
-		execerror("symbol redefinition not allowed (%s)\n",
-				symb->name);
-	}
-	symb->type = type;
-	symb->defn = progp;
+    if (symb->type != UNDEF) {
+        execerror("symbol redefinition not allowed (%s)\n",
+                symb->name);
+    }
+    symb->type = type;
+    symb->defn = progp;
 
-	return progp;
+    return progp;
 }
 
 void call(void)   /* call a function */
 {
     P("\n");
 
-	Symbol *sym  = pc[0].sym;
+    Symbol *sym  = pc[0].sym;
 
-	if (fp == frame) {
-		execerror("Llamada a '%s' demasiado profunda\n",
-			sym->name);
-	}
-	 
-	fp--;
-	fp->sym      = sym;
-	fp->nargs    = pc[1].num;
-	fp->retpc    = pc + 2;
-	fp->argn     = stackp - 1; /* pointer to last argument */
-	P("execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x\n",
-		(int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
-		sym->name, fp->nargs, (int)(fp->retpc - prog));
-	execute(sym->defn);
+    if (fp == frame) {
+        execerror("Llamada a '%s' demasiado profunda (%d niveles)\n",
+            sym->name, NFRAME);
+    }
 
-	if (fp >= frame + NPROG) {
-		execerror("Smatching stack, la pila esta corrompida\n");
-	}
-	P("return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x\n",
-		(int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
-		sym->name, fp->nargs, (int)(fp->retpc - prog));
-	pc        = fp->retpc;
-	returning = 0;
-	++fp;
+    fp--;
+    /* creamos el contexto de la funcion */
+    fp->sym      = sym;
+    fp->nargs    = pc[1].num;
+    fp->retpc    = pc + 2;
+    fp->argn     = stackp - 1; /* pointer to last argument */
+    P(" execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%ld\n",
+        (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
+        sym->name, fp->nargs, (int)(fp->retpc - prog), (frame + NFRAME) - fp);
+    P("   Parametros: ");
+    const char *sep = "";
+    for (int i = 1; i <= fp->nargs; i++) {
+        printf("%s%.8g", sep, *getarg(i));
+        sep = ", ";
+    }
+    printf("\n");
+    execute(sym->defn);
+
+    if (fp >= frame + NFRAME) {
+        execerror("Smatching stack, la pila esta corrompida\n");
+    }
+    P(" return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%ld\n",
+        (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
+        sym->name, fp->nargs, (int)(fp->retpc - prog), (frame + NFRAME) - fp);
+    pc        = fp->retpc;
+    returning = 0;
+    ++fp;
 }
 
 static void ret(void)
 {
-	for (int i = 0; i < fp->nargs; i++) {
-		drop(); /* pop arguments */
-	}
+    for (int i = 0; i < fp->nargs; i++) {
+        drop(); /* pop arguments */
+    }
 
-	returning = 1;
+    returning = 1;
 }
 
 void procret(void) /* return from proc */
 {
     P("\n");
-	ret();
+    ret();
 }
 
 void funcret(void) /* return from func */
 {
     P("\n");
-	Datum d = pop();  /* preserve function return value */
-	ret();
-	push(d);
+    Datum d = pop();  /* preserve function return value */
+    ret();
+    push(d);
 }
 
-Datum *getarg(void)    /* return a pointer to argument */
+static Datum *getarg(int arg)    /* return a pointer to argument */
 {
-	int arg = pc[0].num;
-	if (arg > fp->nargs) {
-		execerror("Accessing arg $%d while only %d "
-			"args have been passed\n",
-			arg, fp->nargs);
-	}
-	return fp->argn - fp->nargs + arg;
+    if (arg > fp->nargs) {
+        execerror("Accessing arg $%d while only %d "
+            "args have been passed\n",
+            arg, fp->nargs);
+    }
+    return fp->argn - fp->nargs + arg;
 }
 
 void argeval(void) /* push argument onto stack */
 {
-	push(*getarg());
+    P("\n");
+    int arg = pc++[0].num;
+    Datum d = *getarg(arg);
+    P(" $%d -> %.8g\n", arg, d);
+    push(d);
 }
 
 void argassign(void) /* store top of stack in argument */
 {
-	push(*getarg() = pop()); /* pop the top, assign to arg,
-							  * then push it again */
+    P("\n");
+    int arg = pc++[0].num;
+    Datum d = pop();
+    P(" %.8g -> $%d\n", d, arg);
+    Datum *ref = getarg(arg);
+    push(*ref = d);
 }
 
 void prstr(void) /* print string */
 {
-	printf("%s", pc++[0].str);
+    P("\n");
+    printf("%s", pc++[0].str);
 }
 
 void prexpr(void)  /* print numeric value */
 {
-	printf("%.8g ", pop());
+    P("\n");
+    printf("%.8g ", pop());
 }

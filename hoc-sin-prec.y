@@ -91,7 +91,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | if    cond stmt end  { $1[1].cel = $3; /* posicion parte then */
                              $1[3].cel = $4; /* position sig. a end */ }
     | if    cond stmt end ELSE stmt end {
-							 $1[1].cel = $3; /* parte then */
+                             $1[1].cel = $3; /* parte then */
                              $1[2].cel = $6; /* else part */
                              $1[3].cel = $7; /* end */ }
     | '{' stmtlist '}'     { $$ = $2; }
@@ -130,12 +130,12 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              $$ = $3;
                              CODE_INST(assign);
                              code_sym($1); }
-	| ARG   '=' asig       {
-							 defnonly(indef_proc || indef_func, "$%d assign", $1);
-							 $$ = $3;
-							 CODE_INST(argassign);
-							 code_num($1);
-						   }
+    | ARG   '=' asig       {
+                             defnonly(indef_proc || indef_func, "$%d assign", $1);
+                             $$ = $3;
+                             CODE_INST(argassign);
+                             code_num($1);
+                           }
     | expr_or
     ;
 
@@ -183,11 +183,11 @@ prim: '(' asig ')'          { $$ = $2; }
                                    code_val($1); }
     | VAR                   { $$ = CODE_INST(eval);
                                    code_sym($1); }
-	| ARG                   { defnonly(indef_proc || indef_func,
-									   "$%d assign", $1);
-						      $$ = CODE_INST(argeval);
+    | ARG                   { defnonly(indef_proc || indef_func,
+                                       "$%d assign", $1);
+                              $$ = CODE_INST(argeval);
                               code_num($1);
-						    }
+                            }
     | CONST                 { $$ = CODE_INST(eval);
                                    code_sym($1); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0);
@@ -206,33 +206,33 @@ prim: '(' asig ')'          { $$ = $2; }
     ;
 
 arglist_opt
-	: arglist
-	| /* empty */           { $$ = 0; }
-	;
+    : arglist
+    | /* empty */           { $$ = 0; }
+    ;
 
 arglist
-	: arglist ',' asig      { $$ = $1 + 1; }
-	| asig                  { $$ = 1; }
-	;
+    : arglist ',' asig      { $$ = $1 + 1; }
+    | asig                  { $$ = 1; }
+    ;
 
 defn: proc_head '(' ')' stmt {
                               CODE_INST(procret);
-							  end_define();
-							  indef_proc = 0; }
+                              end_define();
+                              indef_proc = 0; }
     | func_head '(' ')' stmt {
-							  CODE_INST(constpush);
-							  code_val(0.0);
+                              CODE_INST(constpush);
+                              code_val(0.0);
                               CODE_INST(funcret);
-							  end_define();
-							  indef_func = 0; }
+                              end_define();
+                              indef_func = 0; }
 proc_head
-	: PROC VAR              {
-							  define($2, PROCEDURE);
-							  indef_proc = 1; }
+    : PROC VAR              {
+                              define($2, PROCEDURE);
+                              indef_proc = 1; }
 func_head
     : FUNC VAR              {
                               define($2, FUNCTION);
-							  indef_func = 1; }
+                              indef_func = 1; }
 %%
 
 void yyerror(char *s)   /* called for yacc syntax error */

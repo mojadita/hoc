@@ -40,7 +40,7 @@ jmp_buf begin;
 #endif /* UQ_HOC_DEBUG }} */
 
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
-	indef_func;  /* 1 si estamos en una definicion de funcion */
+    indef_func;  /* 1 si estamos en una definicion de funcion */
 
 %}
 /* continuamos el area de definicion y configuracion
@@ -99,7 +99,7 @@ list: /* nothing */
     | list       '\n'
     | list defn  '\n'
     | list stmt  '\n'      { CODE_STOP();
-							 return 1; }
+                             return 1; }
     | list asig  '\n'      { CODE_INST(assign);
                              code_sym(lookup("prev"));
                              CODE_INST(print);
@@ -113,10 +113,10 @@ final: '\n' | ';' ;
 
 stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc, "return");
-							 $$ = CODE_INST(procret); }
+                             $$ = CODE_INST(procret); }
     | RETURN expr ';'      { defnonly(indef_func, "return <expr>");
-							 $$ = $2;
-							 CODE_INST(funcret); }
+                             $$ = $2;
+                             CODE_INST(funcret); }
     | PRINT  asig ';'      { CODE_INST(print); $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(list_symbols); }
     | while cond stmt end  { $1[1].cel = $3;   /* body of loop */
@@ -163,11 +163,11 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              $$ = $3;
                              CODE_INST(assign);
                              code_sym($1); }
-	| ARG   '=' asig       { defnonly(indef_proc || indef_func, "$%d assign", $1);
-							 $$ = $3;
-							 CODE_INST(argassign);
-							 code_num($1);
-						   }
+    | ARG   '=' asig       { defnonly(indef_proc || indef_func, "$%d assign", $1);
+                             $$ = $3;
+                             CODE_INST(argassign);
+                             code_num($1);
+                           }
     | expr
     ;
 
@@ -175,11 +175,11 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
                                            code_val($1); }
     | VAR                           { $$ = CODE_INST(eval);
                                            code_sym($1); }
-	| ARG                           { defnonly(indef_proc || indef_func,
-												"$%d assign", $1);
-									  $$ = CODE_INST(argeval);
+    | ARG                           { defnonly(indef_proc || indef_func,
+                                                "$%d assign", $1);
+                                      $$ = CODE_INST(argeval);
                                            code_num($1);
-									}
+                                    }
 
     | CONST                         { CODE_INST(eval);
                                       code_sym($1); }
@@ -219,39 +219,39 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     ;
 
 arglist_opt
-	: arglist
-	| /* empty */           { $$ = 0; }
-	;
+    : arglist
+    | /* empty */           { $$ = 0; }
+    ;
 
 arglist
-	: arglist ',' asig      { $$ = $1 + 1; }
-	| asig                  { $$ = 1; }
-	;
+    : arglist ',' asig      { $$ = $1 + 1; }
+    | asig                  { $$ = 1; }
+    ;
 
 defn: proc_head '(' ')' stmt {
                               CODE_INST(procret);
-							  end_define();
-							  indef_proc    = 0;
-							  P("FIN DEFINICION PROCEDIMIENTO\n");
-							}
+                              end_define();
+                              indef_proc    = 0;
+                              P("FIN DEFINICION PROCEDIMIENTO\n");
+                            }
     | func_head '(' ')' stmt {
-							  CODE_INST(constpush);
-							  code_val(0.0);
+                              CODE_INST(constpush);
+                              code_val(0.0);
                               CODE_INST(funcret);
-							  end_define();
-							  indef_func    = 0;
-							  P("FIN DEFINICION FUNCION\n");
-							}
+                              end_define();
+                              indef_func    = 0;
+                              P("FIN DEFINICION FUNCION\n");
+                            }
 proc_head
-	: PROC VAR              {
-							  P("DEFINIENDO EL PROCEDIMIENTO '%s'\n", $2->name);
-							  define($2, PROCEDURE);
-							  indef_proc    = 1; }
+    : PROC VAR              {
+                              P("DEFINIENDO EL PROCEDIMIENTO '%s'\n", $2->name);
+                              define($2, PROCEDURE);
+                              indef_proc    = 1; }
 func_head
     : FUNC VAR              {
-							  P("DEFINIENDO LA FUNCION '%s'\n", $2->name);
+                              P("DEFINIENDO LA FUNCION '%s'\n", $2->name);
                               define($2, FUNCTION);
-							  indef_func    = 1; }
+                              indef_func    = 1; }
 
 /* Fin Area de definicion de reglas gramaticales */
 %%

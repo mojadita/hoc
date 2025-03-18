@@ -22,7 +22,7 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
-		Cell      *defn;
+        Cell      *defn;
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
         * nombres de los campos de la union pueden usarse directamente desde
@@ -79,8 +79,8 @@ union Cell {
     Symbol     *sym;
     double      val;
     Cell       *cel;
-	const char *str;
-	int         num;
+    const char *str;
+    long        num;
 };
 
 extern Cell prog[];

@@ -43,14 +43,14 @@ void vwarning(const char *fmt, va_list args)
 
 void defnonly(int cual, const char *name, ...)
 {
-	char buffer[100];
-	va_list args;
-	va_start(args, name);
-	vsnprintf(buffer, sizeof buffer, name, args);
-	va_end(args);
+    char buffer[100];
+    va_list args;
+    va_start(args, name);
+    vsnprintf(buffer, sizeof buffer, name, args);
+    va_end(args);
 
-	if (!cual) {
-		execerror("'%s': debe usarse dentro de una definicion proc/func.\n",
-				  buffer);
-	}
+    if (!cual) {
+        execerror("'%s': debe usarse dentro de una definicion proc/func.\n",
+                  buffer);
+    }
 }
