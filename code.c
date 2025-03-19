@@ -26,7 +26,7 @@
 #define P2(_fmt, ...)
 #endif
 
-#define NSTACK 256
+#define NSTACK 25000
 static Datum  stack[NSTACK];  /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
@@ -45,7 +45,7 @@ typedef struct Frame { /* proc/func call stack frame */
     int     nargs;     /* number of arguments */
 } Frame;
 
-#define NFRAME 100
+#define NFRAME 10000
 Frame frame[NFRAME];
 Frame *fp     = frame + NFRAME;      /* frame pointer */
 
@@ -141,18 +141,18 @@ Cell *code_num(int val) /* install one integer on Cell */
     Cell *old_progp = progp;
     if (progp >= prog + NPROG)
         execerror("program too big");
-    P2("       : INT [%d]\n", val);
+    P2("      : INT [%d]\n", val);
     (progp++)->num = val;
     return old_progp;
 }
 
 void execute(Cell *p) /* run the machine */
 {
-    P(" \033[1;33mBEGIN\033[m\n");
+    P(" \033[1;33mBEGIN [%04lx]\033[m\n", (p - prog));
     for (pc = p; pc->inst != STOP && !returning;) {
         (pc++)->inst();
     }
-    P(" \033[1;33mEND\033[m\n");
+    P(" \033[1;33mEND [%04lx]\033[m\n", (pc - prog));
 }
 
 void constpush(void) /* push constant onto stack */
@@ -497,9 +497,14 @@ void call(void)   /* call a function */
     fp->nargs    = pc[1].num;
     fp->retpc    = pc + 2;
     fp->argn     = stackp - 1; /* pointer to last argument */
-    P(" execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%ld\n",
+
+    static int max_niv = 0;
+    int niv = frame + NFRAME - fp;
+    if (niv > max_niv) max_niv = niv;
+
+    P(" execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
         (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
-        sym->name, fp->nargs, (int)(fp->retpc - prog), (frame + NFRAME) - fp);
+        sym->name, fp->nargs, (int)(fp->retpc - prog), niv, max_niv);
     P("   Parametros: ");
     const char *sep = "";
     for (int i = 1; i <= fp->nargs; i++) {
@@ -512,9 +517,9 @@ void call(void)   /* call a function */
     if (fp >= frame + NFRAME) {
         execerror("Smatching stack, la pila esta corrompida\n");
     }
-    P(" return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%ld\n",
+    P(" return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
         (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
-        sym->name, fp->nargs, (int)(fp->retpc - prog), (frame + NFRAME) - fp);
+        sym->name, fp->nargs, (int)(fp->retpc - prog), niv, max_niv);
     pc        = fp->retpc;
     returning = 0;
     ++fp;

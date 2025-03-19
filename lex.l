@@ -9,7 +9,7 @@
 
 #ifndef UQ_LEX_DEBUG
 //#warning UQ_LEX_DEBUG deberia ser configurado en config.mk
-#define UQ_LEX_DEBUG 1
+#define UQ_LEX_DEBUG 0
 #endif
 
 #if UQ_LEX_DEBUG  /*   {{ */

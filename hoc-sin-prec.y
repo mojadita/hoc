@@ -21,6 +21,31 @@ void yyerror( char *);
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
 
+#ifndef UQ_HOC_DEBUG
+#warning UQ_HOC_DEBUG deberia ser configurado en config.mk
+#define UQ_HOC_DEBUG 1
+#endif
+
+#ifndef UQ_HOC_USE_PATCHING
+#warning UQ_HOC_USE_PATCHING deberia ser configurado en config.mk
+#define UQ_HOC_USE_PATCHING 1
+#endif
+
+#if UQ_HOC_DEBUG  /*   {{ */
+#define P(_fmt, ...)                      \
+    printf("%s:%d:%s "_fmt,               \
+            __FILE__, __LINE__, __func__, \
+            ##__VA_ARGS__)
+#else /* UQ_HOC_DEBUG  }{ */
+#define P(_fmt, ...)
+#endif /* UQ_HOC_DEBUG }} */
+
+#if UQ_HOC_USE_PATCHING
+#define PT(_fmt, ...) P(_fmt, ##__VA_ARGS__)
+#else
+#define PT(_fmt, ...)
+#endif
+
 #define CODE_INST(F) code_inst(F,    "\033[36m"#F"\033[m")
 #define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
 
@@ -28,7 +53,11 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     indef_func;  /* 1 si estamos en una definicion de funcion */
 
 %}
+/* continuamos el area de definicion y configuracion
+ * de yacc */
 
+/*  Declaracion tipos de datos de los objetos
+    (TOKENS, SYMBOLOS no terminales)  */
 %union {
     Inst    inst; /* instruccion maquina */
     Symbol *sym;  /* puntero a simbolo */
@@ -56,7 +85,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <str> STRING
 %token <sym> FUNCTION PROCEDURE
 %type  <cel> stmt cond stmtlist while if end asig
-%type  <cel> expr_or expr_and expr_rel expr term fact prim
+%type  <cel> expr_or expr_and expr_rel expr term fact prim mark
 %type  <num> arglist_opt arglist
 
 %%
@@ -86,33 +115,73 @@ stmt: asig ';'             { CODE_INST(drop); }
                              CODE_INST(funcret); }
     | PRINT asig ';'       { CODE_INST(print); $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
-    | while cond stmt end  { $1[1].cel = $3; /* cuerpo del bucle */
-                             $1[2].cel = $4; /* posicion sig. a end */ }
-    | if    cond stmt end  { $1[1].cel = $3; /* posicion parte then */
-                             $1[3].cel = $4; /* position sig. a end */ }
+    | while cond stmt end  {
+                             Cell *saved_progp = progp;
+                             progp = $1;
+                             P(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             CODE_INST(whilecode);
+                             code_cel($3);
+                             code_cel($4);
+                             P("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
+                                 progp - prog, saved_progp - prog);
+                             progp = saved_progp;
+                           }
+    | if    cond stmt end  {
+                             Cell *saved_progp = progp;
+                             progp = $1;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(ifcode);
+                                 code_cel($3);
+                                 code_cel(NULL);   /* no hay parte else, ver `ifcode` */
+                                 code_cel($4);
+                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
+                                 progp - prog, saved_progp - prog);
+                             progp = saved_progp;
+                           }
     | if    cond stmt end ELSE stmt end {
-                             $1[1].cel = $3; /* parte then */
-                             $1[2].cel = $6; /* else part */
-                             $1[3].cel = $7; /* end */ }
+                             Cell *saved_progp = progp;
+                             progp = $1;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(ifcode);
+                                 code_cel($3);
+                                 code_cel($6);
+                                 code_cel($7);
+                             PT("<<< end patching CODE @ [%04lx], "
+                                   "continuing @ [%04lx]\n",
+                                   progp - prog, saved_progp - prog);
+                             progp = saved_progp;
+                           }
     | '{' stmtlist '}'     { $$ = $2; }
-    | PROCEDURE '(' arglist_opt ')' ';' {
-                             $$ = CODE_INST(call); /* instruction */
-                                  code_sym($1);    /* symbol associated to proc */
-                                  code_num($3);    /* number of arguments */ }
+    | PROCEDURE mark '(' arglist_opt ')' ';' {
+                             $$ = $2;
+                             CODE_INST(call); /* instruction */
+                             code_sym($1);    /* symbol associated to proc */
+                             code_num($4);    /* number of arguments */ }
     ;
 
 cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
     ;
 
-while: WHILE               { $$ = CODE_INST(whilecode);
+while: WHILE               {
+                             PT(">>> unpatched code @ [%04lx]\n", progp - prog);
+                             $$ = CODE_INST(whilecode);
                                   code_cel(NULL);
-                                  code_cel(NULL); }
+                                  code_cel(NULL);
+                             PT("<<< end of unpatched code\n");
+                           }
     ;
 
-if  : IF                   { $$ = CODE_INST(ifcode);
+if  : IF                   {
+                             PT(">>> unpatched code @ [%04lx]\n", progp - prog);
+                             $$ = CODE_INST(ifcode);
                                   code_cel(NULL);
                                   code_cel(NULL);
-                                  code_cel(NULL); }
+                                  code_cel(NULL);
+                             PT("<<< end of unpatched code\n");
+                           }
+    ;
+
+mark: /* nada */        { $$ = progp; }
     ;
 
 end: /* nada */            { CODE_STOP(); $$ = progp; }
@@ -199,10 +268,11 @@ prim: '(' asig ')'          { $$ = $2; }
                                    code_sym($1); }
     | READ '(' VAR ')'      { $$ = CODE_INST(readopcode);
                                    code_sym($3); }
-    | FUNCTION '(' arglist_opt ')' {
-                              $$ = CODE_INST(call); /* instruction */
-                              code_sym($1);         /* function symbol */
-                              code_num($3);         /* number of arguments */ }
+    | FUNCTION mark '(' arglist_opt ')' {
+                              $$ = $2;
+                              CODE_INST(call); /* instruction */
+                              code_sym($1);    /* function symbol */
+                              code_num($4);    /* number of arguments */ }
     ;
 
 arglist_opt
@@ -218,25 +288,37 @@ arglist
 defn: proc_head '(' ')' stmt {
                               CODE_INST(procret);
                               end_define();
-                              indef_proc = 0; }
+                              indef_proc = 0;
+                              P("FIN DEFINICION PROCEDIMIENTO\n");
+                             }
     | func_head '(' ')' stmt {
                               CODE_INST(constpush);
                               code_val(0.0);
                               CODE_INST(funcret);
                               end_define();
-                              indef_func = 0; }
+                              indef_func = 0;
+                              P("FIN DEFINICION FUNCION\n");
+                            }
 proc_head
     : PROC VAR              {
+                              P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
+                                $2->name, progp - prog);
                               define($2, PROCEDURE);
                               indef_proc = 1; }
 func_head
     : FUNC VAR              {
+                              P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
+                                $2->name, progp - prog);
                               define($2, FUNCTION);
                               indef_func = 1; }
 %%
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
+    /* LCU: Wed Mar 19 15:40:42 -05 2025
+     * TODO: manejar un buffer circular de tokens que permita
+     * imprimir mejor el contexto donde ocurren los errores 
+     * de la gramatica. */
     //warning("%s", s);
-    warning(" \033[1;32m%s", s);
-}
+    warning(F(" \033[1;32m%s"), s);
+} /* yyerror */

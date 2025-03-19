@@ -7,6 +7,8 @@
 #include <setjmp.h>
 #include <stdio.h>
 
+#define F(_fmt) "%s:%d: %s: "_fmt, __FILE__, __LINE__, __func__
+
 #define OUTPUT_FMT   "%32.8g"
 
 typedef union  Cell   Cell;
