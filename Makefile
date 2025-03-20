@@ -6,13 +6,6 @@ OS            != uname -o
 
 WHICH_LEX	  ?= lex.o
 
-prefix        ?= /usr/local
-exec_prefix   ?= $(prefix)
-bindir        ?= $(exec_prefix)/bin
-datarootdir   ?= $(prefix)/share
-mandir        ?= $(datarootdir)/man
-man1dir       ?= $(mandir)/man1
-
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
 
@@ -27,7 +20,7 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall     ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
-common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) reserved_words.o main.o
+common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) reserved_words.o main.o do_help.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
@@ -42,6 +35,8 @@ toclean          += hoc-sin-prec.o hoc-sin-prec.c
 BUILD_DATE.txt: $(targets)
 	date > $@
 toclean += BUILD_DATE.txt
+
+include ./config-lib.mk
 
 install: $(toinstall)
 
@@ -79,17 +74,19 @@ hoc-sin-prec: $(hoc-sin-prec_objs)
 	mv -f y.tab.h $*.tab.h
 
 hoc.tab.h: hoc.c
+hoc.1: hoc.1.in
 
-# code.c error.c hoc-sin-prec.c hoc.c init.c lex.c main.c math.c
-# reserved_words.c symbol.c yylex.c
-
-code.o: code.c hoc.h hoc.tab.h
+# ack.c code.c do_help.c error.c hoc-sin-prec.c hoc.c init.c lex.c
+# main.c math.c pepe.c reserved_words.c symbol.c yylex.c
+ack.o: ack.c 
+code.o: code.c config.h hoc.h hoc.tab.h
+do_help.o: do_help.c config.h do_help.h
 error.o: error.c hoc.h error.h
-hoc-sin-prec.o: hoc-sin-prec.c hoc.h error.h math.h code.h 
-hoc.o: hoc.c hoc.h error.h math.h code.h 
-init.o: init.c hoc.h hoc.tab.h math.h code.h
-lex.o: lex.c hoc.h hoc.tab.h code.h reserved_words.h 
-main.o: main.c hoc.h code.h
+hoc-sin-prec.o: hoc-sin-prec.c config.h hoc.h error.h math.h code.h 
+hoc.o: hoc.c config.h hoc.h error.h math.h code.h 
+init.o: init.c config.h hoc.h hoc.tab.h math.h code.h
+lex.o: lex.c config.h hoc.h hoc.tab.h code.h reserved_words.h 
+main.o: main.c config.h do_help.h hoc.h code.h
 math.o: math.c error.h
 reserved_words.o: reserved_words.c hoc.h hoc.tab.h reserved_words.h
 symbol.o: symbol.c hoc.h hoc.tab.h

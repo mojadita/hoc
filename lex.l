@@ -2,23 +2,27 @@
 
 #include <assert.h>
 
+#include "config.h"
 #include "hoc.h"
 #include "hoc.tab.h"
 #include "code.h"
 #include "reserved_words.h"
 
 #ifndef UQ_LEX_DEBUG
-//#warning UQ_LEX_DEBUG deberia ser configurado en config.mk
+#warning UQ_LEX_DEBUG deberia ser configurado en config.mk
 #define UQ_LEX_DEBUG 0
 #endif
 
 #if UQ_LEX_DEBUG  /*   {{ */
+#define P_TAIL(_fmt, ...)  \
+    printf(_fmt, ##__VA_ARGS__)
 #define P(_fmt, ...)                      \
     printf("%s:%d:%s "_fmt,               \
             __FILE__, __LINE__, __func__, \
             ##__VA_ARGS__)
 #else /* UQ_LEX_DEBUG  }{ */
 #define P(_fmt, ...)
+#define P_TAIL(_fmt, ...)
 #endif /* UQ_LEX_DEBUG }} */
 
 extern int lineno;
@@ -43,18 +47,19 @@ static char *deescape(char *in);
         }   /* Un numero punto flotante  */
 
 "/*"    {   BEGIN COMMENT;
-            printf("%s", yytext);
+            P("%s", yytext);
         }
-<COMMENT>. { ECHO; }
+<COMMENT>. { P_TAIL("%s", yytext); }
+<COMMENT>\n { P_TAIL("\n"); P(""); }
 <COMMENT>"*/" {
-            printf("%s\n", yytext);
+            P_TAIL("%s\n", yytext);
             BEGIN INITIAL;
         }
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
             const reserved_word *rw = rw_lookup(yytext);
             if (rw) {
-                P("reserved word %s -> %s(%d)\n",
+                P("reserved word '%s' -> %s(%d)\n",
                     rw->name, rw->tokn_str, rw->tokn);
                 return rw->tokn;
             }

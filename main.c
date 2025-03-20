@@ -9,17 +9,32 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
+#include "do_help.h"
+
 #include "hoc.h"
 #include "code.h"
+
+#ifndef UQ_MAIN_DEBUG
+#warning UQ_MAIN_DEBUG deberia ser configurado en config.mk
+#define UQ_MAIN_DEBUG  0
+#endif
+
+#if UQ_MAIN_DEBUG
+#define P(_fmt, ...) \
+    printf("%s:%d:%s: "_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
+#else
+#define P(_fmt, ...)
+#endif
 
 char *progname;     /* for error messages */
 int   lineno = 1;   /* numero de linea */
 
 int parse(void)
 {
-    printf("%s:%d:%s \033[1;36mBEGIN\033[m\n", __FILE__, __LINE__, __func__);
+    P("\033[1;36mBEGIN\033[m\n");
     int res = yyparse();
-    printf("%s:%d:%s \033[1;36mEND\033[m\n", __FILE__, __LINE__, __func__);
+    P("\033[1;36mEND\033[m\n");
     return res;
 } /* parse */
 
@@ -39,9 +54,10 @@ int main(int argc, char *argv[]) /* hoc1 */
 {
     progname = argv[0];
     int opt;
-    while ((opt = getopt(argc, argv, "h")) != EOF) {
+    while ((opt = getopt(argc, argv, "hv")) != EOF) {
         switch (opt) {
         case 'h': do_help();
+        case 'v': do_version(EXIT_SUCCESS);
         }
     } /* while */
 
@@ -73,6 +89,6 @@ static void process(FILE *in)
     setjmp(begin);
     for (initcode(); parse(); initcode()) {
         execute(progbase);
-        printf("Stack size after execution: %d\n", stacksize());
+        P("Stack size after execution: %d\n", stacksize());
     }
 } /* process */

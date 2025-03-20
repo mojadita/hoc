@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "config.h"
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */

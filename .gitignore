@@ -10,3 +10,8 @@ lex.c
 BUILD_DATE.txt
 *~
 .depend
+ack
+config.h
+config.h.in
+tags
+hoc.1

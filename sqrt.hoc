@@ -1,0 +1,15 @@
+/* calculo de la raiz cuadrada.
+ * Date: Sun Mar 16 13:14:23 -05 2025
+ */
+
+func square_root() {
+	a = $1;
+	b = 1.0;
+	while (abs(a - b) > $2) {
+		a = (a + b) / 2.0;
+		b = $1 / a;
+	}
+	return b;
+}
+
+print square_root(2.0, 1.0E-12);

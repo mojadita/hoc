@@ -1,0 +1,16 @@
+.Dd @DOC_DATE@
+.Dt @PROGRAM_NAME_UC@ 1
+.Os "SCO UNIX
+.Sh NAME
+.Nm @PROGRAM_NAME@
+.Nd a simple
+.Xr yacc 1
+based calculator.
+.Sh INTRODUCTION
+The page of
+.Nm
+needs some work before being completely updated.
+.Pp
+For now, keep watching!
+.Sh AUTHOR
+@AUTHOR_NAME@

@@ -2,37 +2,51 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "config.h"
+
 #include "hoc.h"
 #include "hoc.tab.h"
 
-#ifndef DEBUG_P1
-#define DEBUG_P1 1
+#ifndef UQ_CODE_DEBUG_P1
+#warning UQ_CODE_DEBUG_P1 deberia ser incluido en config.mk
+#define UQ_CODE_DEBUG_P1 1
 #endif
-#ifndef DEBUG_P2
-#define DEBUG_P2 1
+#ifndef UQ_CODE_DEBUG_P2
+#warning UQ_CODE_DEBUG_P2 deberia ser incluido en config.mk
+#define UQ_CODE_DEBUG_P2 1
 #endif
 
-#if DEBUG_P1
+#if UQ_CODE_DEBUG_P1
 #define P(_fmt, ...) \
     printf("%s:%d:[%04x] %s"_fmt, __FILE__, __LINE__, \
         (int)(pc - prog - 1), __func__, ##__VA_ARGS__)
+#define P_TAIL(_fmt, ...) \
+    printf(_fmt, ##__VA_ARGS)
 #else
 #define P(_fmt, ...)
+#define P_TAIL(_fmt, ...)
 #endif
 
-#if DEBUG_P2
+#if UQ_CODE_DEBUG_P2
 #define P2(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
 #else
 #define P2(_fmt, ...)
 #endif
 
-#define NSTACK 25000
-static Datum  stack[NSTACK];  /* the stack */
+#ifndef UQ_NSTACK
+#warning UQ_NSTACK debe definirse en config.mk
+#define UQ_NSTACK 100000
+#endif
+
+static Datum  stack[UQ_NSTACK];  /* the stack */
 static Datum *stackp;         /* next free cell on stack */
 
-#define NPROG 2000 /* 10000 celdas para instrucciones */
+#ifndef UQ_NPROG
+#warning UQ_NPROG debe definirse en config.mk
+#define UQ_NPROG 2000 /* 2000 celdas para instrucciones */
+#endif
 
-Cell  prog[NPROG];  /* the machine */
+Cell  prog[UQ_NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
 Cell *progbase = prog; /* start of current subprogram */
@@ -45,9 +59,13 @@ typedef struct Frame { /* proc/func call stack frame */
     int     nargs;     /* number of arguments */
 } Frame;
 
-#define NFRAME 10000
-Frame frame[NFRAME];
-Frame *fp     = frame + NFRAME;      /* frame pointer */
+#ifndef UQ_NFRAME
+#warning UQ_NFRAME debe definirse en config.mk
+#define UQ_NFRAME 10000
+#endif
+
+Frame frame[UQ_NFRAME];
+Frame *fp     = frame + UQ_NFRAME;      /* frame pointer */
 
 static Datum *getarg(int arg);    /* return a pointer to argument */
 
@@ -55,7 +73,7 @@ void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
     stackp    = stack;
-    fp        = frame + NFRAME;
+    fp        = frame + UQ_NFRAME;
     returning = 0;
 }
 
@@ -68,7 +86,7 @@ void push(Datum d)  /* push d onto stack */
 {
     /*  Verificamos si el puntero apunta a una direccion mas alla
         del final de la pila  */
-    if (stackp >= &stack[NSTACK])
+    if (stackp >= &stack[UQ_NSTACK])
         execerror("stack overflow\n");
     *stackp++ = d; /* equivalente a *stackp = d; stackp++; */
 }
@@ -90,7 +108,7 @@ Cell *code_inst(Inst f, const char *name) /* install one instruction of operand 
 {
     Cell *old_progp = progp;
 
-    if (progp >= &prog[NPROG])
+    if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
 
     P2("0x%04x: %s\n", (int)(old_progp - prog), name);
@@ -103,7 +121,7 @@ Cell *code_sym(Symbol *s) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
 
-    if (progp >= &prog[NPROG])
+    if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
     P2("      : Symbol '%s'\n", s->name);
 
@@ -115,7 +133,7 @@ Cell *code_val(double val) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
 
-    if (progp >= &prog[NPROG])
+    if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
     P2("      : DATA %.10g\n", val);
 
@@ -127,7 +145,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 {
     Cell *old_progp = progp;
 
-    if (progp >= &prog[NPROG])
+    if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
     P2("      : REF [0x%04x]\n",
             (int)(cel ? cel - prog : 0));
@@ -139,7 +157,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 Cell *code_num(int val) /* install one integer on Cell */
 {
     Cell *old_progp = progp;
-    if (progp >= prog + NPROG)
+    if (progp >= prog + UQ_NPROG)
         execerror("program too big");
     P2("      : INT [%d]\n", val);
     (progp++)->num = val;
@@ -320,10 +338,10 @@ void whilecode(void) /* execute the while loop */
     }
     P(" END while loop");
     if (!returning) {
-        printf(" [%04lx]", savepc[1].cel - prog);
+        P_TAIL(" [%04lx]", savepc[1].cel - prog);
         pc = savepc[1].cel;
     }
-    printf("\n");
+    P_TAIL("\n");
 }
 
 void ifcode(void) /* execute the if statement */
@@ -345,10 +363,10 @@ void ifcode(void) /* execute the if statement */
     }
     P(" END");
     if (!returning) {
-        printf(" [%04lx]", savepc[2].cel - prog);
+        P_TAIL(" [%04lx]", savepc[2].cel - prog);
         pc = savepc[2].cel;
     }
-    printf("\n");
+    P_TAIL("\n");
 }
 
 void ge(void) /* greater or equal */
@@ -488,7 +506,7 @@ void call(void)   /* call a function */
 
     if (fp == frame) {
         execerror("Llamada a '%s' demasiado profunda (%d niveles)\n",
-            sym->name, NFRAME);
+            sym->name, UQ_NFRAME);
     }
 
     fp--;
@@ -499,7 +517,7 @@ void call(void)   /* call a function */
     fp->argn     = stackp - 1; /* pointer to last argument */
 
     static int max_niv = 0;
-    int niv = frame + NFRAME - fp;
+    int niv = frame + UQ_NFRAME - fp;
     if (niv > max_niv) max_niv = niv;
 
     P(" execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
@@ -508,13 +526,13 @@ void call(void)   /* call a function */
     P("   Parametros: ");
     const char *sep = "";
     for (int i = 1; i <= fp->nargs; i++) {
-        printf("%s%.8g", sep, *getarg(i));
+        P_TAIL("%s%.8g", sep, *getarg(i));
         sep = ", ";
     }
-    printf("\n");
+    P_TAIL("\n");
     execute(sym->defn);
 
-    if (fp >= frame + NFRAME) {
+    if (fp >= frame + UQ_NFRAME) {
         execerror("Smatching stack, la pila esta corrompida\n");
     }
     P(" return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",

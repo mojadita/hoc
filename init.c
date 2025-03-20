@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "config.h"
 #include "hoc.h"
 #include "hoc.tab.h"
 #include "math.h"
@@ -22,7 +23,7 @@ static struct { /* constants */
     "DEG",     180.0/M_PI,
     "PHI",     1.61803398874989484820,
     "prev",    0.0,
-    "version", 6.2,
+    "version", UQ_VERSION,
     NULL,      0.0,
 };
 
