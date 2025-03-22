@@ -14,6 +14,10 @@
 typedef union  Cell   Cell;
 typedef struct Symbol Symbol;
 
+#include "instr.h"
+
+typedef void (*Inst)(const instr *); /* machine instruction */
+
 struct Symbol {                           /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
@@ -71,7 +75,7 @@ typedef double Datum;
 
 extern Datum pop(void);
 
-typedef void (*Inst)(void); /* machine instruction */
+
 
 #define STOP (Inst) 0
 

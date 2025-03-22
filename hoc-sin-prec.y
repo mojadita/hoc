@@ -117,7 +117,7 @@ stmt: asig ';'             { CODE_INST(drop); }
                              $$ = $2;
                              CODE_INST(funcret); }
     | PRINT expr_seq ';'   { $$ = $2; }
-    | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
+    | SYMBS ';'            { $$ = CODE_INST(symbs); }
     | while cond stmt end  {
                              Cell *saved_progp = progp;
                              progp = $1;

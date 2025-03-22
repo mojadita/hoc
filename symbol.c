@@ -145,3 +145,4 @@ void list_symbols(void)
     if (col != 0)
         puts("");
 } /* list_symbols */
+
