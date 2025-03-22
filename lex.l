@@ -50,7 +50,7 @@ static char *deescape(char *in);
             P("%s", yytext);
         }
 <COMMENT>. { P_TAIL("%s", yytext); }
-<COMMENT>\n { P_TAIL("\n"); P(""); }
+<COMMENT>\n { P_TAIL("\n"); P(""); lineno++; }
 <COMMENT>"*/" {
             P_TAIL("%s\n", yytext);
             BEGIN INITIAL;

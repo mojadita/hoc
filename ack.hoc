@@ -12,8 +12,9 @@ func ack() {
     if ($2 == 0) return ack($1 - 1, 1);
     return ack($1 - 1, ack($1, $2 - 1));
 }
-print ack(4, 1);
-#print n;
+
+print  "ack(", a=3, ", ", b=3, ") -> ", ack(a, b), "\n";
+
 /* ack(1, 1) -> ack(0, ack(1, 0)) -> ack(0, 2) -> 3
  * ack(1, 0) -> ack(0, 1) -> 2
  * ack(0, 1) -> 2

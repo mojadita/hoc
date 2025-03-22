@@ -13,6 +13,7 @@
 #include <math.h>
 
 #include "config.h"
+#include "colors.h"
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
@@ -23,8 +24,8 @@ static void yyerror(char *);
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
-#define CODE_INST(I) code_inst(I,    "\033[36m"#I"\033[m")
-#define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
+#define CODE_INST(I) code_inst(I,    CYAN #I ANSI_END)
+#define CODE_STOP()  code_inst(STOP, YELLOW "STOP" ANSI_END)
 
 #ifndef UQ_HOC_DEBUG
 #warning UQ_HOC_DEBUG deberia ser configurado en config.mk
@@ -89,6 +90,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
 %type  <cel> stmt asig expr stmtlist cond while if end mark
+%type  <cel> expr_seq item
 %type  <num> arglist_opt arglist
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -129,10 +131,9 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN expr ';'      { defnonly(indef_func, "return <expr>");
                              $$ = $2;
                              CODE_INST(funcret); }
-    | PRINT  asig ';'      { CODE_INST(print); $$ = $2; }
+    | PRINT  expr_seq ';'  { $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(list_symbols); }
-    | while cond stmt end  {
-                             Cell *saved_progp = progp;
+    | while cond stmt end  { Cell *saved_progp = progp;
                              progp = $1;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                              CODE_INST(whilecode);
@@ -142,8 +143,7 @@ stmt: asig        ';'      { CODE_INST(drop); }
                                  progp - prog, saved_progp - prog);
                              progp = saved_progp;
                            }
-    | if    cond stmt end  {
-                             Cell *saved_progp = progp;
+    | if    cond stmt end  { Cell *saved_progp = progp;
                              progp = $1;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(ifcode);
@@ -174,6 +174,17 @@ stmt: asig        ';'      { CODE_INST(drop); }
                              code_sym($1);    /* symbol associated to proc*/
                              code_num($4);    /* number of arguments */ }
     ;
+
+expr_seq
+    : expr_seq ',' item
+    | item
+    ;
+
+item: STRING               { $$ = CODE_INST(prstr);
+                             code_str($1); }
+    | asig                 { CODE_INST(prexpr); }
+    ;
+
 
 cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
     ;
@@ -318,5 +329,5 @@ static void yyerror(char *s)   /* called for yacc syntax error */
      * imprimir mejor el contexto donde ocurren los errores 
      * de la gramatica. */
     //warning("%s", s);
-    warning(F(" \033[1;32m%s"), s);
+    warning(F(" "BRIGHT GREEN"%s"), s);
 } /* yyerror */

@@ -8,6 +8,8 @@
 #include <stdio.h>
 
 #include "hoc.h"
+#include "config.h"
+#include "colors.h"
 #include "hoc.tab.h"
 
 /* La tabla de simbolos se gestiona como una lista
@@ -134,7 +136,7 @@ void list_symbols(void)
         if (p->type == VAR) {
             snprintf(s, sz, "(%.5lg)", p->val);
         }
-        printf("\033[1;36;40m%-20s\033[0m", workspace);
+        printf(GREEN "%-20s" ANSI_END, workspace);
         if (++col == 4) {
             col = 0;
             puts("");

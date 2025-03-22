@@ -1,4 +1,4 @@
-CFLAGS         = -g -O0
+CFLAGS         = -O2
 RM            ?= rm -f
 targets        = hoc hoc-sin-prec hoc.1.gz
 toclean       += $(targets)
@@ -79,15 +79,15 @@ hoc.1: hoc.1.in
 # ack.c code.c do_help.c error.c hoc-sin-prec.c hoc.c init.c lex.c
 # main.c math.c pepe.c reserved_words.c symbol.c yylex.c
 ack.o: ack.c 
-code.o: code.c config.h hoc.h hoc.tab.h
+code.o: code.c config.h hoc.h hoc.tab.h colors.h
 do_help.o: do_help.c config.h do_help.h
-error.o: error.c hoc.h error.h
-hoc-sin-prec.o: hoc-sin-prec.c config.h hoc.h error.h math.h code.h 
-hoc.o: hoc.c config.h hoc.h error.h math.h code.h 
+error.o: error.c hoc.h error.h config.h colors.h
+hoc-sin-prec.o: hoc-sin-prec.c config.h hoc.h error.h math.h code.h colors.h
+hoc.o: hoc.c config.h hoc.h error.h math.h code.h colors.h
 init.o: init.c config.h hoc.h hoc.tab.h math.h code.h
 lex.o: lex.c config.h hoc.h hoc.tab.h code.h reserved_words.h 
-main.o: main.c config.h do_help.h hoc.h code.h
+main.o: main.c config.h do_help.h hoc.h code.h colors.h
 math.o: math.c error.h
 reserved_words.o: reserved_words.c hoc.h hoc.tab.h reserved_words.h
-symbol.o: symbol.c hoc.h hoc.tab.h
+symbol.o: symbol.c hoc.h hoc.tab.h config.h colors.h
 yylex.o: yylex.c hoc.h hoc.tab.h

@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "colors.h"
 #include "do_help.h"
 
 #include "hoc.h"
@@ -32,9 +33,9 @@ int   lineno = 1;   /* numero de linea */
 
 int parse(void)
 {
-    P("\033[1;36mBEGIN\033[m\n");
+    P(BRIGHT CYAN "BEGIN" ANSI_END "\n");
     int res = yyparse();
-    P("\033[1;36mEND\033[m\n");
+    P(BRIGHT CYAN "END" ANSI_END "\n");
     return res;
 } /* parse */
 

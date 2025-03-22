@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <setjmp.h>
 
+#include "config.h"
+#include "colors.h"
 #include "hoc.h"
 #include "error.h"
 
@@ -36,9 +38,9 @@ void vwarning(const char *fmt, va_list args)
     vfprintf(stderr, fmt, args);
     fprintf(stderr,  " cerca de la linea %d\n", lineno);
     */
-    printf("\033[1;37;33m%s:\033[0m", progname);
+    printf(BRIGHT YELLOW "%s:" ANSI_END, progname);
     vprintf(fmt, args);
-    printf(" \033[1;33mcerca de la linea %d\033[0m\n", lineno);
+    printf(" " BRIGHT YELLOW "cerca de la linea %d" ANSI_END "\n", lineno);
 } /* vwarning */
 
 void defnonly(int cual, const char *name, ...)

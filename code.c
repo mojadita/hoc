@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "config.h"
+#include "colors.h"
 
 #include "hoc.h"
 #include "hoc.tab.h"
@@ -21,7 +22,7 @@
     printf("%s:%d:[%04x] %s"_fmt, __FILE__, __LINE__, \
         (int)(pc - prog - 1), __func__, ##__VA_ARGS__)
 #define P_TAIL(_fmt, ...) \
-    printf(_fmt, ##__VA_ARGS)
+    printf(_fmt, ##__VA_ARGS__)
 #else
 #define P(_fmt, ...)
 #define P_TAIL(_fmt, ...)
@@ -164,13 +165,23 @@ Cell *code_num(int val) /* install one integer on Cell */
     return old_progp;
 }
 
+Cell *code_str(const char *str) /* install one string on Cell */
+{
+    Cell *old_progp = progp;
+    if (progp >= prog + UQ_NPROG)
+        execerror("program too big");
+    P2("      : STR \"%s\"\n", str);
+    (progp++)->str = str;
+    return old_progp;
+}
+
 void execute(Cell *p) /* run the machine */
 {
-    P(" \033[1;33mBEGIN [%04lx]\033[m\n", (p - prog));
+    P(" " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
     for (pc = p; pc->inst != STOP && !returning;) {
         (pc++)->inst();
     }
-    P(" \033[1;33mEND [%04lx]\033[m\n", (pc - prog));
+    P(" " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
 }
 
 void constpush(void) /* push constant onto stack */
@@ -604,5 +615,5 @@ void prstr(void) /* print string */
 void prexpr(void)  /* print numeric value */
 {
     P("\n");
-    printf("%.8g ", pop());
+    printf("%.8g", pop());
 }

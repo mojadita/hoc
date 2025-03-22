@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "config.h"
+#include "colors.h"
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
@@ -47,8 +48,8 @@ jmp_buf begin;
 #define PT(_fmt, ...)
 #endif
 
-#define CODE_INST(F) code_inst(F,    "\033[36m"#F"\033[m")
-#define CODE_STOP()  code_inst(STOP, "\033[33mSTOP\033[m")
+#define CODE_INST(F) code_inst(F,    CYAN #F ANSI_END)
+#define CODE_STOP()  code_inst(STOP, YELLOW "STOP" ANSI_END)
 
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     indef_func;  /* 1 si estamos en una definicion de funcion */
@@ -83,10 +84,11 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <num> ARG
 %token <num> FUNC PROC
 %token       RETURN READ
-%token <str> STRING
 %token <sym> FUNCTION PROCEDURE
+%token <str> STRING
 %type  <cel> stmt cond stmtlist while if end asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
+%type  <cel> expr_seq item
 %type  <num> arglist_opt arglist
 
 %%
@@ -114,7 +116,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | RETURN expr ';'      { defnonly(indef_func, "return <expr>;");
                              $$ = $2;
                              CODE_INST(funcret); }
-    | PRINT asig ';'       { CODE_INST(print); $$ = $2; }
+    | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(list_symbols); }
     | while cond stmt end  {
                              Cell *saved_progp = progp;
@@ -158,6 +160,16 @@ stmt: asig ';'             { CODE_INST(drop); }
                              CODE_INST(call); /* instruction */
                              code_sym($1);    /* symbol associated to proc */
                              code_num($4);    /* number of arguments */ }
+    ;
+
+expr_seq
+    : expr_seq ',' item
+    | item
+    ;
+
+item: STRING               { $$ = CODE_INST(prstr);
+                             code_str($1); }
+    | asig                 { CODE_INST(prexpr); }
     ;
 
 cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
@@ -321,5 +333,5 @@ void yyerror(char *s)   /* called for yacc syntax error */
      * imprimir mejor el contexto donde ocurren los errores 
      * de la gramatica. */
     //warning("%s", s);
-    warning(F(" \033[1;32m%s"), s);
+    warning(" "BRIGHT GREEN "%s" ANSI_END, s);
 } /* yyerror */
