@@ -1,0 +1,42 @@
+/* instrucciones.h -- juego de instrucciones de la maquina virtual.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ * Date: Sat Mar 22 12:23:22 -05 2025
+ * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * License: BSD
+ */
+
+INST(drop)
+INST(constpush)
+INST(add)
+INST(sub)
+INST(mul)
+INST(divi)
+INST(mod)
+INST(neg)
+INST(pwr)
+INST(eval)
+INST(assign)
+INST(print)
+INST(bltin0)
+INST(bltin1)
+INST(bltin2)
+INST(whilecode)
+INST(ifcode)
+INST(ge)
+INST(le)
+INST(gt)
+INST(lt)
+INST(eq)
+INST(ne)
+INST(not)
+INST(and)
+INST(or)
+INST(readopcode)
+INST(call)
+INST(procret)
+INST(funcret)
+INST(argeval)
+INST(argassign)
+INST(prstr)
+INST(prexpr)
+INST(symbs)

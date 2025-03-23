@@ -14,6 +14,7 @@
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
+#include "instr.h"
 #include "code.h"
 
 void warning( const char *fmt, ...);
@@ -48,8 +49,8 @@ jmp_buf begin;
 #define PT(_fmt, ...)
 #endif
 
-#define CODE_INST(F) code_inst(F,    CYAN #F ANSI_END)
-#define CODE_STOP()  code_inst(STOP, YELLOW "STOP" ANSI_END)
+#define CODE_INST(I) code_inst(&I##_instr)
+#define CODE_STOP()  CODE_INST(STOP)
 
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     indef_func;  /* 1 si estamos en una definicion de funcion */
@@ -61,12 +62,12 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    Inst    inst; /* instruccion maquina */
-    Symbol *sym;  /* puntero a simbolo */
-    double  val;  /* valor double */
-    Cell   *cel;  /* referencia a Cell */
-    int     num;  /* valor entero, para $<num> */
-    char   *str;  /* cadena de caracteres */
+    const instr *inst; /* instruccion maquina */
+    Symbol      *sym;  /* puntero a simbolo */
+    double       val;  /* valor double */
+    Cell        *cel;  /* referencia a Cell */
+    int          num;  /* valor entero, para $<num> */
+    char        *str;  /* cadena de caracteres */
 }
 
 /*

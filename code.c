@@ -112,16 +112,16 @@ Datum pop(void)    /* pops Datum and rturn top element from stack */
     return *--stackp;
 }
 
-Cell *code_inst(Inst f, const char *name) /* install one instruction of operand */
+Cell *code_inst(const instr *ins) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
 
     if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
 
-    P2("0x%04x: %s\n", (int)(old_progp - prog), name);
+    P2("0x%04x: %s\n", (int)(old_progp - prog), ins->name);
 
-    (progp++)->inst = f;
+    (progp++)->inst = ins;
     return old_progp;
 }
 
@@ -185,13 +185,11 @@ Cell *code_str(const char *str) /* install one string on Cell */
 void execute(Cell *p) /* run the machine */
 {
     P(" " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
-    for (pc = p; pc->inst != STOP && !returning;) {
-        /* LCU: Sat Mar 22 15:40:42 -05 2025
-         * TODO: cuando cambiemos el formato de la instruccion habra que
-         * cambiar el NULL por el puntero al registro de la instruccion
-         * para obtener de ahi el puntero a la funcion a ejecutar y su
-         * nombre */
-        (pc++)->inst(NULL);
+    for (   pc = p;
+            pc->inst != &STOP_instr && !returning;
+        )
+    {
+        (pc++)->inst->exec(p->inst);
     }
     P(" " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
 }
@@ -822,6 +820,11 @@ void symbs(const instr *i)
 }
 
 void symbs_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void STOP_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }

@@ -16,8 +16,6 @@ typedef struct Symbol Symbol;
 
 #include "instr.h"
 
-typedef void (*Inst)(const instr *); /* machine instruction */
-
 struct Symbol {                           /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
@@ -75,18 +73,14 @@ typedef double Datum;
 
 extern Datum pop(void);
 
-
-
-#define STOP (Inst) 0
-
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell {
-    Inst        inst;
-    Symbol     *sym;
-    double      val;
-    Cell       *cel;
-    const char *str;
-    long        num;
+    const instr *inst;
+    Symbol      *sym;
+    double       val;
+    Cell        *cel;
+    const char  *str;
+    long         num;
 };
 
 extern Cell prog[];

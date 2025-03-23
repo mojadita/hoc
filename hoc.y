@@ -17,15 +17,13 @@
 #include "hoc.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
+#include "instr.h"
 #include "code.h"
 
 static void yyerror(char *);
 
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
-
-#define CODE_INST(I) code_inst(I,    CYAN #I ANSI_END)
-#define CODE_STOP()  code_inst(STOP, YELLOW "STOP" ANSI_END)
 
 #ifndef UQ_HOC_DEBUG
 #warning UQ_HOC_DEBUG deberia ser configurado en config.mk
@@ -52,6 +50,9 @@ jmp_buf begin;
 #define PT(_fmt, ...)
 #endif
 
+#define CODE_INST(I) code_inst(&I##_instr)
+#define CODE_STOP()  CODE_INST(STOP)
+
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     indef_func;  /* 1 si estamos en una definicion de funcion */
 
@@ -62,12 +63,12 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    Inst    inst; /* machine instruction */
-    Symbol *sym;  /* symbol table pointer */
-    double  val;  /* double value */
-    Cell   *cel;  /* Cell reference */
-    int     num;  /* valor entero, para $<n> */
-    char   *str;  /* cadena de caracteres */
+    const instr *inst; /* machine instruction */
+    Symbol      *sym;  /* symbol table pointer */
+    double       val;  /* double value */
+    Cell        *cel;  /* Cell reference */
+    int          num;  /* valor entero, para $<n> */
+    char        *str;  /* cadena de caracteres */
 }
 
 /* Los valores que retorna la fncion  yylex son declarados con
