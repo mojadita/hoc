@@ -8,6 +8,7 @@
 #ifndef INSTR_H
 #define INSTR_H
 
+#define I_DATA(i) (instruction_set + (i))
 
 typedef struct instr      instr;
 typedef enum   instr_code instr_code;
@@ -28,12 +29,7 @@ struct instr {
     void        (*print)(const instr *, const Cell *);
 };
 
-#define INST(_nom) extern const instr _nom##_instr;
-extern const instr STOP_instr;
-#include "instrucciones.h"
-#undef INST
-
-extern const instr * const tabla_instrucciones[];
-extern const size_t tabla_instrucciones_len;
+extern const instr  instruction_set[];
+extern const size_t instruction_set_len;
 
 #endif /* INSTR_H */

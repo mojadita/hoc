@@ -1,0 +1,47 @@
+* Fri Mar 21 13:15:36 -05 2025
+  implementar  la  instruccion print  para  que  imprima listas  de
+  expresiones,   intercaladas  con   impresiones   de  cadenas   de
+  caracteres para formatear la salida.
+  
+* Sat Mar 22 12:10:34 -05 2025
+  Incluir soporte para usar colores en la salida de las trazas.
+  
+* Sun Mar 23 11:34:00 -05 2025
+  TODO: esta a medias, el listado del programa no se hace.
+  implementar  las instrucciones  como  indices de  un array,  para
+  permitir listar el programa producido en lugar de usar las trazas
+  que  empleamos ahora.  La instruccion  debera tener  entonces una
+  estructura, para  almacenar varios  punteros a funcion,  una para
+  ejecutar  el codigo,  otra para  listar la  instruccion (con  sus
+  parametros tomados  de la  memoria), otra  para trazar  el codigo
+  (segun se ejecuta) el nombre de la instruccion, etc.
+  
+* tratar de meter los parametros  en la instruccion misma, de forma
+  que se ahorren celdas de memoria en el programa.
+  
+* eliminar  las instrucciones  'whilecode' e  'ifcode' en  favor de
+  instrucciones  mas  sencillas   como  'iftruecode'  'iffalsecode'
+  'goto'.
+  
+* Implementar  AND y  OR  de forma  que corten  la  expresion y  no
+  evaluen   el  operando   derecho  si   la  expresion   puede  ser
+  cortocircuitada.  (AND  puede  serlo  si  el  operando  izquierdo
+  resulta ser 0, y OR puede  serlo si el operando izquierdo resulta
+  ser distinto de cero)
+  
+* implementar  variables locales  y parametros  con identificadores
+  como nombres, en lugar de usar la notacion $<n>.
+  
+* implementar las variables en memoria.
+  
+* implementar la pila en memoria.
+  
+* implementar los contextos de las funciones en memoria.
+  
+* traducir a ensamblador 'de verdad'.
+  
+* implementar funciones anidadas, como en  pascal. Esto es comun en
+  lenguajes tipo pascal,  modula 2, ada o en parte  en java (cuando
+  se emplean lambdas)
+  
+* soportar tipos de datos estructurados???

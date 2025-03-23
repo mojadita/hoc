@@ -39,6 +39,7 @@
 #else /* UQ_CODE_DEBUG_P1    }{ */
 #define P(_fmt, ...)
 #define P_TAIL(_fmt, ...)
+#define PR(_fmt, ...)
 #endif /* UQ_CODE_DEBUG_P1   }} */
 
 #if UQ_CODE_DEBUG_P2
@@ -112,14 +113,22 @@ Datum pop(void)    /* pops Datum and rturn top element from stack */
     return *--stackp;
 }
 
-Cell *code_inst(const instr *ins) /* install one instruction of operand */
+Cell *code_inst(instr_code ins) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
 
-    if (progp >= &prog[UQ_NPROG])
-        execerror("program too big");
+    if (ins >= instruction_set_len) {
+        execerror("invalid instruction code [%d]\n",
+            ins);
+    }
+    if (progp >= &prog[UQ_NPROG]) {
+        execerror("program too big (max=%d)",
+            UQ_NPROG);
+    }
 
-    P2("0x%04x: %s\n", (int)(old_progp - prog), ins->name);
+    P2("0x%04lx: %s\n",
+        old_progp - prog,
+        instruction_set[ins].name);
 
     (progp++)->inst = ins;
     return old_progp;
@@ -186,10 +195,12 @@ void execute(Cell *p) /* run the machine */
 {
     P(" " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
     for (   pc = p;
-            pc->inst != &STOP_instr && !returning;
+            pc->inst != INST_STOP
+                && !returning;
         )
     {
-        (pc++)->inst->exec(p->inst);
+        const instr *ins = instruction_set + ((pc++)->inst);
+        ins->exec(ins);
     }
     P(" " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
 }

@@ -8,29 +8,25 @@
 #include "code.h"
 #include "instr.h"
 
-#define INST(_nom)                 \
-const instr _nom##_instr = {       \
-    .code_id = INST_##_nom,        \
-    .name    = #_nom,              \
-    .exec    = _nom,               \
-    .print   = _nom##_prt,         \
-};
-const instr STOP_instr = {
-    .code_id = INST_STOP,
-    .name    = "STOP",
-    .exec    = NULL,
-    .print   = STOP_prt,
-};
+#define NELEM(_arr) (sizeof _arr / sizeof _arr[0])
+
+const instr instruction_set[] = {
+    [INST_STOP]  = {
+        .code_id = INST_STOP,
+        .name    = "STOP",
+        .exec    = NULL,
+        .print   = NULL,
+    },
+#define INST(_nom)                \
+    [INST_##_nom] = {             \
+        .code_id  = INST_##_nom,  \
+        .name     = #_nom,        \
+        .exec     = _nom,         \
+        .print    = _nom##_prt,   \
+    },
 #include "instrucciones.h"
 #undef INST
+}; /* instruction_set[] */
 
-const instr * const tabla_instrucciones[] = {
-     [INST_STOP] = &STOP_instr,
-#define INST(_nom) [INST_##_nom] = &_nom##_instr,
-#include "instrucciones.h"
-#undef  INST
-};
-
-const size_t tabla_instrucciones_len
-    = sizeof tabla_instrucciones
-    / sizeof tabla_instrucciones[0];
+const size_t instruction_set_len
+    = NELEM(instruction_set);

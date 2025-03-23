@@ -75,7 +75,10 @@ extern Datum pop(void);
 
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell {
-    const instr *inst;
+    struct {
+        instr_code inst: 8;
+        int        desp: 32;
+    };
     Symbol      *sym;
     double       val;
     Cell        *cel;

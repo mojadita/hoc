@@ -50,7 +50,7 @@ jmp_buf begin;
 #define PT(_fmt, ...)
 #endif
 
-#define CODE_INST(I) code_inst(&I##_instr)
+#define CODE_INST(I) code_inst(INST_##I)
 #define CODE_STOP()  CODE_INST(STOP)
 
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
@@ -63,7 +63,6 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    const instr *inst; /* machine instruction */
     Symbol      *sym;  /* symbol table pointer */
     double       val;  /* double value */
     Cell        *cel;  /* Cell reference */
