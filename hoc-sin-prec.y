@@ -87,6 +87,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       RETURN READ
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
+%token       LIST
 %type  <cel> stmt cond stmtlist while if end asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel> expr_seq item
@@ -119,10 +120,11 @@ stmt: asig ';'             { CODE_INST(drop); }
                              CODE_INST(funcret); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS ';'            { $$ = CODE_INST(symbs); }
+    | LIST        ';'      { $$ = CODE_INST(list); }
     | while cond stmt end  {
                              Cell *saved_progp = progp;
                              progp = $1;
-                             P(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             P(">>> begin patching CODE @ [%04lx]\n", progp - prog);
                              CODE_INST(whilecode);
                              code_cel($3);
                              code_cel($4);
@@ -133,7 +135,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | if    cond stmt end  {
                              Cell *saved_progp = progp;
                              progp = $1;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(ifcode);
                                  code_cel($3);
                                  code_cel(NULL);   /* no hay parte else, ver `ifcode` */
@@ -145,7 +147,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | if    cond stmt end ELSE stmt end {
                              Cell *saved_progp = progp;
                              progp = $1;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(ifcode);
                                  code_cel($3);
                                  code_cel($6);

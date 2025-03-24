@@ -23,16 +23,22 @@ void  end_define(void);               /* housekeeping after function definition 
 int   stacksize(void);                /* return the stack size */
 
 /* instructions */
+/* LCU: Esta macro define dos prototipos por cada instruccion:
+ * * el prototipo de la instruccion propiamente dicha (el que
+ *   se ejecuta cuando se invoca la instruccion.
+ * * el prototipo de impresion de la instruccion (el que se
+ *   ejecuta para imprimir la instruccion)
+ * Se invoca la macro una vez por cada instruccion, generandose
+ * ambos prototipos (estos deben implementarse normalmente en la
+ * unidad de compiladion code.c) */
 #define INST(_nom)         \
         void _nom(         \
             const instr *);\
         void _nom##_prt(   \
             const instr *, \
-            const Cell *);
+            const Cell **);
 
 #include "instrucciones.h"
 #undef  INST
-
-void STOP_prt(const instr *, const Cell *);
 
 #endif /* CODE_H */

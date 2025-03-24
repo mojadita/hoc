@@ -89,6 +89,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       RETURN READ
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
+%token       LIST
 %type  <cel> stmt asig expr stmtlist cond while if end mark
 %type  <cel> expr_seq item
 %type  <num> arglist_opt arglist
@@ -133,6 +134,7 @@ stmt: asig        ';'      { CODE_INST(drop); }
                              CODE_INST(funcret); }
     | PRINT  expr_seq ';'  { $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(symbs); }
+    | LIST        ';'      { $$ = CODE_INST(list); }
     | while cond stmt end  { Cell *saved_progp = progp;
                              progp = $1;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);

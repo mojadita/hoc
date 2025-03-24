@@ -5,6 +5,7 @@
  * License: BSD
  */
 
+INST(STOP)
 INST(drop)
 INST(constpush)
 INST(add)
@@ -40,3 +41,4 @@ INST(argassign)
 INST(prstr)
 INST(prexpr)
 INST(symbs)
+INST(list)

@@ -27,20 +27,21 @@
 
 #if      UQ_CODE_DEBUG_P1 /* {{ */
 #define  P(_fmt, ...)                                 \
-    printf("%s:%d:[%04x] %s"_fmt, __FILE__, __LINE__, \
-        (int)(pc - prog - 1), __func__, ##__VA_ARGS__)
+    printf("%s:%d:[%04lx] %s"_fmt, __FILE__, __LINE__, \
+        pc - prog - 1, __func__, ##__VA_ARGS__)
 #define  P_TAIL(_fmt, ...)      \
     printf(_fmt, ##__VA_ARGS__)
-#define  PR(_fmt, ...)       \
-    printf("[%04lx] %s"_fmt, \
-        pc - prog,           \
-        i->name,             \
-        ##__VA_ARGS__)
 #else /* UQ_CODE_DEBUG_P1    }{ */
 #define P(_fmt, ...)
 #define P_TAIL(_fmt, ...)
-#define PR(_fmt, ...)
 #endif /* UQ_CODE_DEBUG_P1   }} */
+
+#define  PR(_fmt, ...)                     \
+    printf(YELLOW"%04lx" WHITE ": " \
+        CYAN"%-10s"ANSI_END _fmt,          \
+        *pc - prog,                        \
+        i->name,                           \
+        ##__VA_ARGS__)
 
 #if UQ_CODE_DEBUG_P2
 #define P2(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
@@ -211,7 +212,7 @@ void drop(const instr *i) /* drops the top of stack */
     pop();
 }
 
-void drop_prt(const instr *i, const Cell *pc)
+void drop_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -225,9 +226,10 @@ void constpush(const instr *i) /* push constant onto stack */
 }
 
 /* push constant onto stack */
-void constpush_prt(const instr *i, const Cell *pc)
+void constpush_prt(const instr *i, const Cell **pc)
 {
-    PR(" %.8g\n", pc[1].val);
+    PR(" %.8g\n", (*pc)[1].val);
+    (*pc)++;
 }
 
 void add(const instr *i) /* add top two elements on stack */
@@ -241,7 +243,7 @@ void add(const instr *i) /* add top two elements on stack */
     push(res);
 }
 
-void add_prt(const instr *i, const Cell *pc)
+void add_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -257,7 +259,7 @@ void sub(const instr *i) /* subtract top two elements on stack */
     push(res);
 }
 
-void sub_prt(const instr *i, const Cell *pc)
+void sub_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -273,7 +275,7 @@ void mul(const instr *i) /* multiply top two elements on stack */
     push(res);
 }
 
-void mul_prt(const instr *i, const Cell *pc)
+void mul_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -289,7 +291,7 @@ void divi(const instr *i) /* divide top two elements on stack */
     push(res);
 }
 
-void divi_prt(const instr *i, const Cell *pc)
+void divi_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -305,7 +307,7 @@ void mod(const instr *i) /* mod top two elements on stack */
     push(res);
 }
 
-void mod_prt(const instr *i, const Cell *pc)
+void mod_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -320,7 +322,7 @@ void neg(const instr *i) /* change sign top element on stack */
     push(res);
 }
 
-void neg_prt(const instr *i, const Cell *pc)
+void neg_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -336,7 +338,7 @@ void pwr(const instr *i) /* pow top two elements on stack */
     push(res);
 }
 
-void pwr_prt(const instr *i, const Cell *pc)
+void pwr_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -353,9 +355,10 @@ void eval(const instr *i) /* evaluate variable on stack */
     push(sym->val);
 }
 
-void eval_prt(const instr *i, const Cell *pc)
+void eval_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+	(*pc)++;
 }
 
 void assign(const instr *i) /* assign top value to next value */
@@ -369,9 +372,10 @@ void assign(const instr *i) /* assign top value to next value */
     push(d);
 }
 
-void assign_prt(const instr *i, const Cell *pc)
+void assign_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+	(*pc)++;
 }
 
 void print(const instr *i) /* pop top value from stack, print it */
@@ -381,7 +385,7 @@ void print(const instr *i) /* pop top value from stack, print it */
     printf("\t\t%32.8g\n", d);
 }
 
-void print_prt(const instr *i, const Cell *pc)
+void print_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -396,9 +400,10 @@ void bltin0(const instr *i) /* evaluate built-in on top of stack */
     push(res);
 }
 
-void bltin0_prt(const instr *i, const Cell *pc)
+void bltin0_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+    (*pc)++;
 }
 
 void bltin1(const instr *i) /* evaluate built-in with one argument */
@@ -412,9 +417,10 @@ void bltin1(const instr *i) /* evaluate built-in with one argument */
     push(res);
 }
 
-void bltin1_prt(const instr *i, const Cell *pc)
+void bltin1_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+    (*pc)++;
 }
 
 void bltin2(const instr *i) /* evaluate built-in with two arguments */
@@ -429,9 +435,10 @@ void bltin2(const instr *i) /* evaluate built-in with two arguments */
     push(res);
 }
 
-void bltin2_prt(const instr *i, const Cell *pc)
+void bltin2_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+    (*pc)++;
 }
 
 void whilecode(const instr *i) /* execute the while loop */
@@ -458,11 +465,12 @@ void whilecode(const instr *i) /* execute the while loop */
     P_TAIL("\n");
 }
 
-void whilecode_prt(const instr *i, const Cell *pc)
+void whilecode_prt(const instr *i, const Cell **pc)
 {
     PR(" [%04lx], [%04lx]\n",
-        pc[1].cel - prog,
-        pc[2].cel - prog);
+        (*pc)[1].cel - prog,
+        (*pc)[2].cel - prog);
+	(*pc) += 2;
 }
 
 void ifcode(const instr *i) /* execute the if statement */
@@ -478,7 +486,7 @@ void ifcode(const instr *i) /* execute the if statement */
     if (d) {
         P(" execute THEN code [%04lx]\n", savepc[0].cel - prog);
         execute(savepc[0].cel);
-    } else if (savepc[1].cel) {
+    } else if (savepc[1].cel != NULL) {
         P(" execute ELSE code [%04lx]\n", savepc[1].cel - prog);
         execute(savepc[1].cel);
     }
@@ -490,12 +498,13 @@ void ifcode(const instr *i) /* execute the if statement */
     P_TAIL("\n");
 }
 
-void ifcode_prt(const instr *i, const Cell *pc)
+void ifcode_prt(const instr *i, const Cell **pc)
 {
     PR(" [%04lx], [%04lx], [%04lx]\n",
-        pc[1].cel - prog,
-        pc[2].cel - prog,
-        pc[3].cel - prog);
+        (*pc)[1].cel - prog,
+        (*pc)[2].cel ? (*pc)[2].cel - prog : 0UL,
+        (*pc)[3].cel - prog);
+	(*pc) += 3;
 }
 
 void ge(const instr *i) /* greater or equal */
@@ -509,7 +518,7 @@ void ge(const instr *i) /* greater or equal */
     push(res);
 }
 
-void ge_prt(const instr *i, const Cell *pc)
+void ge_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -525,7 +534,7 @@ void le(const instr *i) /* less or equal */
     push(res);
 }
 
-void le_prt(const instr *i, const Cell *pc)
+void le_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -541,7 +550,7 @@ void gt(const instr *i) /* greater than */
     push(res);
 }
 
-void gt_prt(const instr *i, const Cell *pc)
+void gt_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -557,7 +566,7 @@ void lt(const instr *i) /* less than */
     push(res);
 }
 
-void lt_prt(const instr *i, const Cell *pc)
+void lt_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -573,7 +582,7 @@ void eq(const instr *i) /* equal */
     push(res);
 }
 
-void eq_prt(const instr *i, const Cell *pc)
+void eq_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -589,7 +598,7 @@ void ne(const instr *i) /* not equal */
     push(res);
 }
 
-void ne_prt(const instr *i, const Cell *pc)
+void ne_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -604,7 +613,7 @@ void not(const instr *i) /* not */
     push(res);
 }
 
-void not_prt(const instr *i, const Cell *pc)
+void not_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -620,7 +629,7 @@ void and(const instr *i)  /* and */
     push(res);
 }
 
-void and_prt(const instr *i, const Cell *pc)
+void and_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -636,7 +645,7 @@ void or(const instr *i)               /* or */
     push(res);
 }
 
-void or_prt(const instr *i, const Cell *pc)
+void or_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -655,9 +664,10 @@ void readopcode(const instr *i)  /* readopcode */
     push(sym->val);
 }
 
-void readopcode_prt(const instr *i, const Cell *pc)
+void readopcode_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", pc[1].sym->name);
+    PR(" '%s'\n", (*pc)[1].sym->name);
+	(*pc)++;
 }
 
 void end_define(void)
@@ -700,9 +710,9 @@ void call(const instr *i)   /* call a function */
     int niv = frame + UQ_NFRAME - fp;
     if (niv > max_niv) max_niv = niv;
 
-    P(" execute @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
-        (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
-        sym->name, fp->nargs, (int)(fp->retpc - prog), niv, max_niv);
+    P(" -> execute @[0x%04lx], %s '%s', args=%d, ret_addr=0x%04lx, niv=%d/%d\n",
+        sym->defn - prog, sym->type == FUNCTION ? "func" : "proc",
+        sym->name, fp->nargs, fp->retpc - prog, niv, max_niv);
     P("   Parametros: ");
     const char *sep = "";
     for (int i = 1; i <= fp->nargs; i++) {
@@ -723,11 +733,13 @@ void call(const instr *i)   /* call a function */
     ++fp;
 } /* call */
 
-void call_prt(const instr *i, const Cell *pc)
+void call_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s' %ld\n",
-        pc[1].sym->name,
-		pc[2].num);
+    PR(" '%s', args=%ld -> [%04lx]\n",
+        (*pc)[1].sym->name,
+		(*pc)[2].num,
+        (*pc)[1].sym->defn - prog);
+	(*pc) += 2;
 }
 
 static void ret(void)
@@ -745,7 +757,7 @@ void procret(const instr *i) /* return from proc */
     ret();
 }
 
-void procret_prt(const instr *i, const Cell *pc)
+void procret_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -758,7 +770,7 @@ void funcret(const instr *i) /* return from func */
     push(d);
 }
 
-void funcret_prt(const instr *i, const Cell *pc)
+void funcret_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -782,24 +794,26 @@ void argeval(const instr *i) /* push argument onto stack */
     push(d);
 }
 
-void argeval_prt(const instr *i, const Cell *pc)
+void argeval_prt(const instr *i, const Cell **pc)
 {
-    PR(" $%ld\n", pc[1].num);
+    PR(" $%ld\n", (*pc)[1].num);
+	(*pc)++;
 }
 
 void argassign(const instr *i) /* store top of stack in argument */
 {
     P("\n");
-    int arg = pc++[0].num;
+    int arg = pc[0].num;
     Datum d = pop();
     P(" %.8g -> $%d\n", d, arg);
     Datum *ref = getarg(arg);
     push(*ref = d);
 }
 
-void argassign_prt(const instr *i, const Cell *pc)
+void argassign_prt(const instr *i, const Cell **pc)
 {
-    PR(" $%ld\n", pc[1].num);
+    PR(" $%ld\n", (*pc)[1].num);
+	(*pc)++;
 }
 
 void prstr(const instr *i) /* print string */
@@ -808,9 +822,10 @@ void prstr(const instr *i) /* print string */
     printf("%s", pc++[0].str);
 }
 
-void prstr_prt(const instr *i, const Cell *pc)
+void prstr_prt(const instr *i, const Cell **pc)
 {
-    PR(" \"%s\"\n", pc[1].str);
+    PR(" \"%s\"\n", (*pc)[1].str);
+	(*pc)++;
 }
 
 void prexpr(const instr *i)  /* print numeric value */
@@ -819,7 +834,7 @@ void prexpr(const instr *i)  /* print numeric value */
     printf("%.8g", pop());
 }
 
-void prexpr_prt(const instr *i, const Cell *pc)
+void prexpr_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
@@ -830,12 +845,27 @@ void symbs(const instr *i)
     list_symbols();
 }
 
-void symbs_prt(const instr *i, const Cell *pc)
+void symbs_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }
 
-void STOP_prt(const instr *i, const Cell *pc)
+void STOP_prt(const instr *i, const Cell **pc)
+{
+    PR("\n");
+}
+
+void list(const instr *i)
+{
+	const Cell *pc = prog;
+	while (pc < progp) {
+		const instr *i = instruction_set + pc->inst;
+		i->print(i, &pc);
+        pc++;
+	}
+}
+
+void list_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
 }

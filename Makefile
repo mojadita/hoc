@@ -1,4 +1,5 @@
-CFLAGS         = -O3
+CFLAGS         = -O0 -g
+LDFLAGS        = -g
 RM            ?= rm -f
 targets        = hoc hoc-sin-prec hoc.1.gz
 toclean       += $(targets)
@@ -20,18 +21,19 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall     ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
 
-common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) reserved_words.o main.o do_help.o instr.o
+common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
+                reserved_words.o main.o do_help.o instr.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
 hoc_libs       = -lm 
-toclean       += hoc.o hoc.c y.tab.h
+toclean       += hoc.o
 
 hoc-sin-prec_objs = hoc-sin-prec.o $(common_objs)
 hoc-sin-prec_libs = -lm 
 toclean          += hoc-sin-prec.o hoc-sin-prec.c
 
-##  Crea un fichero donde se gurda la fecha hora de compilacion.
+##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets)
 	date > $@
 toclean += BUILD_DATE.txt
@@ -75,6 +77,7 @@ hoc-sin-prec: $(hoc-sin-prec_objs)
 
 hoc.tab.h: hoc.c
 hoc.1: hoc.1.in
+toclean += HOC.tab.h hoc.1 hoc.c
 
 # ack.c code.c do_help.c error.c hoc-sin-prec.c hoc.c
 # init.c instr.c lex.c main.c math.c reserved_words.c
