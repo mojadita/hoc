@@ -1,5 +1,14 @@
-CFLAGS         = -O0 -g
-LDFLAGS        = -g
+##  nd = No Debugging    db = Debugging
+DEBUG-TYPE     = nd
+
+CFLAGS-nd      = -O3
+LDFLAGS-nd     =
+CFLAGS-db      = -O0 -g
+LDFLAGS-db     = -g
+
+CFLAGS        ?= $(CFLAGS-$(DEBUG-TYPE))
+LDFLAGS       ?= $(LDFLAGS-$(DEBUG-TYPE))
+
 RM            ?= rm -f
 targets        = hoc hoc-sin-prec hoc.1.gz
 toclean       += $(targets)
@@ -79,9 +88,9 @@ hoc.tab.h: hoc.c
 hoc.1: hoc.1.in
 toclean += HOC.tab.h hoc.1 hoc.c
 
-# ack.c code.c do_help.c error.c hoc-sin-prec.c hoc.c
-# init.c instr.c lex.c main.c math.c reserved_words.c
-# symbol.c yylex.c
+# ack.c code.c do_help.c error.c hoc-sin-prec.c
+# hoc.c init.c instr.c lex.c main.c math.c
+# reserved_words.c symbol.c yylex.c
 
 ack.o: ack.c 
 code.o: code.c config.h colors.h hoc.h instr.h \
@@ -90,19 +99,23 @@ do_help.o: do_help.c config.h do_help.h
 error.o: error.c config.h colors.h hoc.h instr.h \
   instrucciones.h error.h
 hoc-sin-prec.o: hoc-sin-prec.c config.h colors.h \
-  hoc.h instr.h instrucciones.h error.h math.h code.h 
+  hoc.h instr.h instrucciones.h error.h math.h \
+  code.h 
 hoc.o: hoc.c config.h colors.h hoc.h instr.h \
   instrucciones.h error.h math.h code.h 
-init.o: init.c config.h hoc.h instr.h instrucciones.h \
-  hoc.tab.h math.h code.h
-instr.o: instr.c code.h hoc.h instr.h instrucciones.h
+init.o: init.c config.h hoc.h instr.h \
+  instrucciones.h hoc.tab.h math.h code.h
+instr.o: instr.c code.h hoc.h instr.h \
+  instrucciones.h
 lex.o: lex.c config.h hoc.h instr.h \
-  instrucciones.h hoc.tab.h code.h reserved_words.h 
+  instrucciones.h hoc.tab.h code.h \
+  reserved_words.h 
 main.o: main.c config.h colors.h do_help.h hoc.h \
   instr.h instrucciones.h code.h
 math.o: math.c error.h
-reserved_words.o: reserved_words.c hoc.h \
-  instr.h instrucciones.h hoc.tab.h reserved_words.h
+reserved_words.o: reserved_words.c hoc.h instr.h \
+  instrucciones.h hoc.tab.h reserved_words.h
 symbol.o: symbol.c hoc.h instr.h instrucciones.h \
   config.h colors.h hoc.tab.h
-yylex.o: yylex.c hoc.h instr.h instrucciones.h hoc.tab.h
+yylex.o: yylex.c hoc.h instr.h \
+  instrucciones.h hoc.tab.h

@@ -194,7 +194,8 @@ Cell *code_str(const char *str) /* install one string on Cell */
 
 void execute(Cell *p) /* run the machine */
 {
-    P(" " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
+    pc = p + 1;
+    P(": " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
     for (   pc = p;
             pc->inst != INST_STOP
                 && !returning;
@@ -203,7 +204,7 @@ void execute(Cell *p) /* run the machine */
         const instr *ins = instruction_set + ((pc++)->inst);
         ins->exec(ins);
     }
-    P(" " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
+    P(": " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
 }
 
 void drop(const instr *i) /* drops the top of stack */
@@ -228,7 +229,7 @@ void constpush(const instr *i) /* push constant onto stack */
 /* push constant onto stack */
 void constpush_prt(const instr *i, const Cell **pc)
 {
-    PR(" %.8g\n", (*pc)[1].val);
+    PR("%2.8g\n", (*pc)[1].val);
     (*pc)++;
 }
 
@@ -357,7 +358,7 @@ void eval(const instr *i) /* evaluate variable on stack */
 
 void eval_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
 	(*pc)++;
 }
 
@@ -374,7 +375,7 @@ void assign(const instr *i) /* assign top value to next value */
 
 void assign_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
 	(*pc)++;
 }
 
@@ -402,7 +403,7 @@ void bltin0(const instr *i) /* evaluate built-in on top of stack */
 
 void bltin0_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
     (*pc)++;
 }
 
@@ -419,7 +420,7 @@ void bltin1(const instr *i) /* evaluate built-in with one argument */
 
 void bltin1_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
     (*pc)++;
 }
 
@@ -437,7 +438,7 @@ void bltin2(const instr *i) /* evaluate built-in with two arguments */
 
 void bltin2_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
     (*pc)++;
 }
 
@@ -447,17 +448,17 @@ void whilecode(const instr *i) /* execute the while loop */
     Cell *savepc = pc;  /* savepc[0] loop body address */
                         /* savepc[1] is the loop end address */
                         /* savepc + 2 is the cond starting point */
-    P(" execute cond code [%04lx]\n", savepc + 2 - prog);
+    P(": execute cond code [%04lx]\n", savepc + 2 - prog);
     execute(savepc + 2); /* execute cond code */
     Datum d = pop();     /* pop the boolean data */
     while (d != 0) {
-        P(" execute body code [%04lx]\n", savepc[0].cel - prog);
+        P(": execute body code [%04lx]\n", savepc[0].cel - prog);
         execute(savepc[0].cel); /* execute body */
-        P(" execute cond code [%04lx]\n", savepc + 2 - prog);
+        P(": execute cond code [%04lx]\n", savepc + 2 - prog);
         execute(savepc + 2);    /* execute cond again */
         d = pop();
     }
-    P(" END while loop");
+    P(": END while loop");
     if (!returning) {
         P_TAIL(" [%04lx]", savepc[1].cel - prog);
         pc = savepc[1].cel;
@@ -467,7 +468,7 @@ void whilecode(const instr *i) /* execute the while loop */
 
 void whilecode_prt(const instr *i, const Cell **pc)
 {
-    PR(" [%04lx], [%04lx]\n",
+    PR("[%04lx], [%04lx]\n",
         (*pc)[1].cel - prog,
         (*pc)[2].cel - prog);
 	(*pc) += 2;
@@ -480,17 +481,17 @@ void ifcode(const instr *i) /* execute the if statement */
                         /* savepc[1] else statement address */
                         /* savepc[2] next statement address */
                         /* savepc + 3 first cond evaluation instruction */
-    P(" execute cond code [%04lx]\n", savepc + 3 - prog);
+    P(": execute cond code [%04lx]\n", savepc + 3 - prog);
     execute(savepc + 3); /* execute cond code */
     Datum d = pop();    /* pop the boolean data */
     if (d) {
-        P(" execute THEN code [%04lx]\n", savepc[0].cel - prog);
+        P(": execute THEN code [%04lx]\n", savepc[0].cel - prog);
         execute(savepc[0].cel);
     } else if (savepc[1].cel != NULL) {
-        P(" execute ELSE code [%04lx]\n", savepc[1].cel - prog);
+        P(": execute ELSE code [%04lx]\n", savepc[1].cel - prog);
         execute(savepc[1].cel);
     }
-    P(" END");
+    P(": END");
     if (!returning) {
         P_TAIL(" [%04lx]", savepc[2].cel - prog);
         pc = savepc[2].cel;
@@ -500,7 +501,7 @@ void ifcode(const instr *i) /* execute the if statement */
 
 void ifcode_prt(const instr *i, const Cell **pc)
 {
-    PR(" [%04lx], [%04lx], [%04lx]\n",
+    PR("[%04lx], [%04lx], [%04lx]\n",
         (*pc)[1].cel - prog,
         (*pc)[2].cel ? (*pc)[2].cel - prog : 0UL,
         (*pc)[3].cel - prog);
@@ -666,7 +667,7 @@ void readopcode(const instr *i)  /* readopcode */
 
 void readopcode_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s'\n", (*pc)[1].sym->name);
+    PR("'%s'\n", (*pc)[1].sym->name);
 	(*pc)++;
 }
 
@@ -710,10 +711,10 @@ void call(const instr *i)   /* call a function */
     int niv = frame + UQ_NFRAME - fp;
     if (niv > max_niv) max_niv = niv;
 
-    P(" -> execute @[0x%04lx], %s '%s', args=%d, ret_addr=0x%04lx, niv=%d/%d\n",
+    P(": -> execute @[0x%04lx], %s '%s', args=%d, ret_addr=0x%04lx, niv=%d/%d\n",
         sym->defn - prog, sym->type == FUNCTION ? "func" : "proc",
         sym->name, fp->nargs, fp->retpc - prog, niv, max_niv);
-    P("   Parametros: ");
+    P(":   Parametros: ");
     const char *sep = "";
     for (int i = 1; i <= fp->nargs; i++) {
         P_TAIL("%s%.8g", sep, *getarg(i));
@@ -725,7 +726,7 @@ void call(const instr *i)   /* call a function */
     if (fp >= frame + UQ_NFRAME) {
         execerror("Smatching stack, la pila esta corrompida\n");
     }
-    P(" return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
+    P(": return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
         (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
         sym->name, fp->nargs, (int)(fp->retpc - prog), niv, max_niv);
     pc        = fp->retpc;
@@ -735,7 +736,7 @@ void call(const instr *i)   /* call a function */
 
 void call_prt(const instr *i, const Cell **pc)
 {
-    PR(" '%s', args=%ld -> [%04lx]\n",
+    PR("'%s', args=%ld -> [%04lx]\n",
         (*pc)[1].sym->name,
 		(*pc)[2].num,
         (*pc)[1].sym->defn - prog);
@@ -790,13 +791,13 @@ void argeval(const instr *i) /* push argument onto stack */
     P("\n");
     int arg = pc++[0].num;
     Datum d = *getarg(arg);
-    P(" $%d -> %.8g\n", arg, d);
+    P(": $%d -> %.8g\n", arg, d);
     push(d);
 }
 
 void argeval_prt(const instr *i, const Cell **pc)
 {
-    PR(" $%ld\n", (*pc)[1].num);
+    PR("$%ld\n", (*pc)[1].num);
 	(*pc)++;
 }
 
@@ -805,14 +806,14 @@ void argassign(const instr *i) /* store top of stack in argument */
     P("\n");
     int arg = pc[0].num;
     Datum d = pop();
-    P(" %.8g -> $%d\n", d, arg);
+    P(": %.8g -> $%d\n", d, arg);
     Datum *ref = getarg(arg);
     push(*ref = d);
 }
 
 void argassign_prt(const instr *i, const Cell **pc)
 {
-    PR(" $%ld\n", (*pc)[1].num);
+    PR("$%ld\n", (*pc)[1].num);
 	(*pc)++;
 }
 
@@ -824,7 +825,7 @@ void prstr(const instr *i) /* print string */
 
 void prstr_prt(const instr *i, const Cell **pc)
 {
-    PR(" \"%s\"\n", (*pc)[1].str);
+    PR("\"%s\"\n", (*pc)[1].str);
 	(*pc)++;
 }
 
