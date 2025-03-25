@@ -25,29 +25,29 @@ static void yyerror(char *);
 /*  Necesario para hacer setjmp y longjmp */
 jmp_buf begin;
 
-#ifndef UQ_HOC_DEBUG
+#ifndef  UQ_HOC_DEBUG
 #warning UQ_HOC_DEBUG deberia ser configurado en config.mk
-#define UQ_HOC_DEBUG 1
+#define  UQ_HOC_DEBUG 1
 #endif
 
-#ifndef UQ_HOC_USE_PATCHING
+#ifndef  UQ_HOC_USE_PATCHING
 #warning UQ_HOC_USE_PATCHING deberia ser configurado en config.mk
-#define UQ_HOC_USE_PATCHING 1
+#define  UQ_HOC_USE_PATCHING 1
 #endif
 
-#if UQ_HOC_DEBUG  /*   {{ */
-#define P(_fmt, ...)                      \
+#if       UQ_HOC_DEBUG /* {{ */
+# define P(_fmt, ...)                     \
     printf("%s:%d:%s "_fmt,               \
             __FILE__, __LINE__, __func__, \
             ##__VA_ARGS__)
-#else /* UQ_HOC_DEBUG  }{ */
-#define P(_fmt, ...)
-#endif /* UQ_HOC_DEBUG }} */
+#else  /* UQ_HOC_DEBUG    }{ */
+# define P(_fmt, ...)
+#endif /* UQ_HOC_DEBUG    }} */
 
 #if UQ_HOC_USE_PATCHING
-#define PT(_fmt, ...) P(_fmt, ##__VA_ARGS__)
+# define PT(_fmt, ...) P(_fmt, ##__VA_ARGS__)
 #else
-#define PT(_fmt, ...)
+# define PT(_fmt, ...)
 #endif
 
 #define CODE_INST(I) code_inst(INST_##I)
@@ -63,6 +63,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
+    const instr *inst; /* machine instruction */
     Symbol      *sym;  /* symbol table pointer */
     double       val;  /* double value */
     Cell        *cel;  /* Cell reference */
@@ -90,8 +91,8 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
 %token       LIST
-%type  <cel> stmt asig expr stmtlist cond while if end mark
-%type  <cel> expr_seq item
+%type  <cel> stmt asig expr stmtlist cond mark
+%type  <cel> expr_seq item do else
 %type  <num> arglist_opt arglist
 
 /* la directiva %type indica los tipos de datos de los diferentes
@@ -135,35 +136,38 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | PRINT  expr_seq ';'  { $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(symbs); }
     | LIST        ';'      { $$ = CODE_INST(list); }
-    | while cond stmt end  { Cell *saved_progp = progp;
-                             progp = $1;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                             CODE_INST(whilecode);
-                             code_cel($3);
-                             code_cel($4);
-                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                 progp - prog, saved_progp - prog);
-                             progp = saved_progp;
-                           }
-    | if    cond stmt end  { Cell *saved_progp = progp;
-                             progp = $1;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(ifcode);
-                                 code_cel($3);
-                                 code_cel(NULL);   /* no hay parte else, ver `ifcode` */
-                                 code_cel($4);
-                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                 progp - prog, saved_progp - prog);
-                             progp = saved_progp;
-                           }
-    | if    cond stmt end ELSE stmt end {
+    | WHILE cond do stmt   { CODE_INST(Goto);
+                             code_cel($2);
                              Cell *saved_progp = progp;
-                             progp = $1;
+                             progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(ifcode);
-                                 code_cel($3);
+                                 CODE_INST(if_f_goto);
+                                 code_cel(saved_progp);
+                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
+                                 progp - prog, saved_progp - prog);
+                             progp = saved_progp; }
+    | IF    cond do stmt   { Cell *saved_progp = progp;
+                             progp = $3;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(if_f_goto);
+                                 code_cel(saved_progp);
+                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
+                                 progp - prog, saved_progp - prog);
+                             progp = saved_progp;
+                           }
+    | IF    cond do stmt else stmt {
+                             Cell *saved_progp = progp;
+                             progp = $3;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(if_f_goto);
                                  code_cel($6);
-                                 code_cel($7);
+                             PT("<<< end patching CODE @ [%04lx], "
+                                   "continuing @ [%04lx]\n",
+                                   progp - prog, saved_progp - prog);
+                             progp = $5;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(Goto);
+                                 code_cel(saved_progp);
                              PT("<<< end patching CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
@@ -177,6 +181,24 @@ stmt: asig        ';'      { CODE_INST(drop); }
                              code_num($4);    /* number of arguments */ }
     ;
 
+do  :  /* empty */         { $$ = progp;
+                             PT(">>> inserting unpatched CODE @ [%04lx]\n",
+                                     progp - prog);
+                                 CODE_INST(if_f_goto);
+                                 code_cel(NULL);
+                             PT("<<< end inserting unpatched CODE @ [%04lx]\n",
+                                     progp - prog); }
+    ;
+
+else:  ELSE                { $$ = progp;
+                             PT(">>> inserting unpatched CODE @ [%04lx]\n",
+                                     progp - prog);
+                                 CODE_INST(Goto);
+                                 code_cel(NULL);
+                             PT("<<< end inserting unpatched CODE @ [%04lx]\n",
+                                     progp - prog); }
+    ;
+
 expr_seq
     : expr_seq ',' item
     | item
@@ -188,32 +210,10 @@ item: STRING               { $$ = CODE_INST(prstr);
     ;
 
 
-cond: '(' asig ')'         { CODE_STOP(); $$ = $2; }
-    ;
-
-while : WHILE              {
-                             PT(">>> unpatched code @ [%04lx]\n", progp - prog);
-                             $$ = CODE_INST(whilecode);
-                                  code_cel(NULL);
-                                  code_cel(NULL);
-                             PT("<<< end of unpatched code\n");
-                           }
-    ;
-
-if  : IF                   {
-                             PT(">>> unpatched code @ [%04lx]\n", progp - prog);
-                             $$ = CODE_INST(ifcode);
-                                  code_cel(NULL);
-                                  code_cel(NULL);
-                                  code_cel(NULL);
-                             PT("<<< end of unpatched code\n");
-                           }
+cond: '(' asig ')'         { $$ = $2; }
     ;
 
 mark: /* empty */          { $$ = progp; }
-    ;
-
-end : /* empty */          { CODE_STOP(); $$ = progp; }
     ;
 
 stmtlist: /* empty */      { $$ = progp; }

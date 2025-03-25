@@ -441,73 +441,6 @@ void bltin2_prt(const instr *i, const Cell **pc)
     PR("'%s'\n", (*pc)[1].sym->name);
     (*pc)++;
 }
-
-void whilecode(const instr *i) /* execute the while loop */
-{
-    P("\n");
-    Cell *savepc = pc;  /* savepc[0] loop body address */
-                        /* savepc[1] is the loop end address */
-                        /* savepc + 2 is the cond starting point */
-    P(": execute cond code [%04lx]\n", savepc + 2 - prog);
-    execute(savepc + 2); /* execute cond code */
-    Datum d = pop();     /* pop the boolean data */
-    while (d != 0) {
-        P(": execute body code [%04lx]\n", savepc[0].cel - prog);
-        execute(savepc[0].cel); /* execute body */
-        P(": execute cond code [%04lx]\n", savepc + 2 - prog);
-        execute(savepc + 2);    /* execute cond again */
-        d = pop();
-    }
-    P(": END while loop");
-    if (!returning) {
-        P_TAIL(" [%04lx]", savepc[1].cel - prog);
-        pc = savepc[1].cel;
-    }
-    P_TAIL("\n");
-}
-
-void whilecode_prt(const instr *i, const Cell **pc)
-{
-    PR("[%04lx], [%04lx]\n",
-        (*pc)[1].cel - prog,
-        (*pc)[2].cel - prog);
-	(*pc) += 2;
-}
-
-void ifcode(const instr *i) /* execute the if statement */
-{
-    P("\n");
-    Cell *savepc = pc;  /* savepc[0] then statement address */
-                        /* savepc[1] else statement address */
-                        /* savepc[2] next statement address */
-                        /* savepc + 3 first cond evaluation instruction */
-    P(": execute cond code [%04lx]\n", savepc + 3 - prog);
-    execute(savepc + 3); /* execute cond code */
-    Datum d = pop();    /* pop the boolean data */
-    if (d) {
-        P(": execute THEN code [%04lx]\n", savepc[0].cel - prog);
-        execute(savepc[0].cel);
-    } else if (savepc[1].cel != NULL) {
-        P(": execute ELSE code [%04lx]\n", savepc[1].cel - prog);
-        execute(savepc[1].cel);
-    }
-    P(": END");
-    if (!returning) {
-        P_TAIL(" [%04lx]", savepc[2].cel - prog);
-        pc = savepc[2].cel;
-    }
-    P_TAIL("\n");
-}
-
-void ifcode_prt(const instr *i, const Cell **pc)
-{
-    PR("[%04lx], [%04lx], [%04lx]\n",
-        (*pc)[1].cel - prog,
-        (*pc)[2].cel ? (*pc)[2].cel - prog : 0UL,
-        (*pc)[3].cel - prog);
-	(*pc) += 3;
-}
-
 void ge(const instr *i) /* greater or equal */
 {
     P("\n");
@@ -859,6 +792,7 @@ void STOP_prt(const instr *i, const Cell **pc)
 void list(const instr *i)
 {
 	const Cell *pc = prog;
+
 	while (pc < progp) {
 		const instr *i = instruction_set + pc->inst;
 		i->print(i, &pc);
@@ -869,4 +803,31 @@ void list(const instr *i)
 void list_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
+}
+
+void if_f_goto(const instr *i) /* jump if false */
+{
+    P("\n");
+    Datum d = pop();
+    pc = d ? pc + 1 : pc[0].cel;
+    P(": -> [%04lx]\n", pc - prog);
+}
+
+void if_f_goto_prt(const instr *i, const Cell **pc)
+{
+    PR("[%04lx]\n", (*pc)[1].cel - prog);
+	(*pc)++;
+}
+
+void Goto(const instr *i) /* jump if false */
+{
+    P("\n");
+    pc = pc[0].cel;
+    P(": -> [%04lx]\n", pc - prog);
+}
+
+void Goto_prt(const instr *i, const Cell **pc)
+{
+    PR("[%04lx]\n", (*pc)[1].cel - prog);
+	(*pc)++;
 }

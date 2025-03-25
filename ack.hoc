@@ -10,16 +10,18 @@ func ack() {
     n = n + 1;
     if ($1 == 0) {
         return $2 + 1;
-    } else if ($2 == 0) {
+    }
+    if ($2 == 0) {
         return ack($1 - 1, 1);
-    } else {
+    }
+    {
         return ack($1 - 1, ack($1, $2 - 1));
     }
 }
 
 list;
 
-c = ack(a = 3, b = 3);
+c = ack(a = 4, b = 1);
 
 print  "ack(", a, ", ", b, ") -> ", c, "\n";
 

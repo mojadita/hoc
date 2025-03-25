@@ -1,5 +1,5 @@
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE     = nd
+DEBUG-TYPE     = db
 
 CFLAGS-nd      = -O3
 LDFLAGS-nd     =

@@ -7,7 +7,6 @@
   Incluir soporte para usar colores en la salida de las trazas.
   
 * Sun Mar 23 11:34:00 -05 2025
-  TODO: esta a medias, el listado del programa no se hace.
   implementar  las instrucciones  como  indices de  un array,  para
   permitir listar el programa producido en lugar de usar las trazas
   que  empleamos ahora.  La instruccion  debera tener  entonces una
@@ -16,18 +15,19 @@
   parametros tomados  de la  memoria), otra  para trazar  el codigo
   (segun se ejecuta) el nombre de la instruccion, etc.
   
-* tratar de meter los parametros  en la instruccion misma, de forma
-  que se ahorren celdas de memoria en el programa.
-  
-* eliminar  las instrucciones  'whilecode' e  'ifcode' en  favor de
-  instrucciones  mas  sencillas   como  'iftruecode'  'iffalsecode'
-  'goto'.
+* Tue Mar 25 14:52:47 -05 2025
+  eliminar  las instrucciones  'whilecode' e  'ifcode' en  favor de
+  instrucciones  mas  sencillas   como  'if_0_goto', 'Goto'. Falta
+  eliminar las instrucciones 'whilecode' e 'ifcode'.
   
 * Implementar  AND y  OR  de forma  que corten  la  expresion y  no
   evaluen   el  operando   derecho  si   la  expresion   puede  ser
   cortocircuitada.  (AND  puede  serlo  si  el  operando  izquierdo
   resulta ser 0, y OR puede  serlo si el operando izquierdo resulta
   ser distinto de cero)
+  
+* tratar de meter los parametros  en la instruccion misma, de forma
+  que se ahorren celdas de memoria en el programa.
   
 * implementar  variables locales  y parametros  con identificadores
   como nombres, en lugar de usar la notacion $<n>.
