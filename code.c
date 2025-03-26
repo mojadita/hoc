@@ -55,7 +55,7 @@
 #endif
 
 static Datum  stack[UQ_NSTACK];  /* the stack */
-static Datum *stackp;         /* next free cell on stack */
+static Datum *stackp = stack + UQ_NSTACK; /* next free cell on stack */
 
 #ifndef  UQ_NPROG
 #warning UQ_NPROG debe definirse en config.mk
@@ -88,30 +88,37 @@ static Datum *getarg(int arg);    /* return a pointer to argument */
 void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
-    stackp    = stack;
+    stackp    = stack + UQ_NSTACK;
     fp        = frame + UQ_NFRAME;
     returning = 0;
 } /* initcode */
 
 int stacksize(void) /* return the stack size */
 {
-    return stackp - stack;
+    return stack + UQ_NSTACK - stackp;
 } /* stacksize */
 
 void push(Datum d)  /* push d onto stack */
 {
     /*  Verificamos si el puntero apunta a una direccion mas alla
         del final de la pila  */
-    if (stackp >= &stack[UQ_NSTACK])
+    if (stackp <= stack)
         execerror("stack overflow\n");
-    *stackp++ = d; /* equivalente a *stackp = d; stackp++; */
+    *--stackp = d;
 }
 
 Datum pop(void)    /* pops Datum and rturn top element from stack */
 {
-    if (stackp == stack)
+    if (stackp == stack + UQ_NSTACK)
         execerror("stack empty\n");
-    return *--stackp;
+    return *stackp++;
+}
+
+Datum top(void)   /* returns the top of the stack */
+{
+    if (stackp == stack + UQ_NSTACK)
+        execerror("stack empty\n");
+    return *stackp;
 }
 
 Cell *code_inst(instr_code ins) /* install one instruction of operand */
@@ -568,6 +575,26 @@ void and_prt(const instr *i, const Cell **pc)
     PR("\n");
 }
 
+void and_then(const instr *i)  /* and_then */
+{
+    P("\n");
+    Datum d = top();
+    P(": %lg && ... ->", d);
+    if (d) {
+        pc++;
+        pop();
+    } else {
+        pc = pc[0].cel;
+    }
+    P_TAIL(" [%04lx]\n", pc - prog);
+}
+
+void and_then_prt(const instr *i, const Cell **pc)
+{
+    PR("[%04lx]\n", (*pc)[1].cel - prog);
+    (*pc)++;
+}
+
 void or(const instr *i)               /* or */
 {
     P("\n");
@@ -582,6 +609,26 @@ void or(const instr *i)               /* or */
 void or_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
+}
+
+void or_else(const instr *i)  /* or_else */
+{
+    P("\n");
+    Datum d = top();
+    P(": %lg || ... ->", d);
+    if (!d) {
+        pc++;
+        pop();
+    } else {
+        pc = pc[0].cel;
+    }
+    P_TAIL(" [%04lx]\n", pc - prog);
+}
+
+void or_else_prt(const instr *i, const Cell **pc)
+{
+    PR("[%04lx]\n", (*pc)[1].cel - prog);
+    (*pc)++;
 }
 
 void readopcode(const instr *i)  /* readopcode */
