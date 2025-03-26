@@ -251,11 +251,13 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | BLTIN0 '(' ')'                { $$ = CODE_INST(bltin0);
                                            code_sym($1);
                                       printf("\tBLTIN0 Rule in action\n"); }
-    | BLTIN1 '(' expr ')'           { $$ = CODE_INST(bltin1);
-                                           code_sym($1);
+    | BLTIN1 '(' expr ')'           { $$ = $3;
+                                      CODE_INST(bltin1);
+                                      code_sym($1);
                                       printf("\tBLTIN1 Rule in action\n"); }
-    | BLTIN2 '(' expr ',' expr ')'  { $$ = CODE_INST(bltin2);
-                                           code_sym($1);
+    | BLTIN2 '(' expr ',' expr ')'  { $$ = $3;
+                                      CODE_INST(bltin2);
+                                      code_sym($1);
                                       printf("\tBLTIN2 rule in action\n"); }
     | expr '>' expr                 { CODE_INST(gt);  }
     | expr '<' expr                 { CODE_INST(lt);  }

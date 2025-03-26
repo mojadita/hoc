@@ -24,7 +24,18 @@
   evaluen   el  operando   derecho  si   la  expresion   puede  ser
   cortocircuitada.  (AND  puede  serlo  si  el  operando  izquierdo
   resulta ser 0, y OR puede  serlo si el operando izquierdo resulta
-  ser distinto de cero)
+  ser distinto de  cero) Cambiar estos operadores  para que evaluen
+  de izquierda a derecha, pero con asociatividad por la derecha, de
+  forma que los saltos sean al final  de la expresion y no al final
+  del operador derecho  (asi se emplea un salto solo  para salir en
+  lugar  de  una cadena  de  saltos)  Nota para  implementar:  usar
+  instrucciones  nuevas  'and_then'  y 'or_else'.  'and_then'  debe
+  evaluar el top de la pila y si es 0, saltar (sin hacer drop) a la
+  instruccion indicada en  el parametro. En caso  contrario se hace
+  drop y se  continua con la siguiente  instruccion. 'or_else' debe
+  evaluar el top de la pila y si es 1, saltar (sin hacer drop) a la
+  instruccion indicada en  el parametro. En caso  contrario se hace
+  drop y se continua con la siguiente instruccion.
   
 * tratar de meter los parametros  en la instruccion misma, de forma
   que se ahorren celdas de memoria en el programa.

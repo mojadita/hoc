@@ -11,5 +11,9 @@ func square_root() {
 	}
 	return b;
 }
-
-print square_root(2.0, 1.0E-12);
+{
+    list;
+    r = square_root(2.0, 1.0E-12);
+    print "square_root(2.0, 1.0E-12) = ", r;
+    symbs;
+}

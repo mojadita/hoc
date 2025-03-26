@@ -275,11 +275,13 @@ prim: '(' asig ')'          { $$ = $2; }
                                    code_sym($1); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0);
                                    code_sym($1); }
-    | BLTIN1 '(' asig ')'   { $$ = CODE_INST(bltin1);
-                                   code_sym($1); }
+    | BLTIN1 '(' asig ')'   { $$ = $3;
+                              CODE_INST(bltin1);
+                              code_sym($1); }
     | BLTIN2 '(' asig ',' asig ')'
-                            { $$ = CODE_INST(bltin2);
-                                   code_sym($1); }
+                            { $$ = $3;
+                              CODE_INST(bltin2);
+                              code_sym($1); }
     | READ '(' VAR ')'      { $$ = CODE_INST(readopcode);
                                    code_sym($3); }
     | FUNCTION mark '(' arglist_opt ')' {

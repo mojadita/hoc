@@ -32,12 +32,12 @@ logdir                   ?= $(vardir)/log
 
 
 
-UQ_HOC_DEBUG             ?=  0
-UQ_HOC_USE_PATCHING      ?=  0
+UQ_HOC_DEBUG             ?=  1
+UQ_HOC_USE_PATCHING      ?=  1
 UQ_LEX_DEBUG             ?=  0
-UQ_CODE_DEBUG_P1         ?=  0
-UQ_CODE_DEBUG_P2         ?=  0
-UQ_MAIN_DEBUG            ?=  0
+UQ_CODE_DEBUG_P1         ?=  1
+UQ_CODE_DEBUG_P2         ?=  1
+UQ_MAIN_DEBUG            ?=  1
 
 UQ_USE_COLORS            ?=  1
 UQ_USE_LOCUS             ?=  1

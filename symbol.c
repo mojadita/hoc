@@ -97,6 +97,8 @@ static struct type2char {
     V(BLTIN2),
     V(UNDEF),
     V(CONST),
+    V(PROCEDURE),
+    V(FUNCTION),
 #undef V
     {NULL, 0,}
 };
