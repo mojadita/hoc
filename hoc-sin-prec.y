@@ -90,7 +90,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       LIST
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel> expr_seq item do else
+%type  <cel> expr_seq item do else and or
 %type  <num> arglist_opt arglist
 
 %%
@@ -119,7 +119,7 @@ stmt: asig ';'             { CODE_INST(drop); }
                              $$ = $2;
                              CODE_INST(funcret); }
     | PRINT expr_seq ';'   { $$ = $2; }
-    | SYMBS ';'            { $$ = CODE_INST(symbs); }
+    | SYMBS       ';'      { $$ = CODE_INST(symbs); }
     | LIST        ';'      { $$ = CODE_INST(list); }
     | WHILE cond do stmt   { CODE_INST(Goto);
                              code_cel($2);
@@ -223,13 +223,45 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
     ;
 
 expr_or
-    : expr_or OR expr_and  { CODE_INST(or); }
+    : expr_or or expr_and  { Cell *saved_progp = progp;
+                             progp = $2;
+                             PT(">>> begin patching CODE @ [%04lx]\n",
+                                   progp - prog);
+                                 CODE_INST(or_else);
+                                 code_cel(saved_progp);
+                             PT("<<< end   patching CODE @ [%04lx], "
+                                   "continuing @ [%04lx]\n",
+                                   progp - prog, saved_progp - prog);
+                             progp = saved_progp; }
     | expr_and
     ;
 
+or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+                                 progp - prog);
+                             $$ = CODE_INST(or_else);
+                                  code_cel(NULL);
+                             PT("<<< end   inserting unpatched CODE\n"); }
+    ;
+
 expr_and
-    : expr_and AND expr_rel { CODE_INST(and); }
+    : expr_and and expr_rel { Cell *saved_progp = progp;
+                              progp = $2;
+                              PT(">>> begin patching CODE @ [%04lx]\n",
+                                      progp - prog);
+                              CODE_INST(and_then);
+                              code_cel(saved_progp);
+                              PT("<<< end   patching CODE @ [%04lx], "
+                                      "continuing @ [%04lx]\n",
+                                      progp - prog, saved_progp - prog);
+                              progp = saved_progp; } 
     | expr_rel
+    ;
+
+and : AND                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+                                      progp - prog);
+                              $$ = CODE_INST(and_then);
+                                   code_cel(NULL);
+                              PT("<<< end   inserting unpatched CODE\n"); }
     ;
 
 expr_rel

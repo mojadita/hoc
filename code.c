@@ -685,7 +685,7 @@ void call(const instr *i)   /* call a function */
     fp->sym      = sym;
     fp->nargs    = pc[1].num;
     fp->retpc    = pc + 2;
-    fp->argn     = stackp - 1; /* pointer to last argument */
+    fp->argn     = stackp; /* pointer to last argument */
 
     static int max_niv = 0;
     int niv = frame + UQ_NFRAME - fp;
@@ -746,7 +746,8 @@ void procret_prt(const instr *i, const Cell **pc)
 void funcret(const instr *i) /* return from func */
 {
     P("\n");
-    Datum d = pop();  /* preserve function return value */
+    Datum d = pop();
+    P(": -> %lg\n", d);
     ret();
     push(d);
 }
@@ -763,7 +764,7 @@ static Datum *getarg(int arg)    /* return a pointer to argument */
             "args have been passed\n",
             arg, fp->nargs);
     }
-    return fp->argn - fp->nargs + arg;
+    return fp->argn + fp->nargs - arg;
 }
 
 void argeval(const instr *i) /* push argument onto stack */
