@@ -29,9 +29,9 @@ jmp_buf begin;
 #define  UQ_HOC_DEBUG 1
 #endif
 
-#ifndef  UQ_HOC_USE_PATCHING
-#warning UQ_HOC_USE_PATCHING deberia ser configurado en config.mk
-#define  UQ_HOC_USE_PATCHING 1
+#ifndef  UQ_HOC_TRACE_PATCHING
+#warning UQ_HOC_TRACE_PATCHING deberia ser configurado en config.mk
+#define  UQ_HOC_TRACE_PATCHING 1
 #endif
 
 #if       UQ_HOC_DEBUG /* {{ */
@@ -43,7 +43,7 @@ jmp_buf begin;
 # define P(_fmt, ...)
 #endif /* UQ_HOC_DEBUG    }} */
 
-#if UQ_HOC_USE_PATCHING
+#if UQ_HOC_TRACE_PATCHING
 # define PT(_fmt, ...) P(_fmt, ##__VA_ARGS__)
 #else
 # define PT(_fmt, ...)
@@ -223,7 +223,7 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
     ;
 
 expr_or
-    : expr_or or expr_and  { Cell *saved_progp = progp;
+    : expr_and or expr_or  { Cell *saved_progp = progp;
                              progp = $2;
                              PT(">>> begin patching CODE @ [%04lx]\n",
                                    progp - prog);
@@ -244,7 +244,7 @@ or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n"
     ;
 
 expr_and
-    : expr_and and expr_rel { Cell *saved_progp = progp;
+    : expr_rel and expr_and { Cell *saved_progp = progp;
                               progp = $2;
                               PT(">>> begin patching CODE @ [%04lx]\n",
                                       progp - prog);

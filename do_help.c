@@ -93,7 +93,7 @@ void do_version(int cod)
     PS(logdir);
 
     P(UQ_HOC_DEBUG);
-    P(UQ_HOC_USE_PATCHING);
+    P(UQ_HOC_TRACE_PATCHING);
     P(UQ_LEX_DEBUG);
     P(UQ_USE_COLORS);
     P(UQ_USE_LOCUS);

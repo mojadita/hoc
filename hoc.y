@@ -30,9 +30,9 @@ jmp_buf begin;
 #define  UQ_HOC_DEBUG 1
 #endif
 
-#ifndef  UQ_HOC_USE_PATCHING
-#warning UQ_HOC_USE_PATCHING deberia ser configurado en config.mk
-#define  UQ_HOC_USE_PATCHING 1
+#ifndef  UQ_HOC_TRACE_PATCHING
+#warning UQ_HOC_TRACE_PATCHING deberia ser configurado en config.mk
+#define  UQ_HOC_TRACE_PATCHING 1
 #endif
 
 #if       UQ_HOC_DEBUG /* {{ */
@@ -44,7 +44,7 @@ jmp_buf begin;
 # define P(_fmt, ...)
 #endif /* UQ_HOC_DEBUG    }} */
 
-#if UQ_HOC_USE_PATCHING
+#if UQ_HOC_TRACE_PATCHING
 # define PT(_fmt, ...) P(_fmt, ##__VA_ARGS__)
 #else
 # define PT(_fmt, ...)
