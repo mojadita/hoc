@@ -16,26 +16,26 @@
 #include "hoc.h"
 #include "code.h"
 
-#ifndef UQ_MAIN_DEBUG
-#warning UQ_MAIN_DEBUG deberia ser configurado en config.mk
-#define UQ_MAIN_DEBUG  0
-#endif
+#ifndef   UQ_CODE_DEBUG_EXEC /* { */
+#warning  UQ_CODE_DEBUG_EXEC deberia ser configurado en config.mk
+#define   UQ_CODE_DEBUG_EXEC  0
+#endif /* UQ_CODE_DEBUG_EXEC    } */
 
-#if UQ_MAIN_DEBUG
-#define P(_fmt, ...) \
+#if UQ_CODE_DEBUG_EXEC /*     {{ */
+#define EXEC(_fmt, ...) \
     printf("%s:%d:%s: "_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#else
-#define P(_fmt, ...)
-#endif
+#else  /* UQ_CODE_DEBUG_EXEC  }{ */
+#define EXEC(_fmt, ...)
+#endif /* UQ_CODE_DEBUG_EXEC  }} */
 
 char *progname;     /* for error messages */
 int   lineno = 1;   /* numero de linea */
 
 int parse(void)
 {
-    P(BRIGHT CYAN "BEGIN" ANSI_END "\n");
+    EXEC(BRIGHT CYAN "BEGIN" ANSI_END "\n");
     int res = yyparse();
-    P(BRIGHT CYAN "END" ANSI_END "\n");
+    EXEC(BRIGHT CYAN "END" ANSI_END "\n");
     return res;
 } /* parse */
 
@@ -90,6 +90,6 @@ static void process(FILE *in)
     setjmp(begin);
     for (initcode(); parse(); initcode()) {
         execute(progbase);
-        P("Stack size after execution: %d\n", stacksize());
+        EXEC("Stack size after execution: %d\n", stacksize());
     }
 } /* process */

@@ -15,7 +15,7 @@ AUTHOR_CORP              ?= N.A.
 AUTHOR_SITE              ?= https://github.com/mojadita/$(PACKAGE)
 UQ_VERSION               ?= 7.5
 VERSION                  ?= $(UQ_VERSION)
-VERSION_DATE             ?= Thu Mar 27 14:04:50 -05 2025
+VERSION_DATE             ?= Fri Mar 28 12:23:59 EET 2025
 OPERATING_SYSTEM         ?= UNIX
 
 prefix                   ?= /usr
@@ -33,12 +33,12 @@ logdir                   ?= $(vardir)/log
 
 
 
-UQ_HOC_DEBUG             ?=  1
+UQ_HOC_DEBUG             ?=  0
 UQ_HOC_TRACE_PATCHING    ?=  0
 UQ_LEX_DEBUG             ?=  0
-UQ_CODE_DEBUG_P1         ?=  1
-UQ_CODE_DEBUG_P2         ?=  0
-UQ_MAIN_DEBUG            ?=  1
+UQ_LEX_COMMENTS          ?=  0
+UQ_CODE_DEBUG_EXEC       ?=  0
+UQ_CODE_DEBUG_PROG       ?=  0
 
 UQ_USE_COLORS            ?=  1
 UQ_USE_LOCUS             ?=  1

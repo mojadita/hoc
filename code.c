@@ -16,25 +16,25 @@
 
 #include "code.h"
 
-#ifndef  UQ_CODE_DEBUG_P1
-#warning UQ_CODE_DEBUG_P1 deberia ser incluido en config.mk
-#define  UQ_CODE_DEBUG_P1 1
+#ifndef  UQ_CODE_DEBUG_EXEC
+#warning UQ_CODE_DEBUG_EXEC deberia ser incluido en config.mk
+#define  UQ_CODE_DEBUG_EXEC 1
 #endif
-#ifndef  UQ_CODE_DEBUG_P2
-#warning UQ_CODE_DEBUG_P2 deberia ser incluido en config.mk
-#define  UQ_CODE_DEBUG_P2 1
+#ifndef  UQ_CODE_DEBUG_PROG
+#warning UQ_CODE_DEBUG_PROG deberia ser incluido en config.mk
+#define  UQ_CODE_DEBUG_PROG 1
 #endif
 
-#if      UQ_CODE_DEBUG_P1 /* {{ */
-#define  P(_fmt, ...)                                 \
+#if      UQ_CODE_DEBUG_EXEC /* {{ */
+#define  EXEC(_fmt, ...)                                 \
     printf("%s:%d:[%04lx] %s"_fmt, __FILE__, __LINE__, \
         pc - prog - 1, __func__, ##__VA_ARGS__)
 #define  P_TAIL(_fmt, ...)      \
     printf(_fmt, ##__VA_ARGS__)
-#else /* UQ_CODE_DEBUG_P1    }{ */
-#define P(_fmt, ...)
+#else /*  UQ_CODE_DEBUG_EXEC   }{ */
+#define EXEC(_fmt, ...)
 #define P_TAIL(_fmt, ...)
-#endif /* UQ_CODE_DEBUG_P1   }} */
+#endif /* UQ_CODE_DEBUG_EXEC   }} */
 
 #define  PR(_fmt, ...)                     \
     printf(YELLOW"%04lx" WHITE ": " \
@@ -43,10 +43,10 @@
         i->name,                           \
         ##__VA_ARGS__)
 
-#if UQ_CODE_DEBUG_P2
-#define P2(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
+#if UQ_CODE_DEBUG_PROG
+#define PRG(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
 #else
-#define P2(_fmt, ...)
+#define PRG(_fmt, ...)
 #endif
 
 #ifndef  UQ_NSTACK
@@ -134,7 +134,7 @@ Cell *code_inst(instr_code ins) /* install one instruction of operand */
             UQ_NPROG);
     }
 
-    P2("0x%04lx: %s\n",
+    PRG("0x%04lx: %s\n",
         old_progp - prog,
         instruction_set[ins].name);
 
@@ -148,7 +148,7 @@ Cell *code_sym(Symbol *s) /* install one instruction of operand */
 
     if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
-    P2("      : Symbol '%s'\n", s->name);
+    PRG("      : Symbol '%s'\n", s->name);
 
     (progp++)->sym = s;
     return old_progp;
@@ -160,7 +160,7 @@ Cell *code_val(double val) /* install one instruction of operand */
 
     if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
-    P2("      : DATA %.10g\n", val);
+    PRG("      : DATA %.10g\n", val);
 
     (progp++)->val = val;
     return old_progp;
@@ -172,7 +172,7 @@ Cell *code_cel(Cell *cel) /* install one reference to Cell */
 
     if (progp >= &prog[UQ_NPROG])
         execerror("program too big");
-    P2("      : REF [0x%04x]\n",
+    PRG("      : REF [0x%04x]\n",
             (int)(cel ? cel - prog : 0));
 
     (progp++)->cel = cel;
@@ -184,7 +184,7 @@ Cell *code_num(int val) /* install one integer on Cell */
     Cell *old_progp = progp;
     if (progp >= prog + UQ_NPROG)
         execerror("program too big");
-    P2("      : INT [%d]\n", val);
+    PRG("      : INT [%d]\n", val);
     (progp++)->num = val;
     return old_progp;
 }
@@ -194,7 +194,7 @@ Cell *code_str(const char *str) /* install one string on Cell */
     Cell *old_progp = progp;
     if (progp >= prog + UQ_NPROG)
         execerror("program too big");
-    P2("      : STR \"%s\"\n", str);
+    PRG("      : STR \"%s\"\n", str);
     (progp++)->str = str;
     return old_progp;
 }
@@ -202,7 +202,7 @@ Cell *code_str(const char *str) /* install one string on Cell */
 void execute(Cell *p) /* run the machine */
 {
     pc = p + 1;
-    P(": " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
+    EXEC(": " BRIGHT YELLOW "BEGIN [%04lx]" ANSI_END "\n", (p - prog));
     for (   pc = p;
             pc->inst != INST_STOP
                 && !returning;
@@ -211,12 +211,12 @@ void execute(Cell *p) /* run the machine */
         const instr *ins = instruction_set + ((pc++)->inst);
         ins->exec(ins);
     }
-    P(": " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
+    EXEC(": " BRIGHT YELLOW "END [%04lx]" ANSI_END "\n", (pc - prog));
 }
 
 void drop(const instr *i) /* drops the top of stack */
 {
-    P("\n");
+    EXEC("\n");
     pop();
 }
 
@@ -227,9 +227,9 @@ void drop_prt(const instr *i, const Cell **pc)
 
 void constpush(const instr *i) /* push constant onto stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = (pc++)->val;
-    P(": -> %.8lg\n", d);
+    EXEC(": -> %.8lg\n", d);
     push(d);
 }
 
@@ -242,11 +242,11 @@ void constpush_prt(const instr *i, const Cell **pc)
 
 void add(const instr *i) /* add top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2 = pop(),
           p1 = pop(),
           res = p1 + p2;
-    P(": %lg + %lg -> %lg\n",
+    EXEC(": %lg + %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -258,11 +258,11 @@ void add_prt(const instr *i, const Cell **pc)
 
 void sub(const instr *i) /* subtract top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2 = pop(),
           p1 = pop(),
           res = p1 - p2;
-    P(": %lg - %lg -> %lg\n",
+    EXEC(": %lg - %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -274,11 +274,11 @@ void sub_prt(const instr *i, const Cell **pc)
 
 void mul(const instr *i) /* multiply top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2 = pop(),
           p1 = pop(),
           res = p1 * p2;
-    P(": %lg * %lg -> %lg\n",
+    EXEC(": %lg * %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -290,11 +290,11 @@ void mul_prt(const instr *i, const Cell **pc)
 
 void divi(const instr *i) /* divide top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 / p2;
-    P(": %lg / %lg -> %lg\n",
+    EXEC(": %lg / %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -306,11 +306,11 @@ void divi_prt(const instr *i, const Cell **pc)
 
 void mod(const instr *i) /* mod top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = fmod(p1, p2);
-    P(": %lg %% %lg -> %lg\n",
+    EXEC(": %lg %% %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -322,10 +322,10 @@ void mod_prt(const instr *i, const Cell **pc)
 
 void neg(const instr *i) /* change sign top element on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum d   = pop(),
           res = -d;
-    P(": d=%lg -> %lg\n",
+    EXEC(": d=%lg -> %lg\n",
             d, res);
     push(res);
 }
@@ -337,11 +337,11 @@ void neg_prt(const instr *i, const Cell **pc)
 
 void pwr(const instr *i) /* pow top two elements on stack */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = pow(p1, p2);
-    P(": p1=%lg, d2=%lg -> %lg\n",
+    EXEC(": p1=%lg, d2=%lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -353,12 +353,12 @@ void pwr_prt(const instr *i, const Cell **pc)
 
 void eval(const instr *i) /* evaluate variable on stack */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     if (sym->type == UNDEF)
         execerror("undefined variable '%s'",
                 sym->name);
-    P(": %s -> %lg\n",
+    EXEC(": %s -> %lg\n",
         sym->name, sym->val);
     push(sym->val);
 }
@@ -371,10 +371,10 @@ void eval_prt(const instr *i, const Cell **pc)
 
 void assign(const instr *i) /* assign top value to next value */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     Datum   d   = pop();
-    P(": %.8lg -> %s\n", d, sym->name);
+    EXEC(": %.8lg -> %s\n", d, sym->name);
     sym->val    = d;
     sym->type   = VAR;
     push(d);
@@ -388,7 +388,7 @@ void assign_prt(const instr *i, const Cell **pc)
 
 void print(const instr *i) /* pop top value from stack, print it */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = pop();
     printf("\t\t%32.8g\n", d);
 }
@@ -400,10 +400,10 @@ void print_prt(const instr *i, const Cell **pc)
 
 void bltin0(const instr *i) /* evaluate built-in on top of stack */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     Datum   res = sym->ptr0();
-    P(": %s() -> %.8lg\n",
+    EXEC(": %s() -> %.8lg\n",
         sym->name, res);
     push(res);
 }
@@ -416,11 +416,11 @@ void bltin0_prt(const instr *i, const Cell **pc)
 
 void bltin1(const instr *i) /* evaluate built-in with one argument */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     Datum p   = pop(),
           res = sym->ptr1( p );
-    P(": %s(%.8lg) -> %.8lg\n",
+    EXEC(": %s(%.8lg) -> %.8lg\n",
         sym->name, p, res);
     push(res);
 }
@@ -433,12 +433,12 @@ void bltin1_prt(const instr *i, const Cell **pc)
 
 void bltin2(const instr *i) /* evaluate built-in with two arguments */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     Datum p2 = pop(),
           p1 = pop(),
          res = sym->ptr2( p1, p2 );
-    P(": %s(%.8lg, %.8lg) -> %.8lg\n",
+    EXEC(": %s(%.8lg, %.8lg) -> %.8lg\n",
         sym->name, p1, p2, res);
     push(res);
 }
@@ -450,11 +450,11 @@ void bltin2_prt(const instr *i, const Cell **pc)
 }
 void ge(const instr *i) /* greater or equal */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 >= p2;
-    P(": %lg >= %lg -> %lg\n",
+    EXEC(": %lg >= %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -466,11 +466,11 @@ void ge_prt(const instr *i, const Cell **pc)
 
 void le(const instr *i) /* less or equal */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 <= p2;
-    P(": %lg <= %lg -> %lg\n",
+    EXEC(": %lg <= %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -482,11 +482,11 @@ void le_prt(const instr *i, const Cell **pc)
 
 void gt(const instr *i) /* greater than */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 > p2;
-    P(": %lg > %lg -> %lg\n",
+    EXEC(": %lg > %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -498,11 +498,11 @@ void gt_prt(const instr *i, const Cell **pc)
 
 void lt(const instr *i) /* less than */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 < p2;
-    P(": %lg < %lg -> %lg\n",
+    EXEC(": %lg < %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -514,11 +514,11 @@ void lt_prt(const instr *i, const Cell **pc)
 
 void eq(const instr *i) /* equal */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 == p2;
-    P(": %lg == %lg -> %lg\n",
+    EXEC(": %lg == %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -530,11 +530,11 @@ void eq_prt(const instr *i, const Cell **pc)
 
 void ne(const instr *i) /* not equal */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 != p2;
-    P(": %lg != %lg -> %lg\n",
+    EXEC(": %lg != %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -546,10 +546,10 @@ void ne_prt(const instr *i, const Cell **pc)
 
 void not(const instr *i) /* not */
 {
-    P("\n");
+    EXEC("\n");
     Datum p  = pop(),
           res = ! p;
-    P(": ! %lg -> %lg\n",
+    EXEC(": ! %lg -> %lg\n",
             p, res);
     push(res);
 }
@@ -561,11 +561,11 @@ void not_prt(const instr *i, const Cell **pc)
 
 void and(const instr *i)  /* and */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 && p2;
-    P(": %lg && %lg -> %lg\n",
+    EXEC(": %lg && %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -577,16 +577,17 @@ void and_prt(const instr *i, const Cell **pc)
 
 void and_then(const instr *i)  /* and_then */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = top();
-    P(": %lg && ... ->", d);
     if (d) {
         pc++;
         pop();
     } else {
         pc = pc[0].cel;
     }
-    P_TAIL(" [%04lx]\n", pc - prog);
+    const char *op = d ? " drop;" : "";
+    EXEC(": %lg &&%s -> [%04lx]\n",
+        d, op, pc - prog);
 }
 
 void and_then_prt(const instr *i, const Cell **pc)
@@ -597,11 +598,11 @@ void and_then_prt(const instr *i, const Cell **pc)
 
 void or(const instr *i)               /* or */
 {
-    P("\n");
+    EXEC("\n");
     Datum p2  = pop(),
           p1  = pop(),
           res = p1 || p2;
-    P(": %lg || %lg -> %lg\n",
+    EXEC(": %lg || %lg -> %lg\n",
             p1, p2, res);
     push(res);
 }
@@ -613,16 +614,17 @@ void or_prt(const instr *i, const Cell **pc)
 
 void or_else(const instr *i)  /* or_else */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = top();
-    P(": %lg || ... ->", d);
     if (!d) {
         pc++;
         pop();
     } else {
         pc = pc[0].cel;
     }
-    P_TAIL(" [%04lx]\n", pc - prog);
+    const char *op = d ? " drop;" : "";
+    EXEC(": %lg ||%s -> [%04lx]\n",
+        d, op, pc - prog);
 }
 
 void or_else_prt(const instr *i, const Cell **pc)
@@ -633,14 +635,14 @@ void or_else_prt(const instr *i, const Cell **pc)
 
 void readopcode(const instr *i)  /* readopcode */
 {
-    P("\n");
+    EXEC("\n");
     Symbol *sym = (pc++)->sym;
     if (scanf("%lg", &sym->val) != 1) {
         execerror("Lectura incorrecta del valor "
                   "de la variable %s\n",
                   sym->name);
     }
-    P(": %.8lg -> %s\n", sym->val, sym->name);
+    EXEC(": %.8lg -> %s\n", sym->val, sym->name);
     sym->type   = VAR;
     push(sym->val);
 }
@@ -671,7 +673,7 @@ Cell *define(Symbol *symb, int type)
 
 void call(const instr *i)   /* call a function */
 {
-    P("\n");
+    EXEC("\n");
 
     Symbol *sym  = pc[0].sym;
 
@@ -691,10 +693,10 @@ void call(const instr *i)   /* call a function */
     int niv = frame + UQ_NFRAME - fp;
     if (niv > max_niv) max_niv = niv;
 
-    P(": -> execute @[0x%04lx], %s '%s', args=%d, ret_addr=0x%04lx, niv=%d/%d\n",
+    EXEC(": -> execute @[0x%04lx], %s '%s', args=%d, ret_addr=0x%04lx, niv=%d/%d\n",
         sym->defn - prog, sym->type == FUNCTION ? "func" : "proc",
         sym->name, fp->nargs, fp->retpc - prog, niv, max_niv);
-    P(":   Parametros: ");
+    EXEC(":   Parametros: ");
     const char *sep = "";
     for (int i = 1; i <= fp->nargs; i++) {
         P_TAIL("%s%.8g", sep, *getarg(i));
@@ -706,7 +708,7 @@ void call(const instr *i)   /* call a function */
     if (fp >= frame + UQ_NFRAME) {
         execerror("Smatching stack, la pila esta corrompida\n");
     }
-    P(": return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
+    EXEC(": return from @[0x%04x], %s '%s', args=%d, ret_addr=0x%04x, niv=%d/%d\n",
         (int)(sym->defn - prog), sym->type == FUNCTION ? "func" : "proc",
         sym->name, fp->nargs, (int)(fp->retpc - prog), niv, max_niv);
     pc        = fp->retpc;
@@ -734,7 +736,7 @@ static void ret(void)
 
 void procret(const instr *i) /* return from proc */
 {
-    P("\n");
+    EXEC("\n");
     ret();
 }
 
@@ -745,9 +747,9 @@ void procret_prt(const instr *i, const Cell **pc)
 
 void funcret(const instr *i) /* return from func */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = pop();
-    P(": -> %lg\n", d);
+    EXEC(": -> %lg\n", d);
     ret();
     push(d);
 }
@@ -769,10 +771,10 @@ static Datum *getarg(int arg)    /* return a pointer to argument */
 
 void argeval(const instr *i) /* push argument onto stack */
 {
-    P("\n");
+    EXEC("\n");
     int arg = pc++[0].num;
     Datum d = *getarg(arg);
-    P(": $%d -> %.8g\n", arg, d);
+    EXEC(": $%d -> %.8g\n", arg, d);
     push(d);
 }
 
@@ -784,10 +786,10 @@ void argeval_prt(const instr *i, const Cell **pc)
 
 void argassign(const instr *i) /* store top of stack in argument */
 {
-    P("\n");
+    EXEC("\n");
     int arg = pc[0].num;
     Datum d = pop();
-    P(": %.8g -> $%d\n", d, arg);
+    EXEC(": %.8g -> $%d\n", d, arg);
     Datum *ref = getarg(arg);
     push(*ref = d);
 }
@@ -800,7 +802,7 @@ void argassign_prt(const instr *i, const Cell **pc)
 
 void prstr(const instr *i) /* print string */
 {
-    P("\n");
+    EXEC("\n");
     printf("%s", pc++[0].str);
 }
 
@@ -812,7 +814,7 @@ void prstr_prt(const instr *i, const Cell **pc)
 
 void prexpr(const instr *i)  /* print numeric value */
 {
-    P("\n");
+    EXEC("\n");
     printf("%.8g", pop());
 }
 
@@ -823,7 +825,7 @@ void prexpr_prt(const instr *i, const Cell **pc)
 
 void symbs(const instr *i)
 {
-    P("\n");
+    EXEC("\n");
     list_symbols();
 }
 
@@ -855,10 +857,10 @@ void list_prt(const instr *i, const Cell **pc)
 
 void if_f_goto(const instr *i) /* jump if false */
 {
-    P("\n");
+    EXEC("\n");
     Datum d = pop();
     pc = d ? pc + 1 : pc[0].cel;
-    P(": -> [%04lx]\n", pc - prog);
+    EXEC(": -> [%04lx]\n", pc - prog);
 }
 
 void if_f_goto_prt(const instr *i, const Cell **pc)
@@ -869,9 +871,9 @@ void if_f_goto_prt(const instr *i, const Cell **pc)
 
 void Goto(const instr *i) /* jump if false */
 {
-    P("\n");
+    EXEC("\n");
     pc = pc[0].cel;
-    P(": -> [%04lx]\n", pc - prog);
+    EXEC(": -> [%04lx]\n", pc - prog);
 }
 
 void Goto_prt(const instr *i, const Cell **pc)

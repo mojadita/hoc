@@ -8,22 +8,39 @@
 #include "code.h"
 #include "reserved_words.h"
 
-#ifndef UQ_LEX_DEBUG
+#ifndef  UQ_LEX_DEBUG
 #warning UQ_LEX_DEBUG deberia ser configurado en config.mk
-#define UQ_LEX_DEBUG 0
+#define  UQ_LEX_DEBUG 0
 #endif
 
+#ifndef   UQ_LEX_COMMENTS /* {{ */
+#warning  UQ_LEX_COMMENTS deberia ser configurado en config.mk
+#define   UQ_LEX_COMMENTS 0
+#endif /* UQ_LEX_COMMENTS    }} */
+
 #if UQ_LEX_DEBUG  /*   {{ */
-#define P_TAIL(_fmt, ...)  \
-    printf(_fmt, ##__VA_ARGS__)
-#define P(_fmt, ...)                      \
-    printf("%s:%d:%s "_fmt,               \
-            __FILE__, __LINE__, __func__, \
-            ##__VA_ARGS__)
+
+# define P_TAIL(  _fmt, ...) \
+         printf(_fmt, ##__VA_ARGS__)
+# define P(     _fmt, ...) \
+         printf(_fmt, ##__VA_ARGS__)
+
 #else /* UQ_LEX_DEBUG  }{ */
-#define P(_fmt, ...)
-#define P_TAIL(_fmt, ...)
+
+# define P(       _fmt, ...)
+# define P_TAIL(  _fmt, ...)
+
 #endif /* UQ_LEX_DEBUG }} */
+
+#if       UQ_LEX_COMMENTS /* {{ */
+# define C_TAIL(_fmt, ...)  \
+         printf(_fmt, ##__VA_ARGS__)
+# define C(     _fmt, ...)  \
+         printf(_fmt, ##__VA_ARGS__)
+#else  /* UQ_LEX_COMMENTS    }{ */
+# define C_TAIL(_fmt, ...)
+# define C(     _fmt, ...)
+#endif /* UQ_LEX_COMMENTS    }} */
 
 extern int lineno;
 
@@ -41,22 +58,28 @@ static char *deescape(char *in);
 [ \t]    ;  /* saltar blancos y tabuladores */
 
 ([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
+            /* numero en punto flotante */
             sscanf(yytext, "%lf", &yylval.val);
             P("number %g (%d)\n", yylval.val, NUMBER);
             return NUMBER;
         }   /* Un numero punto flotante  */
 
-"/*"    {   BEGIN COMMENT;
-            P("%s", yytext);
-        }
-<COMMENT>. { P_TAIL("%s", yytext); }
-<COMMENT>\n { P_TAIL("\n"); P(""); lineno++; }
-<COMMENT>"*/" {
-            P_TAIL("%s\n", yytext);
-            BEGIN INITIAL;
-        }
+"/*"          { /* comienzo de un comentario */
+                BEGIN COMMENT;
+                C(     "%s", yytext);
+              }
+<COMMENT>.    { C_TAIL("%s", yytext); }
+<COMMENT>\n   { C_TAIL("\n");
+                C("");
+                lineno++;
+              }
+<COMMENT>"*/" { /* FIN DE UN COMENTARIO */
+                C_TAIL("%s\n", yytext);
+                BEGIN INITIAL;
+              }
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
+            /* IDENTIFICADOR O PALABRA RESERVADA */
             const reserved_word *rw = rw_lookup(yytext);
             if (rw) {
                 P("reserved word '%s' -> %s(%d)\n",
@@ -73,18 +96,21 @@ static char *deescape(char *in);
             return s->type == UNDEF ? VAR : s->type;
         }
 "$"[1-9][0-9]*  {
+            /* ARGUMENTO DE PROCEDIMIENTO/FUNCION */
             sscanf(yytext+1, "%d", &yylval.num);
             P("nombre de parametro: %s\n", yytext);
             return ARG;
         }
 
 \"([^\"\n]|\\.)*\" {
+            /* CADENA DE CARACTERES */
             yylval.str = deescape(yytext);
             P("cadena de caracteres: %s -> [%s]\n",
                 yytext, yylval.str);
             return STRING;
         }
 \"([^\"\n]|\\.)*\n {
+            /* CADENA DE CARACTERES NO TERMINADA --> ERROR */
             execerror("cadena de caracteres no terminada: %s",
                 yytext);
         }

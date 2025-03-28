@@ -1,7 +1,82 @@
+/* default associativity */
+func default() {
+    return           $1 &&  $2  &&  $3  && $4    ||  $5  ||  $6  ||  $7  ||   $8 &&  $9  && $10   ||  $11  ||  $12  || $13;
+}
+
+/* left associativity */
+func left_asoc() {
+    return (((((((((($1 &&  $2) &&  $3) && $4)   ||  $5) ||  $6) ||  $7) || (($8 &&  $9) && $10)) ||  $11) ||  $12) || $13);
+}
+
+/* right associativity */
+func right_asoc() {
+    return         (($1 && ($2  && ($3  && $4))) || ($5  || ($6  || ($7  || (($8 && ($9  && $10)) || ($11  || ($12  || $13)))))));
+}
+
+/* main code */
 {
     list;
-    /* a = 0 || 0 || 1 || 0 || 0 || 0;
-    b = 1 && 1 && 1 && 0 && 0 && 0; */
-    c = 1 && 1 && 0 && 1 || 0 || 0 || 0 || 1 && 1 && 1;
-    symbs;
+    n = ok = a0 = 0;
+    while (a0 < 2) {
+        a1 = 0;
+        while (a1 < 2) {
+            a2 = 0;
+            while (a2 < 2) {
+                a3 = 0;
+                while (a3 < 2) {
+                    a4 = 0;
+                    while (a4 < 2) {
+                        a5 = 0;
+                        while (a5 < 2) {
+                            a6 = 0;
+                            while (a6 < 2) {
+                                a7 = 0;
+                                while (a7 < 2) {
+                                    a8 = 0;
+                                    while (a8 < 2) {
+                                        a9 = 0;
+                                        while (a9 < 2) {
+                                            a10 = 0;
+                                            while (a10 < 2) {
+                                                a11 = 0;
+                                                while (a11 < 2) {
+                                                    a12 = 0;
+                                                    while (a12 < 2) {
+                                                        def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        n     = n + 1;
+                                                        /* def must be equal to left  and right */
+                                                        if (def != left || def != right || left != right) {
+                                                            print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n";
+                                                        } else ok = ok + 1;
+                                                        a12 = a12 + 1;
+                                                    }
+                                                    a11 = a11 + 1;
+                                                }
+                                                a10 = a10 + 1;
+                                            }
+                                            a9 = a9 + 1;
+                                        }
+                                        a8 = a8 + 1;
+                                    }
+                                    a7 = a7 + 1;
+                                }
+                                a6 = a6 + 1;
+                            }
+                            a5 = a5 + 1;
+                        }
+                        a4 = a4 + 1;
+                    }
+                    a3 = a3 + 1;
+                }
+                a2 = a2 + 1;
+            }
+            a1 = a1 + 1;
+        }
+        a0 = a0 + 1;
+    }
+    print "passed tests = ", ok, " (", 100 * ok / n, "%)\n";
+    print "failed tests = ", n - ok, " (", 100*(n - ok)/n, "%)\n";
+    print "total  tests = ", n, "\n";
 }

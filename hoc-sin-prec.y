@@ -115,7 +115,7 @@ final: '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 stmt: asig ';'             { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc, "return;");
                              $$ = CODE_INST(procret); }
-    | RETURN expr ';'      { defnonly(indef_func, "return <expr>;");
+    | RETURN asig ';'      { defnonly(indef_func, "return <asig>;");
                              $$ = $2;
                              CODE_INST(funcret); }
     | PRINT expr_seq ';'   { $$ = $2; }
