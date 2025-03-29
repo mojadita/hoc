@@ -20,7 +20,8 @@
   instrucciones  mas  sencillas   como  'if_0_goto', 'Goto'. Falta
   eliminar las instrucciones 'whilecode' e 'ifcode'.
   
-* Implementar  AND y  OR  de forma  que corten  la  expresion y  no
+* Sat Mar 29 09:29:23 -05 2025
+  Implementar  AND y  OR  de forma  que corten  la  expresion y  no
   evaluen   el  operando   derecho  si   la  expresion   puede  ser
   cortocircuitada.  (AND  puede  serlo  si  el  operando  izquierdo
   resulta ser 0, y OR puede  serlo si el operando izquierdo resulta
