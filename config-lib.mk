@@ -7,20 +7,28 @@
 build_date   != LANG=C date 
 doc_date     != LANG=C date +'%b %Y'
 
-SED_FLAGS    != ./mksedparms.sh < config.mk
+SED_FLAGS    != ./mksedparms.sh < ./config.mk
 
-include config.mk
+include ./config.mk
 
-%: %.in
+.SUFFIXES: .1.gz .1 .1.in .o .h .c .c.in .h.in
+
+.h.in.h:
 	sed -E $(SED_FLAGS) < $< > $@
-%.1:%.1.in
+
+.c.in.c:
 	sed -E $(SED_FLAGS) < $< > $@
+
+.1.in.1:
+	sed -E $(SED_FLAGS) < $< > $@
+
+
+.1.1.gz:
+	gzip < $< > $@
 
 config.h.in: ./config.h.in.sh ./config.mk
 	./config.h.in.sh < ./config.mk > $@
-toclean += config.h.in
+toclean += config.h.in config.h
 
 config.h: config.h.in
-	sed -E $(SED_FLAGS) < $< >$@
-toclean += config.h
-
+	sed -E $(SED_FLAGS) < $< > $@

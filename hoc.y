@@ -92,16 +92,16 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <str> STRING
 %token       LIST
 %type  <cel> stmt asig expr stmtlist cond mark
-%type  <cel> expr_seq item do else and or
+%type  <cel> expr_seq item do else and or expr_and expr_or
 %type  <num> arglist_opt arglist
 
 /* la directiva %type indica los tipos de datos de los diferentes
  * simbolos no terminales, definidos en la gramatica */
 
 %right '='         /* right associative, minimum precedence */
-%right OR           /* || */
-%right AND          /* && */
-%left '!'
+%left  OR          /* || */
+%left  AND         /* && */
+%left  '!'
 %left  '>' GE '<' LE EQ NE /* > >= <= == != */
 %left  '+' '-'     /* left associative, same precedence */
 %left  '*' '/' '%' /* left associative, higher precedence */
@@ -131,7 +131,7 @@ final: '\n' | ';' ;
 stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc, "return");
                              $$ = CODE_INST(procret); }
-    | RETURN expr ';'      { defnonly(indef_func, "return <expr>");
+    | RETURN asig ';'      { defnonly(indef_func, "return <expr>");
                              $$ = $2;
                              CODE_INST(funcret); }
     | PRINT  expr_seq ';'  { $$ = $2; }
@@ -235,8 +235,34 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              CODE_INST(argassign);
                              code_num($1);
                            }
-    | expr
+    | expr_or
     ;
+
+expr_or: expr_and or expr_or        { Cell *saved_progp = progp;
+                                      progp = $2;
+                                      PT(">>> begin patching CODE @ [%04lx]\n",
+                                            progp - prog);
+                                          CODE_INST(or_else);
+                                          code_cel(saved_progp);
+                                      PT("<<< end   patching CODE @ [%04lx], "
+                                            "continuing @ [%04lx]\n",
+                                            progp - prog, saved_progp - prog);
+                                      progp = saved_progp; }
+	| expr_and
+	;
+
+expr_and: expr and expr_and         { Cell *saved_progp = progp;
+                                      progp = $2;
+                                      PT(">>> begin patching CODE @ [%04lx]\n",
+                                            progp - prog);
+                                          CODE_INST(and_then);
+                                          code_cel(saved_progp);
+                                      PT("<<< end   patching CODE @ [%04lx], "
+                                            "continuing @ [%04lx]\n",
+                                            progp - prog, saved_progp - prog);
+                                      progp = saved_progp; }
+	| expr
+	;
 
 expr: NUMBER                        { $$ = CODE_INST(constpush);
                                            code_val($1); }
@@ -252,10 +278,10 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
                                       code_sym($1); }
     | BLTIN0 '(' ')'                { $$ = CODE_INST(bltin0);
                                            code_sym($1); }
-    | BLTIN1 '(' expr ')'           { $$ = $3;
+    | BLTIN1 '(' asig ')'           { $$ = $3;
                                       CODE_INST(bltin1);
                                       code_sym($1); }
-    | BLTIN2 '(' expr ',' expr ')'  { $$ = $3;
+    | BLTIN2 '(' asig ',' asig ')'  { $$ = $3;
                                       CODE_INST(bltin2);
                                       code_sym($1); }
     | expr '>' expr                 { CODE_INST(gt);  }
@@ -264,32 +290,12 @@ expr: NUMBER                        { $$ = CODE_INST(constpush);
     | expr NE  expr  /* != */       { CODE_INST(ne);  }
     | expr GE  expr  /* >= */       { CODE_INST(ge);  }
     | expr LE  expr  /* <= */       { CODE_INST(le);  }
-    | expr and expr  /* && */       { Cell *saved_progp = progp;
-                                      progp = $2;
-                                      PT(">>> begin patching CODE @ [%04lx]\n",
-                                            progp - prog);
-                                          CODE_INST(and_then);
-                                          code_cel(saved_progp);
-                                      PT("<<< end   patching CODE @ [%04lx], "
-                                            "continuing @ [%04lx]\n",
-                                            progp - prog, saved_progp - prog);
-                                      progp = saved_progp; }
-    | expr or  expr  /* || */       { Cell *saved_progp = progp;
-                                      progp = $2;
-                                      PT(">>> begin patching CODE @ [%04lx]\n",
-                                            progp - prog);
-                                          CODE_INST(or_else);
-                                          code_cel(saved_progp);
-                                      PT("<<< end   patching CODE @ [%04lx], "
-                                            "continuing @ [%04lx]\n",
-                                            progp - prog, saved_progp - prog);
-                                      progp = saved_progp; }
     | expr '+' expr                 { CODE_INST(add); }
     | expr '-' expr                 { CODE_INST(sub); }
     | expr '%' expr                 { CODE_INST(mod); }
     | expr '*' expr                 { CODE_INST(mul); }
     | expr '/' expr                 { CODE_INST(divi); }
-    | '(' expr ')'                  { $$ = $2; }
+    | '(' asig ')'                  { $$ = $2; }
     | expr '^' expr                 { CODE_INST(pwr); }
     | '+' expr %prec UNARY          { $$ = $2; }
     | '-' expr %prec UNARY          { CODE_INST(neg); $$ = $2; } /* new */

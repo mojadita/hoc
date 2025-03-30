@@ -1,5 +1,5 @@
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE     = db
+DEBUG-TYPE     = nd
 
 CFLAGS-nd      = -O3
 LDFLAGS-nd     =
@@ -85,7 +85,6 @@ hoc-sin-prec: $(hoc-sin-prec_objs)
 	mv -f y.tab.h $*.tab.h
 
 hoc.tab.h: hoc.c
-hoc.1: hoc.1.in
 toclean += HOC.tab.h hoc.1 hoc.c
 
 # ack.c code.c do_help.c error.c hoc-sin-prec.c
