@@ -102,7 +102,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %left  OR          /* || */
 %left  AND         /* && */
 %left  '!'
-%left  '>' GE '<' LE EQ NE /* > >= <= == != */
+%left  '>' GE '<' LE EQ NE /* '>'  '>='  '<'  '<=' '==' '!=' */
 %left  '+' '-'     /* left associative, same precedence */
 %left  '*' '/' '%' /* left associative, higher precedence */
 %left  UNARY       /* new, lo mas todavia */
@@ -238,7 +238,7 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
     | expr_or
     ;
 
-expr_or: expr_and or expr_or        { Cell *saved_progp = progp;
+expr_or: expr_or or expr_and       { Cell *saved_progp = progp;
                                       progp = $2;
                                       PT(">>> begin patching CODE @ [%04lx]\n",
                                             progp - prog);
