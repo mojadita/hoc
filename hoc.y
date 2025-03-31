@@ -186,8 +186,10 @@ stmt: asig        ';'      { CODE_INST(drop); }
 do  :  /* empty */         { $$ = progp;
                              PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(if_f_goto);
-                                 code_cel(NULL);
+                                 CODE_INST(noop);
+                                 CODE_INST(noop);
+                                 CODE_INST(noop);
+                                 CODE_INST(noop);
                              PT("<<< end   inserting unpatched CODE\n"); }
     ;
 

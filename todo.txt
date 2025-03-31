@@ -40,11 +40,21 @@
   
 * tratar de meter los parametros  en la instruccion misma, de forma
   que se ahorren celdas de memoria en el programa.
+
+* implementar operadores '++', '--', '+=', '-=', '*=' '/='.
+  implementar instrucciones para incrementar variable, decrementar,
+  sumar, restar, multiplicar y dividir variable.  En los casos
+  de incremento, la instruccion solo toma el symbolo correspondiente
+  a la variable.  Para el resto, el dato a operar se toma de la
+  pila.
   
 * implementar  variables locales  y parametros  con identificadores
   como nombres, en lugar de usar la notacion $<n>.
   
 * implementar las variables en memoria.
+
+* usar tipos. Implementar los tipos 'int' y 'double'.  Obligar a
+  declarar las variables?
   
 * implementar la pila en memoria.
   
@@ -56,4 +66,4 @@
   lenguajes tipo pascal,  modula 2, ada o en parte  en java (cuando
   se emplean lambdas)
   
-* soportar tipos de datos estructurados???
+* soportar tipos de datos estructurados y arrays???

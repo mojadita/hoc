@@ -881,3 +881,13 @@ void Goto_prt(const instr *i, const Cell **pc)
     PR("[%04lx]\n", (*pc)[1].cel - prog);
 	(*pc)++;
 }
+
+void noop(const instr *i)
+{
+    EXEC("\n");
+}
+
+void noop_prt(const instr *i, const Cell **pc)
+{
+    PR("\n");
+}
