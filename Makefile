@@ -54,11 +54,6 @@ install: $(toinstall)
 uninstall:
 	$(RM) $(toinstall)
 
-.SUFFIXES: .1.gz .1
-
-.1.1.gz:
-	gzip < $< > $@
-
 $(bindir)/hoc: hoc
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
 
