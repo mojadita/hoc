@@ -13,9 +13,9 @@ COPYRIGHT_YEARS          ?= 2024-2025
 PROGRAM_NAME_UC          ?= HOC
 AUTHOR_CORP              ?= N.A.
 AUTHOR_SITE              ?= https://github.com/mojadita/$(PACKAGE)
-UQ_VERSION               ?= 7.5
+UQ_VERSION               ?= 7.6
 VERSION                  ?= $(UQ_VERSION)
-VERSION_DATE             ?= Fri Mar 28 12:23:59 EET 2025
+VERSION_DATE             ?= Tue Apr  1 12:50:31 PM EEST 2025
 OPERATING_SYSTEM         ?= UNIX
 
 prefix                   ?= /usr
