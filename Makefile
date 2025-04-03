@@ -10,7 +10,7 @@ CFLAGS         = $(CFLAGS-$(DEBUG-TYPE))
 LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
 
 RM            ?= rm -f
-targets        = hoc hoc-sin-prec hoc.1.gz
+targets        = hoc hoc.1.gz
 toclean       += $(targets)
 OS            != uname -o
 
@@ -28,7 +28,7 @@ XMOD          ?= 0755
 INSTALL       ?= install
 IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
-toinstall     ?= $(bindir)/hoc $(bindir)/hoc-sin-prec $(man1dir)/hoc.1.gz
+toinstall     ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
 
 common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
                 reserved_words.o main.o do_help.o instr.o
@@ -37,10 +37,6 @@ toclean       += $(common_objs) lex.c
 hoc_objs       = hoc.o $(common_objs)
 hoc_libs       = -lm 
 toclean       += hoc.o
-
-hoc-sin-prec_objs = hoc-sin-prec.o $(common_objs)
-hoc-sin-prec_libs = -lm 
-toclean          += hoc-sin-prec.o hoc-sin-prec.c
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets)
@@ -57,9 +53,6 @@ uninstall:
 $(bindir)/hoc: hoc
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
 
-$(bindir)/hoc-sin-prec: hoc-sin-prec
-	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
-
 $(man1dir)/hoc.1.gz: hoc.1.gz
 	-$(INSTALL) $(IFLAGS) -m $(FMOD) $? $@
 
@@ -68,9 +61,6 @@ clean:
 
 hoc: $(hoc_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc_objs) $(hoc_libs)
-
-hoc-sin-prec: $(hoc-sin-prec_objs)
-	$(CC) $(LDFLAGS) -o $@ $(hoc-sin-prec_objs) $(hoc-sin-prec_libs)
 
 ##
 ##  Crear un .c a partir de un .y
@@ -82,7 +72,7 @@ hoc-sin-prec: $(hoc-sin-prec_objs)
 hoc.tab.h: hoc.c
 toclean += HOC.tab.h hoc.1 hoc.c
 
-# ack.c code.c do_help.c error.c hoc-sin-prec.c
+# ack.c code.c do_help.c error.c
 # hoc.c init.c instr.c lex.c main.c math.c
 # reserved_words.c symbol.c yylex.c
 
@@ -92,9 +82,6 @@ code.o: code.c config.h colors.h hoc.h instr.h \
 do_help.o: do_help.c config.h do_help.h
 error.o: error.c config.h colors.h hoc.h instr.h \
   instrucciones.h error.h
-hoc-sin-prec.o: hoc-sin-prec.c config.h colors.h \
-  hoc.h instr.h instrucciones.h error.h math.h \
-  code.h 
 hoc.o: hoc.c config.h colors.h hoc.h instr.h \
   instrucciones.h error.h math.h code.h 
 init.o: init.c config.h hoc.h instr.h \

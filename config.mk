@@ -18,7 +18,7 @@ VERSION                  ?= $(UQ_VERSION)
 VERSION_DATE             ?= Tue Apr  1 12:50:31 PM EEST 2025
 OPERATING_SYSTEM         ?= UNIX
 
-prefix                   ?= /usr
+prefix                   ?= /usr/local
 exec_prefix              ?= $(prefix)
 bindir					 ?= $(prefix)/bin
 sbindir					 ?= $(exec_prefix)/sbin
