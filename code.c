@@ -121,7 +121,7 @@ Datum top(void)   /* returns the top of the stack */
     return *stackp;
 }
 
-Cell *code_inst(instr_code ins) /* install one instruction of operand */
+Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
 
@@ -139,6 +139,18 @@ Cell *code_inst(instr_code ins) /* install one instruction of operand */
         instruction_set[ins].name);
 
     (progp++)->inst = ins;
+
+    if (instruction_set[ins].prog != NULL) {
+        va_list args;
+        va_start(args, ins);
+
+        progp += instruction_set[ins].prog(
+            &instruction_set[ins],
+            old_progp,
+            args);
+        va_end(args);
+    }
+
     return old_progp;
 }
 
@@ -832,6 +844,11 @@ void symbs(const instr *i)
 void symbs_prt(const instr *i, const Cell **pc)
 {
     PR("\n");
+}
+
+void STOP(const instr *i)
+{
+    EXEC("\n");
 }
 
 void STOP_prt(const instr *i, const Cell **pc)

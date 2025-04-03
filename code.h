@@ -10,7 +10,7 @@ extern Cell *progbase;                /* pointer to first program instruction */
 void  initcode(void);                 /* initalize for code generation */
 void  push(Datum           d);        /* push d onto stack */
 Datum pop(void);                      /* pops Datum and rturn top element from stack */
-Cell *code_inst(instr_code f);        /* encodes one instruction of operand */
+Cell *code_inst(instr_code f, ...);   /* encodes one instruction of operand */
 Cell *code_sym(Symbol     *s);        /* encodes one symbol in a Cell */
 Cell *code_val(double      val);      /* encodes a double value in a Cell */
 Cell *code_cel(Cell       *cel);      /* install one reference to Cell */

@@ -8,6 +8,8 @@
 #ifndef INSTR_H
 #define INSTR_H
 
+#include <stdarg.h>
+
 #define I_DATA(i) (instruction_set + (i))
 
 typedef struct instr      instr;
@@ -35,6 +37,7 @@ struct instr {
     const char   *name;
     void        (*exec)(const instr *);
     void        (*print)(const instr *, const Cell **);
+    int         (*prog)(const instr *, Cell *progp, va_list args);
 };
 
 extern const instr  instruction_set[];

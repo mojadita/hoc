@@ -6,8 +6,8 @@ LDFLAGS-nd     =
 CFLAGS-db      = -O0 -g
 LDFLAGS-db     = -g
 
-CFLAGS        ?= $(CFLAGS-$(DEBUG-TYPE))
-LDFLAGS       ?= $(LDFLAGS-$(DEBUG-TYPE))
+CFLAGS         = $(CFLAGS-$(DEBUG-TYPE))
+LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
 
 RM            ?= rm -f
 targets        = hoc hoc-sin-prec hoc.1.gz

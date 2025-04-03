@@ -47,14 +47,16 @@
   de incremento, la instruccion solo toma el symbolo correspondiente
   a la variable.  Para el resto, el dato a operar se toma de la
   pila.
-  
-* implementar  variables locales  y parametros  con identificadores
-  como nombres, en lugar de usar la notacion $<n>.
-  
-* implementar las variables en memoria.
 
 * usar tipos. Implementar los tipos 'int' y 'double'.  Obligar a
   declarar las variables?
+  
+* implementar  variables locales  y parametros  con identificadores
+  como nombres, en lugar de usar la notacion $<n>.
+  func int ack(int a, int b; int c, int d)
+  a = ack(3, 3)
+  
+* implementar las variables en memoria.
   
 * implementar la pila en memoria.
   

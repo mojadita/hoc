@@ -77,7 +77,8 @@ extern Datum pop(void);
 union Cell {
     struct {
         instr_code inst: 8;
-        int        desp: 32;
+        int        args: 8;
+        int        desp: 16;
     };
     Symbol      *sym;
     double       val;
