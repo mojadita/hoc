@@ -43,5 +43,5 @@ INST(prexpr)        /* imprime una expresion */
 INST(symbs)         /* imprime la tabla de simbolos (desaparecera) */
 INST(list)          /* lista el codigo del programa */
 INST(if_f_goto)     /* salto si el top de la pila es cero */
-INST(Goto)          /* salto incondicional */
+INST(Goto, SUFF(Goto, prog)) /* salto incondicional */
 INST(noop)          /* no operacion, nada */

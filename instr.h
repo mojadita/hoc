@@ -27,9 +27,11 @@ typedef enum   instr_code instr_code;
  * definido las instrucciones en el fichero mencionado
  * "instrucciones.h" */
 enum instr_code {
-#define INST(_nom) INST_##_nom,
+#define INST(_nom, ...) INST_##_nom,
+#define SUFF(_p1,_p2)
 #include "instrucciones.h"
 #undef  INST
+#undef  SUFF
 }; /* enum instr */
 
 struct instr {

@@ -121,8 +121,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(symbs); }
     | LIST        ';'      { $$ = CODE_INST(list); }
-    | WHILE cond do stmt   { CODE_INST(Goto);
-                             code_cel($2);
+    | WHILE cond do stmt   { CODE_INST(Goto, $2);
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
@@ -152,8 +151,7 @@ stmt: asig ';'             { CODE_INST(drop); }
                                    progp - prog, saved_progp - prog);
                              progp = $5;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(Goto);
-                                 code_cel(saved_progp);
+                                 CODE_INST(Goto, saved_progp);
                              PT("<<< end patching CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
@@ -179,8 +177,8 @@ do  :  /* empty */         { $$ = progp;
 else:  ELSE                { $$ = progp;
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(Goto);
-                                 code_cel(NULL);
+                                 CODE_INST(noop);
+                                 CODE_INST(noop);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog); }
     ;
