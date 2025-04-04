@@ -101,8 +101,7 @@ list: /* nothing */
     | list defn  '\n'
     | list stmt  '\n'  { CODE_STOP();  /* para que execute() pare al final */
                          return 1; }
-    | list asig  '\n'  { CODE_INST(assign);
-                         code_sym(lookup("prev"));
+    | list asig  '\n'  { CODE_INST(assign, lookup("prev"));
                          CODE_INST(print);
                          CODE_STOP();  /* para que execute() pare al final */
                          return 1; }
@@ -125,8 +124,7 @@ stmt: asig ';'             { CODE_INST(drop); }
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto);
-                                 code_cel(saved_progp);
+                                 CODE_INST(if_f_goto, saved_progp);
                              PT("<<< end patching CODE @ [%04lx], "
                                 "continuing @ [%04lx]\n",
                                  progp - prog, saved_progp - prog);
@@ -134,8 +132,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | IF    cond do stmt   { Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto);
-                                 code_cel(saved_progp);
+                                 CODE_INST(if_f_goto, saved_progp);
                              PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
                                  progp - prog, saved_progp - prog);
                              progp = saved_progp;
@@ -144,8 +141,7 @@ stmt: asig ';'             { CODE_INST(drop); }
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto);
-                                 code_cel($6);
+                                 CODE_INST(if_f_goto, $6);
                              PT("<<< end patching CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
@@ -168,8 +164,7 @@ stmt: asig ';'             { CODE_INST(drop); }
 do  :  /* empty */         { $$ = progp;
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(if_f_goto);
-                                 code_cel(NULL);
+                                 CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog); }
     ;
@@ -177,8 +172,7 @@ do  :  /* empty */         { $$ = progp;
 else:  ELSE                { $$ = progp;
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(noop);
-                                 CODE_INST(noop);
+                                 CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog); }
     ;
@@ -188,8 +182,7 @@ expr_seq
     | item
     ;
 
-item: STRING               { $$ = CODE_INST(prstr);
-                             code_str($1); }
+item: STRING               { $$ = CODE_INST(prstr, $1); }
     | asig                 { CODE_INST(prexpr); }
     ;
 
@@ -209,13 +202,11 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                                            $1->name);
                              }
                              $$ = $3;
-                             CODE_INST(assign);
-                             code_sym($1); }
+                             CODE_INST(assign, $1); }
     | ARG   '=' asig       {
                              defnonly(indef_proc || indef_func, "$%d assign", $1);
                              $$ = $3;
-                             CODE_INST(argassign);
-                             code_num($1);
+                             CODE_INST(argassign, $1);
                            }
     | expr_or
     ;
@@ -225,8 +216,7 @@ expr_or
                              progp = $2;
                              PT(">>> begin patching CODE @ [%04lx]\n",
                                    progp - prog);
-                                 CODE_INST(or_else);
-                                 code_cel(saved_progp);
+                                 CODE_INST(or_else, saved_progp);
                              PT("<<< end   patching CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
@@ -236,8 +226,7 @@ expr_or
 
 or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                  progp - prog);
-                             $$ = CODE_INST(or_else);
-                                  code_cel(NULL);
+                             $$ = CODE_INST(or_else, prog);
                              PT("<<< end   inserting unpatched CODE\n"); }
     ;
 
@@ -246,8 +235,7 @@ expr_and
                               progp = $2;
                               PT(">>> begin patching CODE @ [%04lx]\n",
                                       progp - prog);
-                              CODE_INST(and_then);
-                              code_cel(saved_progp);
+                              CODE_INST(and_then, saved_progp);
                               PT("<<< end   patching CODE @ [%04lx], "
                                       "continuing @ [%04lx]\n",
                                       progp - prog, saved_progp - prog);
@@ -257,8 +245,7 @@ expr_and
 
 and : AND                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                       progp - prog);
-                              $$ = CODE_INST(and_then);
-                                   code_cel(NULL);
+                              $$ = CODE_INST(and_then, prog);
                               PT("<<< end   inserting unpatched CODE\n"); }
     ;
 
@@ -292,28 +279,20 @@ fact: prim '^' fact         { CODE_INST(pwr);  }
     ;
 
 prim: '(' asig ')'          { $$ = $2; }
-    | NUMBER                { $$ = CODE_INST(constpush);
-                                   code_val($1); }
-    | VAR                   { $$ = CODE_INST(eval);
-                                   code_sym($1); }
+    | NUMBER                { $$ = CODE_INST(constpush, $1); }
+    | VAR                   { $$ = CODE_INST(eval, $1); }
     | ARG                   { defnonly(indef_proc || indef_func,
                                        "$%d assign", $1);
-                              $$ = CODE_INST(argeval);
-                              code_num($1);
+                              $$ = CODE_INST(argeval, $1);
                             }
-    | CONST                 { $$ = CODE_INST(eval);
-                                   code_sym($1); }
-    | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0);
-                                   code_sym($1); }
+    | CONST                 { $$ = CODE_INST(eval, $1); }
+    | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
     | BLTIN1 '(' asig ')'   { $$ = $3;
-                              CODE_INST(bltin1);
-                              code_sym($1); }
+                              CODE_INST(bltin1, $1); }
     | BLTIN2 '(' asig ',' asig ')'
                             { $$ = $3;
-                              CODE_INST(bltin2);
-                              code_sym($1); }
-    | READ '(' VAR ')'      { $$ = CODE_INST(readopcode);
-                                   code_sym($3); }
+                              CODE_INST(bltin2, $1); }
+    | READ '(' VAR ')'      { $$ = CODE_INST(readopcode, $3); }
     | FUNCTION mark '(' arglist_opt ')' {
                               $$ = $2;
                               CODE_INST(call); /* instruction */
@@ -338,8 +317,7 @@ defn: proc_head '(' ')' stmt {
                               P("FIN DEFINICION PROCEDIMIENTO\n");
                              }
     | func_head '(' ')' stmt {
-                              CODE_INST(constpush);
-                              code_val(0.0);
+                              CODE_INST(constpush, 0.0);
                               CODE_INST(funcret);
                               end_define();
                               indef_func = 0;
