@@ -13,15 +13,8 @@ include ./config.mk
 
 .SUFFIXES: .1.gz .1 .1.in .o .h .c .c.in .h.in
 
-.h.in.h:
+.h.in.h .c.in.c .1.in.1:
 	sed -E $(SED_FLAGS) < $< > $@
-
-.c.in.c:
-	sed -E $(SED_FLAGS) < $< > $@
-
-.1.in.1:
-	sed -E $(SED_FLAGS) < $< > $@
-
 
 .1.1.gz:
 	gzip < $< > $@
@@ -29,6 +22,3 @@ include ./config.mk
 config.h.in: ./config.h.in.sh ./config.mk
 	./config.h.in.sh < ./config.mk > $@
 toclean += config.h.in config.h
-
-config.h: config.h.in
-	sed -E $(SED_FLAGS) < $< > $@
