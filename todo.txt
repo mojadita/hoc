@@ -41,6 +41,9 @@
 * tratar de meter los parametros  en la instruccion misma, de forma
   que se ahorren celdas de memoria en el programa.
 
+* implementar la localizacion del token que falla cuando hay un
+  error de sintaxis.
+
 * implementar operadores '++', '--', '+=', '-=', '*=' '/='.
   implementar instrucciones para incrementar variable, decrementar,
   sumar, restar, multiplicar y dividir variable.  En los casos

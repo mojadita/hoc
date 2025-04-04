@@ -1,4 +1,4 @@
-#!hoc-sin-prec
+#!hoc
 /* Funcion de Ackerman:
  * ack(x, y): N -> N
  *

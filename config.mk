@@ -13,9 +13,9 @@ COPYRIGHT_YEARS          ?= 2024-2025
 PROGRAM_NAME_UC          ?= HOC
 AUTHOR_CORP              ?= N.A.
 AUTHOR_SITE              ?= https://github.com/mojadita/$(PACKAGE)
-UQ_VERSION               ?= 8.0001
+UQ_VERSION               ?= 8.1
 VERSION                  ?= $(UQ_VERSION)
-VERSION_DATE             ?= Thu Apr  3 14:24:25 -05 2025
+VERSION_DATE             ?= Fri Apr  4 17:36:51 -05 2025
 OPERATING_SYSTEM         ?= UNIX
 
 prefix                   ?= /usr/local
@@ -32,11 +32,11 @@ vardir                   ?= $(exec_prefix)/var
 logdir                   ?= $(vardir)/log
 
 UQ_HOC_DEBUG             ?=  1
-UQ_HOC_TRACE_PATCHING    ?=  1
+UQ_HOC_TRACE_PATCHING    ?=  0
 UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
 UQ_CODE_DEBUG_EXEC       ?=  1
-UQ_CODE_DEBUG_PROG       ?=  1
+UQ_CODE_DEBUG_PROG       ?=  0
 
 UQ_USE_COLORS            ?=  1
 UQ_USE_LOCUS             ?=  1

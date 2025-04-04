@@ -21,12 +21,18 @@
 #define   UQ_CODE_DEBUG_EXEC  0
 #endif /* UQ_CODE_DEBUG_EXEC    } */
 
-#if UQ_CODE_DEBUG_EXEC /*     {{ */
-#define EXEC(_fmt, ...) \
-    printf("%s:%d:%s: "_fmt, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
-#else  /* UQ_CODE_DEBUG_EXEC  }{ */
-#define EXEC(_fmt, ...)
-#endif /* UQ_CODE_DEBUG_EXEC  }} */
+#if       UQ_CODE_DEBUG_EXEC /* {{ */
+# define EXEC(_fmt, ...)     \
+    printf("%s:%d:%s: "_fmt, \
+        __FILE__, __LINE__,  \
+        __func__,            \
+        ##__VA_ARGS__)
+# define P_TAIL(_fmt, ...)   \
+    printf(_fmt, ##__VA_ARGS__)
+#else  /* UQ_CODE_DEBUG_EXEC    }{ */
+# define EXEC(_fmt, ...)
+# define P_TAIL(_fmt, ...)
+#endif /* UQ_CODE_DEBUG_EXEC    }} */
 
 char *progname;     /* for error messages */
 int   lineno = 1;   /* numero de linea */
