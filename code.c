@@ -154,6 +154,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     return old_progp;
 }
 
+#if 0 /* {{ */
 Cell *code_sym(Symbol *s) /* install one instruction of operand */
 {
     Cell *old_progp = progp;
@@ -210,6 +211,7 @@ Cell *code_str(const char *str) /* install one string on Cell */
     (progp++)->str = str;
     return old_progp;
 }
+#endif /* }} */
 
 void execute(Cell *p) /* run the machine */
 {
@@ -351,11 +353,10 @@ void neg_prt(const instr *i, const Cell **pc)
 
 void pwr(const instr *i) /* pow top two elements on stack */
 {
-    Datum p2  = pop(),
-          p1  = pop(),
-          res = pow(p1, p2);
-    P_TAIL(": p1=%lg, d2=%lg -> %lg",
-            p1, p2, res);
+    Datum e  = pop(),
+          b  = pop(),
+          res = pow(b, e);
+    P_TAIL(": b=%lg, e=%lg -> %lg", b, e, res);
     push(res);
 }
 
@@ -725,6 +726,14 @@ void call_prt(const instr *i, const Cell **pc)
 		(*pc)[2].num,
         (*pc)[1].sym->defn - prog);
 	(*pc) += 2;
+}
+
+int symb_int_prog(const instr *i, Cell *pc, va_list args)
+{
+    Symbol *symb = pc[1].sym = va_arg(args, Symbol *);
+    int     narg = pc[2].num = va_arg(args, int);
+    PRG(" '%s' <%d>", symb->name, narg);
+    return 2;
 }
 
 static void ret(void)

@@ -33,7 +33,7 @@ INST(and_then,   SUFF(addr, prog))  /* operador Y && X (con cortocircuito) */
 INST(or)                            /* operador Y || X (sin cortocircuito) */
 INST(or_else,    SUFF(addr, prog))  /* operador Y || X (con cortocircuito) */
 INST(readopcode, SUFF(symb, prog))  /* lee un valor y lo asigna a una variable */
-INST(call)                          /* llama a una subrutina con los parametros de la pila */
+INST(call,   SUFF(symb_int, prog))  /* llama a una subrutina con los parametros de la pila */
 INST(procret)                       /* retorna de un procedimiento definido por el usuario */
 INST(funcret)                       /* retorna un valor de una funcion definida por el usuario */
 INST(argeval,    SUFF(arg, prog))   /* evalua un argumento y lo pone en la pila. */

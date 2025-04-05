@@ -156,9 +156,8 @@ stmt: asig ';'             { CODE_INST(drop); }
     | '{' stmtlist '}'     { $$ = $2; }
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
-                             CODE_INST(call); /* instruction */
-                             code_sym($1);    /* symbol associated to proc */
-                             code_num($4);    /* number of arguments */ }
+                             CODE_INST(call, $1, $4); /* instruction */
+                           }
     ;
 
 do  :  /* empty */         { $$ = progp;
@@ -295,9 +294,8 @@ prim: '(' asig ')'          { $$ = $2; }
     | READ '(' VAR ')'      { $$ = CODE_INST(readopcode, $3); }
     | FUNCTION mark '(' arglist_opt ')' {
                               $$ = $2;
-                              CODE_INST(call); /* instruction */
-                              code_sym($1);    /* function symbol */
-                              code_num($4);    /* number of arguments */ }
+                              CODE_INST(call, $1, $4); /* instruction */
+                            }
     ;
 
 arglist_opt

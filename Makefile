@@ -70,6 +70,7 @@ hoc: $(hoc_objs)
 	mv -f y.tab.h $*.tab.h
 
 hoc.tab.h: hoc.c
+hoc.1: hoc.1.in config.mk
 toclean += HOC.tab.h hoc.1 hoc.c
 
 # ack.c code.c do_help.c error.c
