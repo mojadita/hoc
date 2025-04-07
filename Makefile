@@ -1,5 +1,5 @@
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE     = db
+DEBUG-TYPE     = nd
 
 CFLAGS-nd      = -O3
 LDFLAGS-nd     =
@@ -10,7 +10,7 @@ CFLAGS         = $(CFLAGS-$(DEBUG-TYPE))
 LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
 
 RM            ?= rm -f
-targets        = hoc hoc.1.gz
+targets        = hoc hoc.1.gz ack
 toclean       += $(targets)
 OS            != uname -o
 

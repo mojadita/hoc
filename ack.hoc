@@ -15,8 +15,8 @@ func ack() {
 {   list;
     n=0;
     c = ack(a = 3, b = 3);
-    #print  "ack(", a, ", ", b, ") -> ", c, "\n";
-    #print n, " calls to 'ack'\n";
+    print  "ack(", a, ", ", b, ") -> ", c, "\n";
+    print n, " calls to 'ack'\n";
 }
 n
 c

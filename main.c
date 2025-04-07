@@ -5,6 +5,7 @@
 */
 
 #include <getopt.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +36,6 @@
 #endif /* UQ_CODE_DEBUG_EXEC    }} */
 
 char *progname;     /* for error messages */
-int   lineno = 1;   /* numero de linea */
 
 int parse(void)
 {
@@ -79,10 +79,14 @@ int main(int argc, char *argv[]) /* hoc1 */
                 process(stdin);
             } else {
                 FILE *f = yysetfilename(argv[i]);
-                if (f) {
-                    process(f);
-                    fclose(f);
+                if (!f) {
+                    fprintf(stderr, "%s: %s\n",
+                        argv[i],
+                        strerror(errno));
+                    exit(EXIT_FAILURE);
                 }
+                process(f);
+                fclose(f);
             }
         }
     } else {

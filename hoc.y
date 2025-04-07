@@ -12,6 +12,7 @@
 #include "config.h"
 #include "colors.h"
 #include "hoc.h"
+#include "lex.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
 #include "instr.h"
@@ -70,18 +71,11 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     char        *str;  /* cadena de caracteres */
 }
 
-/*
- * LCU: Tue Jan 21 10:58:10 EET 2025
- * definimos los mismos tokens aqui que en hoc-sin-prec.y, para
- * asegurar que se asignaran los mismos valores, y no habra
- * problemas al construir ambos ejecutables.
- */
 %token ERROR
 %token <val> NUMBER
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
-%token       OR AND GE LE EQ NE
-%token       UNARY
+%token       OR AND GE LE EQ NE EXP
 %token <num> ARG
 %token <num> FUNC PROC
 %token       RETURN READ
@@ -273,7 +267,7 @@ term: fact
     | term '%' fact         { CODE_INST(mod);  }
     ;
 
-fact: prim '^' fact         { CODE_INST(pwr);  }
+fact: prim EXP fact         { CODE_INST(pwr);  }
     | prim
     ;
 
@@ -342,5 +336,31 @@ void yyerror(char *s)   /* called for yacc syntax error */
      * imprimir mejor el contexto donde ocurren los errores 
      * de la gramatica. */
     //warning("%s", s);
-    warning(" "BRIGHT GREEN "%s" ANSI_END, s);
+
+    int i = 0;
+    const token *last = get_last_token(i++),
+                *tok  = NULL;
+    for (   ;  (i < UQ_LAST_TOKENS_SZ)
+            && (tok = get_last_token(i))
+            && (tok->lin == last->lin)
+            ; i++)
+        continue;
+
+    printf(CYAN "%5d" WHITE ":" CYAN "%3d" WHITE ": "BRIGHT GREEN "%s\n" ANSI_END,
+            last->lin, last->col, s);
+
+    printf(CYAN "%5d" WHITE ":" CYAN "%3d" WHITE ": " GREEN,
+            last->lin, last->col);
+
+    int col = 1;
+    for (i--; i > 0; i--) {
+        tok = get_last_token(i);
+        printf("%*s%s",
+            tok->col - col, "", tok->lex);
+        col = tok->col + tok->len;
+    }
+    printf(BRIGHT RED "%*s%s"ANSI_END"\n",
+        last->col - col, "", last->lex);
+
+    execerror("SALIENDO DEL INTERPRETE");
 } /* yyerror */

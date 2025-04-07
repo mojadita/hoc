@@ -77,9 +77,11 @@ void do_version(int cod)
     PS(PROGRAM_NAME_UC);
     PS(AUTHOR_CORP);
     PS(AUTHOR_SITE);
+    PD(UQ_VERSION);
     PS(VERSION);
     PS(VERSION_DATE);
     PS(OPERATING_SYSTEM);
+
     PS(prefix);
     PS(exec_prefix);
     PS(bindir);
@@ -88,6 +90,7 @@ void do_version(int cod)
     PS(pkgdatadir);
     PS(mandir);
     PS(man8dir);
+    PS(man1dir);
     PS(docdir);
     PS(vardir);
     PS(logdir);
@@ -95,6 +98,10 @@ void do_version(int cod)
     P(UQ_HOC_DEBUG);
     P(UQ_HOC_TRACE_PATCHING);
     P(UQ_LEX_DEBUG);
+    P(UQ_LEX_COMMENTS);
+    P(UQ_CODE_DEBUG_EXEC);
+    P(UQ_CODE_DEBUG_PROG);
+
     P(UQ_USE_COLORS);
     P(UQ_USE_LOCUS);
     P(UQ_USE_DEB);
@@ -102,9 +109,12 @@ void do_version(int cod)
     P(UQ_USE_WRN);
     P(UQ_USE_ERR);
     P(UQ_USE_CRT);
-    P(UQ_LAST_TOKENS_SIZE);
-    //P(UQ_DEFAULT_LOGLEVEL);
-    PD(UQ_VERSION);
+    P(UQ_NSTACK);
+    P(UQ_NPROG);
+    P(UQ_NFRAME);
+
+    P(UQ_LAST_TOKENS_SZ);
+    P(UQ_DEFAULT_LOGLEVEL);
 
     exit(cod);
 #undef PS

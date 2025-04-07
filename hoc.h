@@ -67,6 +67,7 @@ void yysetFILE(FILE *in);
 
 extern jmp_buf begin;
 extern int lineno;
+extern int col_no;
 extern char *progname;
 
 typedef double Datum;

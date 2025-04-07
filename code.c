@@ -103,21 +103,21 @@ void push(Datum d)  /* push d onto stack */
     /*  Verificamos si el puntero apunta a una direccion mas alla
         del final de la pila  */
     if (stackp <= stack)
-        execerror("stack overflow\n");
+        execerror("stack overflow");
     *--stackp = d;
 }
 
 Datum pop(void)    /* pops Datum and rturn top element from stack */
 {
     if (stackp == stack + UQ_NSTACK)
-        execerror("stack empty\n");
+        execerror("stack empty");
     return *stackp++;
 }
 
 Datum top(void)   /* returns the top of the stack */
 {
     if (stackp == stack + UQ_NSTACK)
-        execerror("stack empty\n");
+        execerror("stack empty");
     return *stackp;
 }
 
@@ -126,7 +126,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     Cell *old_progp = progp;
 
     if (ins >= instruction_set_len) {
-        execerror("invalid instruction code [%d]\n",
+        execerror("invalid instruction code [%d]",
             ins);
     }
     if (progp >= prog + UQ_NPROG) {
@@ -643,7 +643,7 @@ void readopcode(const instr *i)  /* readopcode */
     Symbol *sym = (pc++)->sym;
     if (scanf("%lg", &sym->val) != 1) {
         execerror("Lectura incorrecta del valor "
-                  "de la variable %s\n",
+                  "de la variable %s",
                   sym->name);
     }
     P_TAIL(": %.8lg -> %s",
@@ -667,7 +667,7 @@ void end_define(void)
 Cell *define(Symbol *symb, int type)
 {
     if (symb->type != UNDEF) {
-        execerror("symbol redefinition not allowed (%s)\n",
+        execerror("symbol redefinition not allowed (%s)",
                 symb->name);
     }
     symb->type = type;
@@ -681,7 +681,7 @@ void call(const instr *i)   /* call a function */
     Symbol *sym  = pc[0].sym;
 
     if (fp == frame) {
-        execerror("Llamada a '%s' demasiado profunda (%d niveles)\n",
+        execerror("Llamada a '%s' demasiado profunda (%d niveles)",
             sym->name, UQ_NFRAME);
     }
 
@@ -709,7 +709,7 @@ void call(const instr *i)   /* call a function */
     execute(sym->defn);
 
     if (fp >= frame + UQ_NFRAME) {
-        execerror("Smatching stack, la pila esta corrompida\n");
+        execerror("Smatching stack, la pila esta corrompida");
     }
     EXEC(": <- return from @[%04lx], %s '%s', args=%d, ret_addr=[%04lx], niv=%d/%d",
         sym->defn - prog, sym->type == FUNCTION ? "func" : "proc",
@@ -776,7 +776,7 @@ static Datum *getarg(int arg)    /* return a pointer to argument */
 {
     if (arg > fp->nargs) {
         execerror("Accessing arg $%d while only %d "
-            "args have been passed\n",
+            "args have been passed",
             arg, fp->nargs);
     }
     return fp->argn + fp->nargs - arg;

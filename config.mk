@@ -13,9 +13,9 @@ COPYRIGHT_YEARS          ?= 2024-2025
 PROGRAM_NAME_UC          ?= HOC
 AUTHOR_CORP              ?= N.A.
 AUTHOR_SITE              ?= https://github.com/mojadita/$(PACKAGE)
-UQ_VERSION               ?= 8.2
+UQ_VERSION               ?= 8.3
 VERSION                  ?= $(UQ_VERSION)
-VERSION_DATE             ?= Sat Apr  5 13:03:51 -05 2025
+VERSION_DATE             ?= Mon Apr  7 17:04:11 -05 2025
 OPERATING_SYSTEM         ?= UNIX
 
 prefix                   ?= /usr/local
@@ -48,6 +48,7 @@ UQ_USE_CRT               ?=  1
 UQ_NSTACK                ?= 200000
 UQ_NPROG                 ?= 2000
 UQ_NFRAME                ?= 100000
+UQ_TAB_SIZE              ?= 4
 
-UQ_LAST_TOKENS_SIZE      ?= 16
-UQ_DEFAULT_LOGLEVEL      ?= LOG_WARNING
+UQ_LAST_TOKENS_SZ        ?= 64
+UQ_DEFAULT_LOGLEVEL      ?= 0

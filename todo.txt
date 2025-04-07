@@ -38,13 +38,15 @@
   instruccion indicada en  el parametro. En caso  contrario se hace
   drop y se continua con la siguiente instruccion.
   
-* tratar de meter los parametros  en la instruccion misma, de forma
-  que se ahorren celdas de memoria en el programa.
-
-* implementar la localizacion del token que falla cuando hay un
+* Mon Apr  7 17:20:50 -05 2025
+  implementar la localizacion del token que falla cuando hay un
   error de sintaxis.
 
-* implementar operadores '++', '--', '+=', '-=', '*=' '/='.
+* tratar de meter los parametros  en la instruccion misma
+  (CODE_INST), de forma que se ahorren celdas de memoria en el
+  programa.
+
+* implementar operadores '++', '--', '+=', '-=', '*=' '/=', '%='
   implementar instrucciones para incrementar variable, decrementar,
   sumar, restar, multiplicar y dividir variable.  En los casos
   de incremento, la instruccion solo toma el symbolo correspondiente
