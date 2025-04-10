@@ -232,7 +232,7 @@ expr_and
                               PT("<<< end   patching CODE @ [%04lx], "
                                       "continuing @ [%04lx]\n",
                                       progp - prog, saved_progp - prog);
-                              progp = saved_progp; } 
+                              progp = saved_progp; }
     | expr_rel
     ;
 
@@ -333,7 +333,7 @@ void yyerror(char *s)   /* called for yacc syntax error */
 {
     /* LCU: Wed Mar 19 15:40:42 -05 2025
      * TODO: manejar un buffer circular de tokens que permita
-     * imprimir mejor el contexto donde ocurren los errores 
+     * imprimir mejor el contexto donde ocurren los errores
      * de la gramatica. */
     //warning("%s", s);
 

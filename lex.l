@@ -194,7 +194,7 @@ static char *deescape(char *in);
             col_no += yyleng;
           return EXP; }
 
-\n      {   
+\n      {
             add_token('\n', lineno, col_no, 2, "\\n");
             lineno++;
             col_no = 1;
@@ -224,7 +224,7 @@ static int    token_buffer_full = 0;
 
 void reset_add_token(void)
 {
-    int i; 
+    int i;
     for (   i = 0, last_token = last_tokens_buffer;
             i < UQ_LAST_TOKENS_SZ;
             i++, last_token++)

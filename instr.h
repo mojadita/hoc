@@ -27,7 +27,7 @@ typedef enum   instr_code instr_code;
  * definido las instrucciones en el fichero mencionado
  * "instrucciones.h" */
 enum instr_code {
-#define INST(_nom, ...) INST_##_nom,
+#define INST(_nom,_n, ...) INST_##_nom,
 #define SUFF(_p1,_p2)
 #include "instrucciones.h"
 #undef  INST
@@ -36,9 +36,10 @@ enum instr_code {
 
 struct instr {
     instr_code    code_id;
+    int           n_cells; /* numero de celdas que ocupa la instruccion */
     const char   *name;
     void        (*exec)(const instr *);
-    void        (*print)(const instr *, const Cell **);
+    void        (*print)(const instr *, const Cell *);
     int         (*prog)(const instr *, Cell *progp, va_list args);
 };
 

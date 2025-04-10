@@ -31,19 +31,19 @@ int   stacksize(void);                /* return the stack size */
  * Se invoca la macro una vez por cada instruccion, generandose
  * ambos prototipos (estos deben implementarse normalmente en la
  * unidad de compiladion code.c) */
-#define INST(_nom, ...)    \
+#define INST(_nom,_n, ...) \
         void _nom(         \
             const instr *);\
         void _nom##_prt(   \
             const instr *, \
-            const Cell **);\
+            const Cell *); \
         __VA_ARGS__
 
 #define SUFF(_nom, _suf)        \
-		int _nom##_##_suf(      \
-				const instr *,  \
-				Cell        *,  \
-				va_list args);
+        int _nom##_##_suf(      \
+                const instr *,  \
+                Cell        *,  \
+                va_list args);
 
 
 #include "instrucciones.h"

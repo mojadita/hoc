@@ -31,16 +31,17 @@
  * para luego llamar al fichero "instrucciones.h" con las
  * definiciones de las instrucciones propiamente dichas */
 const instr instruction_set[] = {
-#define INST(_nom, ...)           \
+#define INST(_nom,_n, ...)        \
     [INST_##_nom] = {             \
         .code_id  = INST_##_nom,  \
+        .n_cells  = _n,           \
         .name     = #_nom,        \
         .exec     = _nom,         \
         .print    = _nom##_prt,   \
         __VA_ARGS__               \
-	},
+    },
 #define SUFF(_nom, _suf)          \
-		._suf     = _nom##_##_suf,
+        ._suf     = _nom##_##_suf,
 #include "instrucciones.h"
 #undef INST
 #undef SUFF
