@@ -362,5 +362,6 @@ void yyerror(char *s)   /* called for yacc syntax error */
     printf(BRIGHT RED "%*s%s"ANSI_END"\n",
         last->col - col, "", last->lex);
 
-    execerror("SALIENDO DEL INTERPRETE");
+    //execerror("SALIENDO DEL INTERPRETE");
+    longjmp(begin, 1);
 } /* yyerror */
