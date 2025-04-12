@@ -123,7 +123,6 @@ Datum top(void)   /* returns the top of the stack */
 
 Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 {
-    Cell *old_progp = progp;
 
     if (ins >= instruction_set_len) {
         execerror("invalid instruction code [%d]",
@@ -136,7 +135,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 
     const instr *i = instruction_set + ins;
 
-    PRG("[%04lx]: %s", old_progp - prog, i->name);
+    PRG("[%04lx]: %s", progp - prog, i->name);
 
     progp->inst = ins; /* instalamos la instruccion */
 
@@ -144,14 +143,16 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
         va_list args;
         va_start(args, ins);
 
-        i->prog(i, old_progp, args);
+        i->prog(i, progp, args);
+
         va_end(args);
     }
     PRG("\n");
 
-    progp+= i->n_cells;
+    Cell *ret_val = progp;
+    progp        += i->n_cells;
 
-    return old_progp;
+    return ret_val;
 }
 
 void execute(Cell *p) /* run the machine */
@@ -560,16 +561,16 @@ void and_then(const instr *i)  /* and_then */
         pop();
         UPDATE_PC();
     } else {
-        pc = pc[1].cel;
+        pc = prog + pc[0].desp;
     }
     const char *op = d ? " drop;" : "";
-    P_TAIL(": %lg &&%s -> [%04lx]",
-        d, op, pc - prog);
+    P_TAIL(": %lg &&%s -> [%04x]",
+        d, op, pc[0].desp);
 }
 
 void and_then_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04lx]\n", pc[1].cel - prog);
+    PR("[%04x]\n", pc[0].desp);
 }
 
 void or(const instr *i)               /* or */
@@ -595,16 +596,16 @@ void or_else(const instr *i)  /* or_else */
         pop();
         UPDATE_PC();
     } else {
-        pc = pc[1].cel;
+        pc = prog + pc[0].desp;
     }
     const char *op = d ? " drop;" : "";
-    P_TAIL(": %lg ||%s -> [%04lx]",
-        d, op, pc - prog);
+    P_TAIL(": %lg ||%s -> [%04x]",
+        d, op, pc[0].desp);
 }
 
 void or_else_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04lx]\n", pc[1].cel - prog);
+    PR("[%04x]\n", pc[0].desp);
 }
 
 void readopcode(const instr *i)  /* readopcode */
@@ -854,31 +855,31 @@ void list_prt(const instr *i, const Cell *pc)
 void if_f_goto(const instr *i) /* jump if false */
 {
     Datum d = pop();
-    pc = d ? pc + i->n_cells : pc[1].cel;
-    P_TAIL(": -> [%04lx]", pc - prog);
+    pc = d ? pc + i->n_cells : prog + pc[0].desp;
+    P_TAIL(": -> [%04x]", pc[0].desp);
 }
 
 void if_f_goto_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04lx]\n", pc[1].cel - prog);
+    PR("[%04x]\n", pc[0].desp);
 }
 
 void addr_prog(const instr *i, Cell *pc, va_list args)
 {
-    Cell *dest = progp[1].cel = va_arg(args, Cell *);
+    progp[0].desp = va_arg(args, Cell *) - prog;
 
-    PRG(" [%04lx]", dest - prog);
+    PRG(" [%04x]", progp[0].desp);
 }
 
 void Goto(const instr *i) /* jump if false */
 {
-    pc = pc[1].cel;
-    P_TAIL(": -> [%04lx]", pc - prog);
+    pc = prog + pc[0].desp;
+    P_TAIL(": -> [%04x]", pc[0].desp);
 }
 
 void Goto_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04lx]\n", pc[1].cel - prog);
+    PR("[%04x]\n", pc[0].desp);
 }
 
 void noop(const instr *i)

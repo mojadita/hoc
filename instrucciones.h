@@ -29,9 +29,9 @@ INST(eq,1)                          /* operador Y == X */
 INST(ne,1)                          /* operador Y != X */
 INST(not,1)                         /* operador ! */
 INST(and,1)                         /* operador Y && X (sin cortocircuito) */
-INST(and_then,2,   SUFF(void, addr, prog))/* operador Y && X (con cortocircuito) */
+INST(and_then,1,   SUFF(void, addr, prog))/* operador Y && X (con cortocircuito) */
 INST(or,1)                          /* operador Y || X (sin cortocircuito) */
-INST(or_else,2,    SUFF(void, addr, prog))/* operador Y || X (con cortocircuito) */
+INST(or_else,1,    SUFF(void, addr, prog))/* operador Y || X (con cortocircuito) */
 INST(readopcode,2, SUFF(void, symb, prog))/* lee un valor y lo asigna a una variable */
 INST(call,3,   SUFF(void, symb_int, prog))/* llama a una subrutina con los parametros de la pila */
 INST(procret,1)                     /* retorna de un procedimiento definido por el usuario */
@@ -42,6 +42,6 @@ INST(prstr,2,      SUFF(void, str, prog)) /* imprime una cadena */
 INST(prexpr,1)                      /* imprime una expresion */
 INST(symbs,1)                       /* imprime la tabla de simbolos (desaparecera) */
 INST(list,1)                        /* lista el codigo del programa */
-INST(if_f_goto,2,  SUFF(void, addr, prog))/* salto si el top de la pila es cero */
-INST(Goto,2,       SUFF(void, addr, prog))/* salto incondicional */
+INST(if_f_goto,1,  SUFF(void, addr, prog))/* salto si el top de la pila es cero */
+INST(Goto,1,       SUFF(void, addr, prog))/* salto incondicional */
 INST(noop,1)                        /* no operacion, nada */
