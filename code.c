@@ -564,8 +564,8 @@ void and_then(const instr *i)  /* and_then */
         pc = prog + pc[0].desp;
     }
     const char *op = d ? " drop;" : "";
-    P_TAIL(": %lg &&%s -> [%04x]",
-        d, op, pc[0].desp);
+    P_TAIL(": %lg &&%s -> [%04lx]",
+        d, op, pc - prog);
 }
 
 void and_then_prt(const instr *i, const Cell *pc)
@@ -599,8 +599,8 @@ void or_else(const instr *i)  /* or_else */
         pc = prog + pc[0].desp;
     }
     const char *op = d ? " drop;" : "";
-    P_TAIL(": %lg ||%s -> [%04x]",
-        d, op, pc[0].desp);
+    P_TAIL(": %lg ||%s -> [%04lx]",
+        d, op, pc - prog);
 }
 
 void or_else_prt(const instr *i, const Cell *pc)
@@ -646,6 +646,14 @@ Cell *define(Symbol *symb, int type)
     return progp;
 }
 
+void symb_int_prog(const instr *i, Cell *pc, va_list args)
+{
+    Symbol *symb = pc[1].sym  = va_arg(args, Symbol *);
+    int     narg = pc[0].args = va_arg(args, int);
+                   pc[0].desp = symb->defn - prog;
+    PRG(" '%s' <%d> [%04x]", symb->name, narg, pc[0].desp);
+}
+
 void call(const instr *i)   /* call a function */
 {
     Symbol *sym  = pc[1].sym;
@@ -658,13 +666,14 @@ void call(const instr *i)   /* call a function */
     fp--;
     /* creamos el contexto de la funcion */
     fp->sym      = sym;
-    fp->nargs    = pc[2].num;
+    fp->nargs    = pc[0].args;
     fp->retpc    = pc + i->n_cells;
     fp->argn     = stackp; /* pointer to last argument */
 
     static int max_niv = 0;
-    int niv = frame + UQ_NFRAME - fp;
-    if (niv > max_niv) max_niv = niv;
+    int niv            = frame + UQ_NFRAME - fp;
+    if (niv > max_niv)
+            max_niv    = niv;
 
     P_TAIL(": -> execute @[%04lx], %s '%s', args=%d, ret_addr=[%04lx], niv=%d/%d\n",
         sym->defn - prog, sym->type == FUNCTION ? "func" : "proc",
@@ -676,6 +685,7 @@ void call(const instr *i)   /* call a function */
         sep = ", ";
     }
     P_TAIL("\n");
+
     execute(sym->defn);
 
     if (fp >= frame + UQ_NFRAME) {
@@ -691,24 +701,19 @@ void call(const instr *i)   /* call a function */
          fp->nargs,
          fp->retpc - prog,
          niv, max_niv);
+
     pc        = fp->retpc;
     returning = 0;
+
     ++fp;
 } /* call */
 
 void call_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s', args=%ld -> [%04lx]\n",
+    PR("'%s', args=%d -> [%04lx]\n",
         pc[1].sym->name,
-        pc[2].num,
+        pc[0].args,
         pc[1].sym->defn - prog);
-}
-
-void symb_int_prog(const instr *i, Cell *pc, va_list args)
-{
-    Symbol *symb = pc[1].sym = va_arg(args, Symbol *);
-    int     narg = pc[2].num = va_arg(args, int);
-    PRG(" '%s' <%d>", symb->name, narg);
 }
 
 static void ret(void)
@@ -854,9 +859,9 @@ void list_prt(const instr *i, const Cell *pc)
 
 void if_f_goto(const instr *i) /* jump if false */
 {
+    P_TAIL(": -> [%04x]", pc[0].desp);
     Datum d = pop();
     pc = d ? pc + i->n_cells : prog + pc[0].desp;
-    P_TAIL(": -> [%04x]", pc[0].desp);
 }
 
 void if_f_goto_prt(const instr *i, const Cell *pc)
@@ -873,8 +878,8 @@ void addr_prog(const instr *i, Cell *pc, va_list args)
 
 void Goto(const instr *i) /* jump if false */
 {
-    pc = prog + pc[0].desp;
     P_TAIL(": -> [%04x]", pc[0].desp);
+    pc = prog + pc[0].desp;
 }
 
 void Goto_prt(const instr *i, const Cell *pc)
