@@ -40,7 +40,7 @@ const instr instruction_set[] = {
         .print    = _nom##_prt,   \
         __VA_ARGS__               \
     },
-#define SUFF(_nom, _suf)          \
+#define SUFF(_typ, _nom, _suf)     \
         ._suf     = _nom##_##_suf,
 #include "instrucciones.h"
 #undef INST

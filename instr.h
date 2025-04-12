@@ -28,7 +28,7 @@ typedef enum   instr_code instr_code;
  * "instrucciones.h" */
 enum instr_code {
 #define INST(_nom,_n, ...) INST_##_nom,
-#define SUFF(_p1,_p2)
+#define SUFF(_typ, _p1,_p2)
 #include "instrucciones.h"
 #undef  INST
 #undef  SUFF
@@ -40,7 +40,7 @@ struct instr {
     const char   *name;
     void        (*exec)(const instr *);
     void        (*print)(const instr *, const Cell *);
-    int         (*prog)(const instr *, Cell *progp, va_list args);
+    void        (*prog)(const instr *, Cell *progp, va_list args);
 };
 
 extern const instr  instruction_set[];

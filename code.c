@@ -144,12 +144,12 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
         va_list args;
         va_start(args, ins);
 
-        progp += i->prog(i, old_progp, args);
+        i->prog(i, old_progp, args);
         va_end(args);
     }
     PRG("\n");
 
-    progp++;
+    progp+= i->n_cells;
 
     return old_progp;
 }
@@ -209,12 +209,11 @@ void constpush_prt(const instr *i, const Cell *pc)
     PR("%2.8g\n", pc[1].val);
 }
 
-int datum_prog(const instr *i, Cell *pc, va_list args)
+void datum_prog(const instr *i, Cell *pc, va_list args)
 {
     Datum d = progp[1].val = va_arg(args, Datum);
 
     PRG(" %.8lg", d);
-    return 1;
 }
 
 void add(const instr *i) /* add top two elements on stack */
@@ -344,12 +343,11 @@ void eval_prt(const instr *i, const Cell *pc)
     PR("'%s'\n", pc[1].sym->name);
 }
 
-int symb_prog(const instr *i, Cell *pc, va_list args)
+void symb_prog(const instr *i, Cell *pc, va_list args)
 {
     Symbol *s = progp[1].sym = va_arg(args, Symbol *);
 
     PRG(" '%s'", s->name);
-    return 1;
 }
 
 void assign(const instr *i) /* assign top value to next value */
@@ -705,12 +703,11 @@ void call_prt(const instr *i, const Cell *pc)
         pc[1].sym->defn - prog);
 }
 
-int symb_int_prog(const instr *i, Cell *pc, va_list args)
+void symb_int_prog(const instr *i, Cell *pc, va_list args)
 {
     Symbol *symb = pc[1].sym = va_arg(args, Symbol *);
     int     narg = pc[2].num = va_arg(args, int);
     PRG(" '%s' <%d>", symb->name, narg);
-    return 2;
 }
 
 static void ret(void)
@@ -768,11 +765,10 @@ void argeval_prt(const instr *i, const Cell *pc)
     PR("$%ld\n", pc[1].num);
 }
 
-int arg_prog(const instr *i, Cell *pc, va_list args)
+void arg_prog(const instr *i, Cell *pc, va_list args)
 {
     int n = pc[1].num = va_arg(args, int);
     PRG(" $%d", n);
-    return 1;
 }
 
 void argassign(const instr *i) /* store top of stack in argument */
@@ -803,14 +799,13 @@ void prstr_prt(const instr *i, const Cell *pc)
     PR("\"%s\"\n", pc[1].str);
 }
 
-int str_prog(const instr *i, Cell *pc, va_list args)
+void str_prog(const instr *i, Cell *pc, va_list args)
 {
     const char *str
         = progp[1].str
         = va_arg(args, const char *);
 
     PRG(" \"%s\"", str);
-    return 1;
 }
 
 void prexpr(const instr *i)  /* print numeric value */
@@ -868,12 +863,11 @@ void if_f_goto_prt(const instr *i, const Cell *pc)
     PR("[%04lx]\n", pc[1].cel - prog);
 }
 
-int addr_prog(const instr *i, Cell *pc, va_list args)
+void addr_prog(const instr *i, Cell *pc, va_list args)
 {
     Cell *dest = progp[1].cel = va_arg(args, Cell *);
 
     PRG(" [%04lx]", dest - prog);
-    return 1;
 }
 
 void Goto(const instr *i) /* jump if false */

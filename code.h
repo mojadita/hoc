@@ -39,8 +39,8 @@ int   stacksize(void);                /* return the stack size */
             const Cell *); \
         __VA_ARGS__
 
-#define SUFF(_nom, _suf)        \
-        int _nom##_##_suf(      \
+#define SUFF(_typ, _nom, _suf)  \
+        _typ _nom##_##_suf(     \
                 const instr *,  \
                 Cell        *,  \
                 va_list args);
