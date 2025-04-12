@@ -42,7 +42,8 @@
   implementar la localizacion del token que falla cuando hay un
   error de sintaxis.
 
-* tratar de meter los parametros  en la instruccion misma
+* Sat Apr 12 12:05:42 -05 2025
+  tratar de meter los parametros  en la instruccion misma
   (CODE_INST), de forma que se ahorren celdas de memoria en el
   programa.
 
@@ -55,8 +56,8 @@
 
 * usar tipos. Implementar los tipos 'int' y 'double'.  Obligar a
   declarar las variables?
-  
-* implementar  variables locales  y parametros  con identificadores
+
+* implementar  variables locales y parametros  con identificadores
   como nombres, en lugar de usar la notacion $<n>.
   func int ack(int a, int b; int c, int d)
   a = ack(3, 3)

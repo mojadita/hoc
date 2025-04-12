@@ -757,9 +757,15 @@ static Datum *getarg(int arg)    /* return a pointer to argument */
     return fp->argn + fp->nargs - arg;
 }
 
+void arg_prog(const instr *i, Cell *pc, va_list args)
+{
+    int n = pc[0].args = va_arg(args, int);
+    PRG(" $%d", n);
+}
+
 void argeval(const instr *i) /* push argument onto stack */
 {
-    int arg = pc[1].num;
+    int arg = pc[0].args;
     Datum d = *getarg(arg);
     P_TAIL(": $%d -> %.8g", arg, d);
     push(d);
@@ -768,18 +774,12 @@ void argeval(const instr *i) /* push argument onto stack */
 
 void argeval_prt(const instr *i, const Cell *pc)
 {
-    PR("$%ld\n", pc[1].num);
-}
-
-void arg_prog(const instr *i, Cell *pc, va_list args)
-{
-    int n = pc[1].num = va_arg(args, int);
-    PRG(" $%d", n);
+    PR("$%d\n", pc[0].args);
 }
 
 void argassign(const instr *i) /* store top of stack in argument */
 {
-    int arg = pc[1].num;
+    int arg = pc[0].args;
     Datum d = pop();
     P_TAIL(": %.8g -> $%d", d, arg);
     Datum *ref = getarg(arg);
@@ -789,7 +789,7 @@ void argassign(const instr *i) /* store top of stack in argument */
 
 void argassign_prt(const instr *i, const Cell *pc)
 {
-    PR("$%ld\n", pc[1].num);
+    PR("$%d\n", pc[0].args);
 }
 
 void prstr(const instr *i) /* print string */

@@ -36,8 +36,8 @@ INST(readopcode,2, SUFF(void, symb, prog))/* lee un valor y lo asigna a una vari
 INST(call,2,   SUFF(void, symb_int, prog))/* llama a una subrutina con los parametros de la pila */
 INST(procret,1)                     /* retorna de un procedimiento definido por el usuario */
 INST(funcret,1)                     /* retorna un valor de una funcion definida por el usuario */
-INST(argeval,2,    SUFF(void, arg, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argassign,2,  SUFF(void, arg, prog)) /* asigna el top de la pila a $n.  X -> $n */
+INST(argeval,1,    SUFF(void, arg, prog)) /* evalua un argumento y lo pone en la pila. */
+INST(argassign,1,  SUFF(void, arg, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(prstr,2,      SUFF(void, str, prog)) /* imprime una cadena */
 INST(prexpr,1)                      /* imprime una expresion */
 INST(symbs,1)                       /* imprime la tabla de simbolos (desaparecera) */
