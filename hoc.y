@@ -76,7 +76,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE EXP
-%token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ TIM_EQ DIV_EQ MOD_EQ PWR_EQ
+%token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num> ARG
 %token <num> FUNC PROC
 %token       RETURN READ
@@ -197,6 +197,19 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              }
                              $$ = $3;
                              CODE_INST(assign, $1); }
+    | VAR  PLS_EQ asig    { $$ = CODE_INST(addvar, $1); }
+    | VAR  MIN_EQ asig    { $$ = CODE_INST(subvar, $1); }
+    | VAR  MUL_EQ asig    { $$ = CODE_INST(mulvar, $1); }
+    | VAR  DIV_EQ asig    { $$ = CODE_INST(divvar, $1); }
+    | VAR  MOD_EQ asig    { $$ = CODE_INST(modvar, $1); }
+    | VAR  PWR_EQ asig    { $$ = CODE_INST(pwrvar, $1); }
+
+    | ARG  PLS_EQ asig    { $$ = CODE_INST(addarg, $1); }
+    | ARG  MIN_EQ asig    { $$ = CODE_INST(subarg, $1); }
+    | ARG  MUL_EQ asig    { $$ = CODE_INST(mularg, $1); }
+    | ARG  DIV_EQ asig    { $$ = CODE_INST(divarg, $1); }
+    | ARG  MOD_EQ asig    { $$ = CODE_INST(modarg, $1); }
+    | ARG  PWR_EQ asig    { $$ = CODE_INST(pwrarg, $1); }
     | ARG   '=' asig       {
                              defnonly(indef_proc || indef_func, "$%d assign", $1);
                              $$ = $3;
@@ -279,6 +292,10 @@ prim: '(' asig ')'          { $$ = $2; }
     | VAR PLS_PLS           { $$ = CODE_INST(evalinc, $1); }
     | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
     | VAR MIN_MIN           { $$ = CODE_INST(evaldec, $1); }
+    | PLS_PLS ARG           { $$ = CODE_INST(incarg, $2); }
+    | ARG PLS_PLS           { $$ = CODE_INST(arginc, $1); }
+    | MIN_MIN ARG           { $$ = CODE_INST(decarg, $2); }
+    | ARG MIN_MIN           { $$ = CODE_INST(argdec, $1); }
     | ARG                   { defnonly(indef_proc || indef_func,
                                        "$%d assign", $1);
                               $$ = CODE_INST(argeval, $1);

@@ -1,0 +1,9 @@
+#!hoc
+proc x() {
+    print $1 ^^= 10, "\n";
+    print $1, "\n";
+}
+{
+    list;
+    x(2);
+}

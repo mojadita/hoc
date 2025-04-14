@@ -47,10 +47,11 @@
   (CODE_INST), de forma que se ahorren celdas de memoria en el
   programa.
 
-* implementar operadores '++', '--', '+=', '-=', '*=' '/=', '%='
+* Mon Apr 14 13:16:54 -05 2025
+  implementar operadores '++', '--', '+=', '-=', '*=' '/=', '%='
   implementar instrucciones para incrementar variable, decrementar,
   sumar, restar, multiplicar y dividir variable.  En los casos
-  de incremento, la instruccion solo toma el symbolo correspondiente
+  de incremento, la instruccion solo toma el simbolo correspondiente
   a la variable.  Para el resto, el dato a operar se toma de la
   pila.
 

@@ -214,10 +214,10 @@ static char *deescape(char *in);
             col_no += yyleng;
           return MIN_EQ; }
 
-"*="    { P("operador %s (%d)\n", yytext, TIM_EQ);
-            add_token(TIM_EQ, lineno, col_no, yyleng, yytext);
+"*="    { P("operador %s (%d)\n", yytext, MUL_EQ);
+            add_token(MUL_EQ, lineno, col_no, yyleng, yytext);
             col_no += yyleng;
-          return TIM_EQ; }
+          return MUL_EQ; }
 
 "/="    { P("operador %s (%d)\n", yytext, DIV_EQ);
             add_token(DIV_EQ, lineno, col_no, yyleng, yytext);

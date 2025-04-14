@@ -49,17 +49,19 @@ INST(inceval,2,    SUFF(void, symb, prog))/* incremento de variable+eval */
 INST(evalinc,2,    SUFF(void, symb, prog))/* eval+incremento de variable */
 INST(deceval,2,    SUFF(void, symb, prog))/* decremento+eval de variable */
 INST(evaldec,2,    SUFF(void, symb, prog))/* eval+decremento de variable */
-//INST(addvar,2,   SUFF(void, symb, prog))/* añade de la pila a variable */
-//INST(subvar,2,   SUFF(void, symb, prog))/* substrae de la pila a variable */
-//INST(mulvar,2,   SUFF(void, symb, prog))/* multiplica de la pila a variable */
-//INST(divvar,2,   SUFF(void, symb, prog))/* divide de la pila a variable */
-//INST(modvar,2,   SUFF(void, symb, prog))/* modulo de la pila a variable */
-//INST(pwrvar,2,   SUFF(void, symb, prog))/* potencia de la pila a variable */
-//INST(incarg,2,   SUFF(void, arg,  prog))/* incremento de argumento */
-//INST(decarg,2,   SUFF(void, arg,  prog))/* decremento de argumento */
-//INST(addarg,2,   SUFF(void, arg,  prog))/* añade de la pila a argumento */
-//INST(subarg,2,   SUFF(void, arg,  prog))/* substrae de la pila a argumento */
-//INST(mularg,2,   SUFF(void, arg,  prog))/* multiplica de la pila a argumento */
-//INST(divarg,2,   SUFF(void, arg,  prog))/* divide de la pila a argumento */
-//INST(modarg,2,   SUFF(void, arg,  prog))/* modulo de la pila a argumento */
-//INST(pwrarg,2,   SUFF(void, arg,  prog))/* potencia de la pila a argumento */
+INST(addvar,2,     SUFF(void, symb, prog))/* añade de la pila a variable */
+INST(subvar,2,     SUFF(void, symb, prog))/* substrae de la pila a variable */
+INST(mulvar,2,     SUFF(void, symb, prog))/* multiplica de la pila a variable */
+INST(divvar,2,     SUFF(void, symb, prog))/* divide de la pila a variable */
+INST(modvar,2,     SUFF(void, symb, prog))/* modulo de la pila a variable */
+INST(pwrvar,2,     SUFF(void, symb, prog))/* potencia de la pila a variable */
+INST(arginc,2,     SUFF(void, arg,  prog))/* postincremento de argumento */
+INST(incarg,2,     SUFF(void, arg,  prog))/* preincremento de argumento */
+INST(decarg,2,     SUFF(void, arg,  prog))/* predecremento de argumento */
+INST(argdec,2,     SUFF(void, arg,  prog))/* postdecremento de argumento */
+INST(addarg,2,     SUFF(void, arg,  prog))/* añade de la pila a argumento */
+INST(subarg,2,     SUFF(void, arg,  prog))/* substrae de la pila a argumento */
+INST(mularg,2,     SUFF(void, arg,  prog))/* multiplica de la pila a argumento */
+INST(divarg,2,     SUFF(void, arg,  prog))/* divide de la pila a argumento */
+INST(modarg,2,     SUFF(void, arg,  prog))/* modulo de la pila a argumento */
+INST(pwrarg,2,     SUFF(void, arg,  prog))/* potencia de la pila a argumento */
