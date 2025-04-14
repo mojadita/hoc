@@ -896,3 +896,71 @@ void noop_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
+
+void inceval(const instr *i) /* assign top value to next value */
+{
+    Symbol *sym = pc[1].sym;
+    if (sym->type == UNDEF) {
+        execerror("undefined variable '%s' cannot be incremented",
+                sym->name);
+    }
+    push(++sym->val);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    UPDATE_PC();
+}
+
+void inceval_prt(const instr *i, const Cell *pc)
+{
+    PR("'%s'\n", pc[1].sym->name);
+}
+
+void evalinc(const instr *i) /* assign top value to next value */
+{
+    Symbol *sym = pc[1].sym;
+    if (sym->type == UNDEF) {
+        execerror("undefined variable '%s' cannot be incremented",
+                sym->name);
+    }
+    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    push(sym->val++);
+    UPDATE_PC();
+}
+
+void evalinc_prt(const instr *i, const Cell *pc)
+{
+    PR("'%s'\n", pc[1].sym->name);
+}
+
+void deceval(const instr *i) /* assign top value to next value */
+{
+    Symbol *sym = pc[1].sym;
+    if (sym->type == UNDEF) {
+        execerror("undefined variable '%s' cannot be decremented",
+                sym->name);
+    }
+    push(--sym->val);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    UPDATE_PC();
+}
+
+void deceval_prt(const instr *i, const Cell *pc)
+{
+    PR("'%s'\n", pc[1].sym->name);
+}
+
+void evaldec(const instr *i) /* assign top value to next value */
+{
+    Symbol *sym = pc[1].sym;
+    if (sym->type == UNDEF) {
+        execerror("undefined variable '%s' cannot be decremented",
+                sym->name);
+    }
+    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    push(sym->val--);
+    UPDATE_PC();
+}
+
+void evaldec_prt(const instr *i, const Cell *pc)
+{
+    PR("'%s'\n", pc[1].sym->name);
+}

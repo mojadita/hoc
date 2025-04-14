@@ -76,6 +76,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE EXP
+%token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ TIM_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num> ARG
 %token <num> FUNC PROC
 %token       RETURN READ
@@ -274,6 +275,10 @@ fact: prim EXP fact         { CODE_INST(pwr);  }
 prim: '(' asig ')'          { $$ = $2; }
     | NUMBER                { $$ = CODE_INST(constpush, $1); }
     | VAR                   { $$ = CODE_INST(eval, $1); }
+    | PLS_PLS VAR           { $$ = CODE_INST(inceval, $2); }
+    | VAR PLS_PLS           { $$ = CODE_INST(evalinc, $1); }
+    | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
+    | VAR MIN_MIN           { $$ = CODE_INST(evaldec, $1); }
     | ARG                   { defnonly(indef_proc || indef_func,
                                        "$%d assign", $1);
                               $$ = CODE_INST(argeval, $1);

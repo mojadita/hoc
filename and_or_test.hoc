@@ -46,38 +46,38 @@ func right_asoc() {
                                                         def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
                                                         left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
                                                         right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-                                                        n     = n + 1;
+                                                        n++;
                                                         /* def must be equal to left  and right */
                                                         if (def != left || def != right || left != right) {
                                                             print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n";
-                                                        } else ok = ok + 1;
-                                                        a12 = a12 + 1;
+                                                        } else ok++;
+                                                        a12++;
                                                     }
-                                                    a11 = a11 + 1;
+                                                    a11++;
                                                 }
-                                                a10 = a10 + 1;
+                                                a10++;
                                             }
-                                            a9 = a9 + 1;
+                                            a9++;
                                         }
-                                        a8 = a8 + 1;
+                                        a8++;
                                     }
-                                    a7 = a7 + 1;
+                                    a7++;
                                 }
-                                a6 = a6 + 1;
+                                a6++;
                             }
-                            a5 = a5 + 1;
+                            a5++;
                         }
-                        a4 = a4 + 1;
+                        a4++;
                     }
-                    a3 = a3 + 1;
+                    a3++;
                 }
-                a2 = a2 + 1;
+                a2++;
             }
-            a1 = a1 + 1;
+            a1++;
         }
-        a0 = a0 + 1;
+        a0++;
     }
-    print "passed tests = ", ok, " (", 100 * ok / n, "%)\n";
-    print "failed tests = ", n - ok, " (", 100*(n - ok)/n, "%)\n";
-    print "total  tests = ", n, "\n";
+    print "passed tests = ", ok,     " (", 100 *     ok /n, "%)\n";
+    print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
+    print "total  tests = ", n,      "\n";
 }

@@ -45,3 +45,21 @@ INST(list,1)                        /* lista el codigo del programa */
 INST(if_f_goto,1,  SUFF(void, addr, prog))/* salto si el top de la pila es cero */
 INST(Goto,1,       SUFF(void, addr, prog))/* salto incondicional */
 INST(noop,1)                        /* no operacion, nada */
+INST(inceval,2,    SUFF(void, symb, prog))/* incremento de variable+eval */
+INST(evalinc,2,    SUFF(void, symb, prog))/* eval+incremento de variable */
+INST(deceval,2,    SUFF(void, symb, prog))/* decremento+eval de variable */
+INST(evaldec,2,    SUFF(void, symb, prog))/* eval+decremento de variable */
+//INST(addvar,2,   SUFF(void, symb, prog))/* añade de la pila a variable */
+//INST(subvar,2,   SUFF(void, symb, prog))/* substrae de la pila a variable */
+//INST(mulvar,2,   SUFF(void, symb, prog))/* multiplica de la pila a variable */
+//INST(divvar,2,   SUFF(void, symb, prog))/* divide de la pila a variable */
+//INST(modvar,2,   SUFF(void, symb, prog))/* modulo de la pila a variable */
+//INST(pwrvar,2,   SUFF(void, symb, prog))/* potencia de la pila a variable */
+//INST(incarg,2,   SUFF(void, arg,  prog))/* incremento de argumento */
+//INST(decarg,2,   SUFF(void, arg,  prog))/* decremento de argumento */
+//INST(addarg,2,   SUFF(void, arg,  prog))/* añade de la pila a argumento */
+//INST(subarg,2,   SUFF(void, arg,  prog))/* substrae de la pila a argumento */
+//INST(mularg,2,   SUFF(void, arg,  prog))/* multiplica de la pila a argumento */
+//INST(divarg,2,   SUFF(void, arg,  prog))/* divide de la pila a argumento */
+//INST(modarg,2,   SUFF(void, arg,  prog))/* modulo de la pila a argumento */
+//INST(pwrarg,2,   SUFF(void, arg,  prog))/* potencia de la pila a argumento */

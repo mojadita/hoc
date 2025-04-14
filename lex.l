@@ -194,6 +194,46 @@ static char *deescape(char *in);
             col_no += yyleng;
           return EXP; }
 
+"++"    { P("operador %s (%d)\n", yytext, PLS_PLS);
+            add_token(EXP, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return PLS_PLS; }
+
+"--"    { P("operador %s (%d)\n", yytext, MIN_MIN);
+            add_token(MIN_MIN, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return MIN_MIN; }
+
+"+="    { P("operador %s (%d)\n", yytext, PLS_EQ);
+            add_token(PLS_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return PLS_EQ; }
+
+"-="    { P("operador %s (%d)\n", yytext, MIN_EQ);
+            add_token(MIN_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return MIN_EQ; }
+
+"*="    { P("operador %s (%d)\n", yytext, TIM_EQ);
+            add_token(TIM_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return TIM_EQ; }
+
+"/="    { P("operador %s (%d)\n", yytext, DIV_EQ);
+            add_token(DIV_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return DIV_EQ; }
+
+"%="    { P("operador %s (%d)\n", yytext, MOD_EQ);
+            add_token(MOD_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return MOD_EQ; }
+
+"^^="   { P("operador %s (%d)\n", yytext, PWR_EQ);
+            add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
+            col_no += yyleng;
+          return PWR_EQ; }
+
 \n      {
             add_token('\n', lineno, col_no, 2, "\\n");
             lineno++;
