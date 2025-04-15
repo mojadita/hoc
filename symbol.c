@@ -52,7 +52,7 @@ install(
     assert(ret_val->name != NULL);
 
     ret_val->type   = typ;
-    ret_val->val  = val;
+    ret_val->val    = val;
     ret_val->help   = help;
 
     ret_val->next   = lista_simbolos;
@@ -87,7 +87,7 @@ Symbol *lookup(
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
     char *name;
-    int type;
+    int   type;
 } tab_types[] = {
     V(ERROR),
     V(NUMBER),
