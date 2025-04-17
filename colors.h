@@ -1,7 +1,8 @@
 /* colors.h -- ANSI escape sequences to colourize output.
- * Author: Luis Colorado <luis.colorado@spindrive.fi>
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Tue Jan 21 13:39:23 EET 2025
- * Copyright: (c) 2024-2025 SpinDrive Oy, FI.  All rights reserved.
+ * Copyright: (c) 2024-2025 Edward Rivas y Luis Colorado.  All rights reserved.
  */
 #ifndef COLORS_H
 #define COLORS_H

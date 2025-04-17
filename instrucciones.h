@@ -1,7 +1,8 @@
 /* instrucciones.h -- juego de instrucciones de la maquina virtual.
  * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Mar 22 12:23:22 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

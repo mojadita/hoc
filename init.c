@@ -1,5 +1,9 @@
 /* init.c -- funciones de inicializacion.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Dec 28 14:06:39 -05 2024
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * License: BSD.
  */
 
 #include <stdlib.h>
@@ -22,7 +26,6 @@ static struct { /* constants */
     "E",       M_E,
     "DEG",     180.0/M_PI,
     "PHI",     1.61803398874989484820,
-    "prev",    0.0,
     "version", UQ_VERSION,
     NULL,      0.0,
 };
@@ -59,14 +62,18 @@ void init(void)  /* install constants and built-ins in table */
     Symbol *s;
 
     for (i = 0; consts[i].name != NULL; i++) {
-        install(consts[i].name, CONST, consts[i].cval, NULL);
+        Symbol *s = install(consts[i].name, CONST, NULL);
+        s->val = consts[i].cval;
     }
+
+    /* creamos el simbolo prev */
+    Symbol *prev = install("prev", UNDEF, NULL);
 
     for (   struct builtin *p = builtins;
             p->name;
             p++)
     {
-        s = install(p->name, p->type, 0.0, p->help);
+        s = install(p->name, p->type, p->help);
         switch(p->type) {
             case BLTIN0: s->ptr0 = p->func; break;
             case BLTIN1: s->ptr1 = p->func; break;

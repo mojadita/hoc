@@ -1,7 +1,8 @@
 /* ack.c -- Program to calculate Ackerman function.
- * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Wed Mar 19 11:43:01 EET 2025
- * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
  * License: BSD
  */
 

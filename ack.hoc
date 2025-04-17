@@ -1,4 +1,4 @@
-#!hoc
+#!/usr/local/bin/hoc
 /* Funcion de Ackerman:
  * ack(x, y): N -> N
  *
@@ -14,7 +14,7 @@ func ack() {
 }
 {   list;
     n=0;
-    c = ack(a = 4, b = 1);
+    c = ack(a = 3, b = 3);
     print  "ack(", a, ", ", b, ") -> ", c, "\n";
     print n, " calls to 'ack'\n";
 }

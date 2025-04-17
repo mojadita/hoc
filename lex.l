@@ -1,8 +1,9 @@
 %{
 /* lex.l -- scanner lexico para hoc.
  * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Apr  5 13:31:10 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD
  */
 
@@ -127,7 +128,7 @@ static char *deescape(char *in);
             Symbol *s;
             if ((s = lookup(yytext)) == NULL) {
                 /* no esta, lo instalamos */
-                s = install(yytext, UNDEF, 0.0, NULL);
+                s = install(yytext, UNDEF, NULL);
             }
             yylval.sym = s;
             P("Symbol <%s> (%d)\n", s->name, s->type);

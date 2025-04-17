@@ -1,5 +1,5 @@
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE     = nd
+DEBUG-TYPE     = db
 
 CFLAGS-nd      = -O3
 LDFLAGS-nd     =
@@ -59,7 +59,7 @@ $(man1dir)/hoc.1.gz: hoc.1.gz
 clean:
 	$(RM) $(toclean)
 
-hoc: $(hoc_objs)
+hoc hoc.out: $(hoc_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc_objs) $(hoc_libs)
 
 ##

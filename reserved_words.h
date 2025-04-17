@@ -1,7 +1,9 @@
 /* reserved_words.h -- types and functions of reserved_words module.
- * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Mon Feb 24 08:12:02 EET 2025
- * Copyright (c) 2025 Luis Colorado.  All rights reserved.
+ * Copyright (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * License: BSD.
  */
 #ifndef RESERVED_WORDS_H
 #define RESERVED_WORDS_H

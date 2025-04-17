@@ -1,5 +1,9 @@
-/* symbol.c -- tabla de symbolos.
+/* symbol.c -- tabla de simbolos.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Fri Dec 27 15:16:22 -05 2024
+ * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * License: BSD
  */
 
 #include <assert.h>
@@ -11,6 +15,7 @@
 #include "config.h"
 #include "colors.h"
 #include "hoc.tab.h"
+#include "code.h"
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -42,7 +47,6 @@ Symbol *
 install(
         const char *name,
         int         typ,
-        double      val,
         const char *help)
 {
     Symbol *ret_val = malloc(sizeof *ret_val);
@@ -52,7 +56,7 @@ install(
     assert(ret_val->name != NULL);
 
     ret_val->type   = typ;
-    ret_val->val    = val;
+    ret_val->defn   = NULL;
     ret_val->help   = help;
 
     ret_val->next   = lista_simbolos;
@@ -103,7 +107,7 @@ static struct type2char {
     {NULL, 0,}
 };
 
-static const char *lookup_type(int typ)
+const char *lookup_type(int typ)
 {
     for (struct type2char *p = tab_types; p->name; p++) {
         if (typ == p->type)
@@ -136,7 +140,7 @@ void list_symbols(void)
             lookup_type(p->type));
         s += n; sz -= n;
         if (p->type == VAR) {
-            snprintf(s, sz, "(%.5lg)", p->val);
+            snprintf(s, sz, "(%.5lg)", p->defn->val);
         }
         printf(GREEN "%-20s" ANSI_END, workspace);
         if (++col == 4) {

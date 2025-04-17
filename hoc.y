@@ -1,6 +1,10 @@
 /* hoc-sin-prec.y -- programa para implementar una calculadora.
- * Date: Mon Dec 30 14:06:56 -05 2024
  * Esta version no tiene precedencia de operadores.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Date: Mon Dec 30 14:06:56 -05 2024
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * License: BSD.
  */
 %{
 #include <stdarg.h>
@@ -96,7 +100,12 @@ list: /* nothing */
     | list defn  '\n'
     | list stmt  '\n'  { CODE_STOP();  /* para que execute() pare al final */
                          return 1; }
-    | list asig  '\n'  { CODE_INST(assign, lookup("prev"));
+    | list asig  '\n'  {
+                         Symbol *prev = lookup("prev");
+                         if (!prev->defn) {
+                            register_global_var(prev);
+                         }
+                         CODE_INST(assign, prev);
                          CODE_INST(print);
                          CODE_STOP();  /* para que execute() pare al final */
                          return 1; }
@@ -194,6 +203,9 @@ stmtlist: /* nada */       { $$ = progp; }
 asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                                  execerror("Symbol '%s' is not a variable\n",
                                            $1->name);
+                             }
+                             if ($1->type == UNDEF && $1->defn == NULL) { /* indefinida y no registrada */
+                                    register_global_var($1);  /* esto asigna defn */
                              }
                              $$ = $3;
                              CODE_INST(assign, $1); }
@@ -300,7 +312,7 @@ prim: '(' asig ')'          { $$ = $2; }
                                        "$%d assign", $1);
                               $$ = CODE_INST(argeval, $1);
                             }
-    | CONST                 { $$ = CODE_INST(eval, $1); }
+    | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
     | BLTIN1 '(' asig ')'   { $$ = $3;
                               CODE_INST(bltin1, $1); }

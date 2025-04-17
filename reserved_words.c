@@ -1,7 +1,9 @@
 /* reserved_words.c -- mapping between lexemes to reserved words
- * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Mon Feb 24 07:56:25 EET 2025
- * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * License: BSD.
  */
 
 #include <stdlib.h>

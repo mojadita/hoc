@@ -1,5 +1,9 @@
 /* error.c -- rutinas de impresion de errores
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Tue Dec 31 16:19:19 -05 2024
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * License: BSD.
  */
 
 #include <stdarg.h>
@@ -38,7 +42,7 @@ void vwarning(const char *fmt, va_list args)
     vfprintf(stderr, fmt, args);
     fprintf(stderr,  " cerca de la linea %d\n", lineno);
     */
-    printf(BRIGHT YELLOW "%s:" ANSI_END, progname);
+    printf(BRIGHT YELLOW "\n%s:" ANSI_END, progname);
     vprintf(fmt, args);
     printf(" " BRIGHT YELLOW "cerca de la linea %d" ANSI_END "\n", lineno);
 } /* vwarning */

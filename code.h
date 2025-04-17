@@ -1,3 +1,10 @@
+/* code.h -- prototipos y definiciones para el modulo code.c
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Date: Thu Apr 17 12:58:58 EEST 2025
+ * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * License: BSD
+ */
 #ifndef CODE_H
 #define CODE_H
 
@@ -6,6 +13,7 @@
 
 extern Cell *progp;                   /* next free cell for code generation */
 extern Cell *progbase;                /* pointer to first program instruction */
+extern Cell *varbase;
 
 void  initcode(void);                 /* initalize for code generation */
 void  push(Datum           d);        /* push d onto stack */
@@ -21,6 +29,7 @@ Cell *define(Symbol       *symb,
              int           type);     /* put func/proc in symbol table */
 void  end_define(void);               /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
+Cell *register_global_var(Symbol *symb); /* registers a global variable */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:

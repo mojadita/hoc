@@ -1,10 +1,12 @@
 /* code.c -- instrucciones y rutinas de traza.
  * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Mar 22 14:20:43 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD
  */
 
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -66,6 +68,7 @@ Cell  prog[UQ_NPROG];  /* the machine */
 Cell *progp;        /* next free cell for code generation */
 Cell *pc;           /* program counter during execution */
 Cell *progbase = prog; /* start of current subprogram */
+Cell *varbase  = prog + UQ_NPROG; /* pointer to last global allocated */
 int   returning;    /* 1 if return stmt seen */
 
 typedef struct Frame { /* proc/func call stack frame */
@@ -109,9 +112,9 @@ void push(Datum d)  /* push d onto stack */
 
 Datum pop(void)    /* pops Datum and rturn top element from stack */
 {
-    if (stackp == stack + UQ_NSTACK)
+    if (stackp >= stack + UQ_NSTACK)
         execerror("stack empty");
-    return *stackp++;
+    return stackp++[0];
 }
 
 Datum top(void)   /* returns the top of the stack */
@@ -128,7 +131,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
         execerror("invalid instruction code [%d]",
             ins);
     }
-    if (progp >= prog + UQ_NPROG) {
+    if (progp >= varbase) {
         execerror("program too big (max=%d)",
             UQ_NPROG);
     }
@@ -154,6 +157,22 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 
     return ret_val;
 }
+
+Cell *register_global_var(Symbol *sym)
+{
+    /* cannot reregister a variable, so it must be
+     * UNDEF, and defn must be null. */
+    assert(sym->type == UNDEF && sym->defn == NULL);
+    if (progp >= varbase) {
+        execerror("variables zone exhausted (progp >= varbase)\n");
+    }
+    sym->defn = --varbase;
+    PRG("Symbol '%s', type=%s, pos=[%04lx]\n",
+        sym->name,
+        lookup_type(sym->type),
+        sym->defn ? sym->defn - prog : -1);
+    return sym->defn;
+} /* register_global_var */
 
 void execute(Cell *p) /* run the machine */
 {
@@ -334,8 +353,8 @@ void eval(const instr *i) /* evaluate variable on stack */
         execerror("undefined variable '%s'",
                 sym->name);
     }
-    P_TAIL(": %s -> %lg", sym->name, sym->val);
-    push(sym->val);
+    P_TAIL(": %s -> %lg @ [%04lx]", sym->name, sym->defn->val, sym->defn - prog);
+    push(sym->defn->val);
     UPDATE_PC();
 }
 
@@ -355,9 +374,14 @@ void assign(const instr *i) /* assign top value to next value */
 {
     Symbol *sym = pc[1].sym;
     Datum   d   = pop();
-    P_TAIL(": %.8lg -> %s", d, sym->name);
-    sym->val    = d;
-    sym->type   = VAR;
+
+    P_TAIL(": %.8g -> '%s'", d, sym->name);
+
+    sym->defn->val = d;
+    if (sym->type == UNDEF) {
+        sym->type = VAR;
+    }
+
     push(d);
     UPDATE_PC();
 }
@@ -611,15 +635,15 @@ void or_else_prt(const instr *i, const Cell *pc)
 void readopcode(const instr *i)  /* readopcode */
 {
     Symbol *sym = pc[1].sym;
-    if (scanf("%lg", &sym->val) != 1) {
+    if (scanf("%lg", &sym->defn->val) != 1) {
         execerror("Lectura incorrecta del valor "
                   "de la variable %s",
                   sym->name);
     }
     P_TAIL(": %.8lg -> %s",
-        sym->val, sym->name);
+        sym->defn->val, sym->name);
     sym->type   = VAR;
-    push(sym->val);
+    push(sym->defn->val);
     UPDATE_PC();
 }
 
@@ -904,8 +928,8 @@ void inceval(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be incremented",
                 sym->name);
     }
-    push(++sym->val);
-    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    push(++sym->defn->val);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
     UPDATE_PC();
 }
 
@@ -921,8 +945,8 @@ void evalinc(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be incremented",
                 sym->name);
     }
-    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
-    push(sym->val++);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
+    push(sym->defn->val++);
     UPDATE_PC();
 }
 
@@ -974,8 +998,8 @@ void deceval(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    push(--sym->val);
-    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
+    push(--sym->defn->val);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
     UPDATE_PC();
 }
 
@@ -991,8 +1015,8 @@ void evaldec(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    P_TAIL(": %s -> %.8lg", sym->name, sym->val);
-    push(sym->val--);
+    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
+    push(sym->defn->val--);
     UPDATE_PC();
 }
 
@@ -1045,8 +1069,8 @@ void addvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val   += d;
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val   += d;
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
@@ -1082,8 +1106,8 @@ void subvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val   -= d;
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val   -= d;
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
@@ -1119,8 +1143,8 @@ void mulvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val   *= d;
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val   *= d;
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
@@ -1156,8 +1180,8 @@ void divvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val   /= d;
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val   /= d;
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
@@ -1193,14 +1217,33 @@ void pwrvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val    = pow(sym->val, d);
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val    = pow(sym->defn->val, d);
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
 void pwrvar_prt(const instr *i, const Cell *pc)
 {
     PR("'%s'\n", pc[1].sym->name);
+}
+
+void pwrarg(const instr *i) /* assign top value to next value */
+{
+    int arg = pc[0].args;
+
+    Datum *ref = getarg(arg);
+
+    Datum d = *ref; /* dato antes de incrementar */
+
+    ref[0] = pow(ref[0], top());
+    P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
+
+    UPDATE_PC();
+}
+
+void pwrarg_prt(const instr *i, const Cell *pc)
+{
+    PR("$%d\n", pc[0].args);
 }
 
 void modvar(const instr *i) /* assign top value to next value */
@@ -1211,8 +1254,8 @@ void modvar(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     Datum   d   = top();
-    sym->val    = fmod(sym->val, d);
-    P_TAIL(": %.8lg -> %s", sym->val, sym->name);
+    sym->defn->val    = fmod(sym->defn->val, d);
+    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
 
@@ -1236,25 +1279,6 @@ void modarg(const instr *i) /* assign top value to next value */
 }
 
 void modarg_prt(const instr *i, const Cell *pc)
-{
-    PR("$%d\n", pc[0].args);
-}
-
-void pwrarg(const instr *i) /* assign top value to next value */
-{
-    int arg = pc[0].args;
-
-    Datum *ref = getarg(arg);
-
-    Datum d = *ref; /* dato antes de incrementar */
-
-    ref[0] = pow(ref[0], top());
-    P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
-
-    UPDATE_PC();
-}
-
-void pwrarg_prt(const instr *i, const Cell *pc)
 {
     PR("$%d\n", pc[0].args);
 }

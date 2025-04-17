@@ -1,7 +1,9 @@
 /* do_help.h -- help function prototype.
  * Date: Fri Nov  8 12:08:38 EET 2024
- * Author: Luis Colorado <luis.colorado@spindrive.fi>
- * Copyright: (c) 2024 SpinDrive Oy, FI.  All rights reserved.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Copyright: (c) 2024 Edward Rivas y Luis Colorado.  All rights reserved.
+ * License: BSD.
  */
 #ifndef _DO_HELP_H
 #define _DO_HELP_H

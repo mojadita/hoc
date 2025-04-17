@@ -1,5 +1,9 @@
 /* hoc.h -- tipos y funciones relacionados con la tabla de simbolos.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Fri Dec 27 14:57:20 -05 2024
+ * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * License: BSD.
  */
 #ifndef HOC_H
 #define HOC_H
@@ -45,7 +49,6 @@ struct Symbol {                           /* Symbol table entry */
 Symbol *install(
         const char *name,
         int         typ,
-        double      val,
         const char *help);
 
 /* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
@@ -53,6 +56,7 @@ Symbol *install(
 Symbol *lookup(
         const char *name);
 
+const char *lookup_type(int typ);
 void list_symbols(void);
 
 /* inicializa la tabla de simbolos con las funciones builtin y las

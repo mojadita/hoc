@@ -1,6 +1,10 @@
 /* yylex.c -- la funcion yylex original ha sido movida a un
  * fichero aparte.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Jan 11 13:11:00 -05 2025
+ * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * License: BSD.
  */
 
 #include <stdio.h>
@@ -80,7 +84,7 @@ yylex(void)   /* hoc1 */
         if (c != EOF) ungetc(c, stdin);
         *p = '\0';
         if ((s = lookup(sbuf)) == NULL)
-            s = install(sbuf, UNDEF, 0.0, NULL);
+            s = install(sbuf, UNDEF, NULL);
         /* el valor que se usa en el interprete */
         yylval.sym = s;
         return s->type == UNDEF
