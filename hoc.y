@@ -55,7 +55,6 @@ jmp_buf begin;
 #endif
 
 #define CODE_INST(I, ...) code_inst(INST_##I, ##__VA_ARGS__)
-#define CODE_STOP()  CODE_INST(STOP)
 
 int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
     indef_func;  /* 1 si estamos en una definicion de funcion */
@@ -98,7 +97,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 list: /* nothing */
     | list       '\n'
     | list defn  '\n'
-    | list stmt  '\n'  { CODE_STOP();  /* para que execute() pare al final */
+    | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
     | list asig  '\n'  {
                          Symbol *prev = lookup("prev");
@@ -107,9 +106,9 @@ list: /* nothing */
                          }
                          CODE_INST(assign, prev);
                          CODE_INST(print);
-                         CODE_STOP();  /* para que execute() pare al final */
+                         CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list error final { yyerrok;
+    | list error '\n' { /* yyerrok; */
                          return 1; }
     ;
 

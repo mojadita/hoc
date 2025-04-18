@@ -12,16 +12,13 @@ func ack() {
     if ($2 == 0) return ack($1 - 1, 1);
     return ack($1 - 1, ack($1, $2 - 1));
 }
-{   list;
+{
     n=0;
     c = ack(a = 3, b = 3);
     print  "ack(", a, ", ", b, ") -> ", c, "\n";
     print n, " calls to 'ack'\n";
+    list;
 }
-n
-c
-print n, "\n";
-print c, "\n";
 /* ack(1, 1) -> ack(0, ack(1, 0)) -> ack(0, 2) -> 3
  * ack(1, 0) -> ack(0, 1) -> 2
  * ack(0, 1) -> 2
