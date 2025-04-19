@@ -82,7 +82,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num> ARG
 %token <num> FUNC PROC
-%token       RETURN READ
+%token       RETURN
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
 %token       LIST
@@ -318,7 +318,6 @@ prim: '(' asig ')'          { $$ = $2; }
     | BLTIN2 '(' asig ',' asig ')'
                             { $$ = $3;
                               CODE_INST(bltin2, $1); }
-    | READ '(' VAR ')'      { $$ = CODE_INST(readopcode, $3); }
     | FUNCTION mark '(' arglist_opt ')' {
                               $$ = $2;
                               CODE_INST(call, $1, $4); /* instruction */

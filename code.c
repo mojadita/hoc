@@ -632,26 +632,6 @@ void or_else_prt(const instr *i, const Cell *pc)
     PR("[%04x]\n", pc[0].desp);
 }
 
-void readopcode(const instr *i)  /* readopcode */
-{
-    Symbol *sym = pc[1].sym;
-    if (scanf("%lg", &sym->defn->val) != 1) {
-        execerror("Lectura incorrecta del valor "
-                  "de la variable %s",
-                  sym->name);
-    }
-    P_TAIL(": %.8lg -> %s",
-        sym->defn->val, sym->name);
-    sym->type   = VAR;
-    push(sym->defn->val);
-    UPDATE_PC();
-}
-
-void readopcode_prt(const instr *i, const Cell *pc)
-{
-    PR("'%s'\n", pc[1].sym->name);
-}
-
 void end_define(void)
 {
     /* adjust progbase to point to the code starting point */

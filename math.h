@@ -16,5 +16,7 @@ double Sqrt(double x);
 double inverso( double x );
 double opuesto( double x );
 double Rand(void);
+double rd(void);
+double now(void);
 
 #endif /* MATH_H */

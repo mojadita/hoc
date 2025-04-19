@@ -27,7 +27,6 @@ static const reserved_word reserved_words[] = {
     RW(list,   LIST),
     RW(print,  PRINT),
     RW(proc,   PROC),
-    RW(read,   READ),
     RW(return, RETURN),
     RW(symbs,  SYMBS),
     RW(while,  WHILE),

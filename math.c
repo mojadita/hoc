@@ -8,8 +8,10 @@
  */
 
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 #include "error.h"
 
 /* algunas definiciones que no estan en a libreria math */
@@ -76,4 +78,19 @@ double opuesto( double x )
 double Rand(void)
 {
     return rand() / 2.147483648E9;
+}
+
+double rd(void)
+{
+    double v;
+    if (scanf("%lg", &v) != 1) {
+        execerror("couldn't parse a double\n");
+    }
+    return v;
+}
+
+double now(void)
+{
+    double n = time(NULL);
+    return (double)n;
 }
