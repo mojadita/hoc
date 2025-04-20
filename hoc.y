@@ -76,7 +76,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 
 %token ERROR
 %token <val> NUMBER
-%token <sym> VAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
+%token <sym> VAR LVAR BLTIN0 BLTIN1 BLTIN2 UNDEF CONST
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE EXP
 %token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
@@ -89,7 +89,8 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel> expr_seq item do else and or
-%type  <num> arglist_opt arglist
+%type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
+%type  <sym> proc_head func_head
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -111,8 +112,6 @@ list: /* nothing */
     | list error '\n' { /* yyerrok; */
                          return 1; }
     ;
-
-final: '\n' | ';';      /* Regla para evaular si el caracter es '\n' ó ';'  */
 
 stmt: asig ';'             { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc, "return;");
@@ -216,16 +215,25 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
     | VAR  PWR_EQ asig    { $$ = CODE_INST(pwrvar, $1); }
 
     | ARG  PLS_EQ asig    { $$ = CODE_INST(addarg, $1); }
+    | LVAR PLS_EQ asig    { $$ = CODE_INST(addarg, $1->argi); }
     | ARG  MIN_EQ asig    { $$ = CODE_INST(subarg, $1); }
+    | LVAR MIN_EQ asig    { $$ = CODE_INST(subarg, $1->argi); }
     | ARG  MUL_EQ asig    { $$ = CODE_INST(mularg, $1); }
+    | LVAR MUL_EQ asig    { $$ = CODE_INST(mularg, $1->argi); }
     | ARG  DIV_EQ asig    { $$ = CODE_INST(divarg, $1); }
+    | LVAR DIV_EQ asig    { $$ = CODE_INST(divarg, $1->argi); }
     | ARG  MOD_EQ asig    { $$ = CODE_INST(modarg, $1); }
+    | LVAR MOD_EQ asig    { $$ = CODE_INST(modarg, $1->argi); }
     | ARG  PWR_EQ asig    { $$ = CODE_INST(pwrarg, $1); }
+    | LVAR PWR_EQ asig    { $$ = CODE_INST(pwrarg, $1->argi); }
     | ARG   '=' asig       {
                              defnonly(indef_proc || indef_func, "$%d assign", $1);
                              $$ = $3;
                              CODE_INST(argassign, $1);
                            }
+    | LVAR   '=' asig       {
+                             $$ = $3;
+                             CODE_INST(argassign, $1->argi); }
     | expr_or
     ;
 
@@ -311,6 +319,10 @@ prim: '(' asig ')'          { $$ = $2; }
                                        "$%d assign", $1);
                               $$ = CODE_INST(argeval, $1);
                             }
+    | LVAR                  { defnonly(indef_proc || indef_func,
+                                       "%s($%d) assign", $1->name, $1->argi);
+                              $$ = CODE_INST(argeval, $1->argi);
+                            }
     | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
     | BLTIN1 '(' asig ')'   { $$ = $3;
@@ -334,31 +346,52 @@ arglist
     | asig                  { $$ = 1; }
     ;
 
-defn: proc_head '(' ')' stmt {
+defn: proc_head '(' formal_arglist_opt ')' stmt {
                               CODE_INST(procret);
                               end_define();
                               indef_proc = 0;
                               P("FIN DEFINICION PROCEDIMIENTO\n");
+                              borrar_variables_locales($1);
                              }
-    | func_head '(' ')' stmt {
+    | func_head '(' formal_arglist_opt ')' stmt {
                               CODE_INST(constpush, 0.0);
                               CODE_INST(funcret);
                               end_define();
                               indef_func = 0;
                               P("FIN DEFINICION FUNCION\n");
+                              borrar_variables_locales($1);
                             }
+formal_arglist_opt
+    : formal_arglist
+    | /* empty */           { $$ = 0; }
+    ;
+
+formal_arglist
+    : formal_arglist ',' VAR {
+                              define($3, LVAR);
+                              $$ = $3->argi = $1 + 1;
+                            }
+    | VAR                   { $$ = 1;
+                              define($1, LVAR);
+                              $1->argi = 1;
+                            }
+    ;
+
+
 proc_head
-    : PROC VAR              {
+    : PROC VAR              { $$ = $2;
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
                                 $2->name, progp - prog);
                               define($2, PROCEDURE);
                               indef_proc = 1; }
+    ;
 func_head
-    : FUNC VAR              {
+    : FUNC VAR              { $$ = $2;
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
                                 $2->name, progp - prog);
                               define($2, FUNCTION);
                               indef_func = 1; }
+    ;
 %%
 
 void yyerror(char *s)   /* called for yacc syntax error */

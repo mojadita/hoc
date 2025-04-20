@@ -31,6 +31,7 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         Cell      *defn;
+        int        argi;
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
         * nombres de los campos de la union pueden usarse directamente desde
@@ -58,6 +59,7 @@ Symbol *lookup(
 
 const char *lookup_type(int typ);
 void list_symbols(void);
+void borrar_variables_locales(Symbol *subr);
 
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */

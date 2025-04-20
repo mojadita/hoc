@@ -22,10 +22,10 @@ static struct { /* constants */
     char *name;
     double cval;
 } consts[] = {
-    "PI",      M_PI,
-    "E",       M_E,
     "DEG",     180.0/M_PI,
+    "E",       M_E,
     "PHI",     1.61803398874989484820,
+    "PI",      M_PI,
     "version", UQ_VERSION,
     NULL,      0.0,
 };
@@ -36,25 +36,25 @@ static struct builtin { /* built-ins-1 */
     int  type;
     const char *help;
 } builtins[] = {
-    "rand",  Rand,      BLTIN0, "rand()",
-    "sin",   sin,       BLTIN1, "sin(x)",
-    "cos",   cos,       BLTIN1, "cos(x)",
-    "tan",   tan,       BLTIN1, "tan(x)",
-    "time",  now,       BLTIN0, "time()",
-    "asin",  asin,      BLTIN1, "asin(x)",
+    "abs",   fabs,      BLTIN1, "abs(x)",
     "acos",  acos,      BLTIN1, "acos(x)",
+    "asin",  asin,      BLTIN1, "asin(x)",
     "atan",  atan,      BLTIN1, "atan(x)",
+    "atan2", atan2,     BLTIN2, "atan2(y,x)",
+    "cos",   cos,       BLTIN1, "cos(x)",
+    "exp",   exp,       BLTIN1, "exp(x)",
+    "int",   integer,   BLTIN1, "int(x)",
+    "inv",   inverso,   BLTIN1, "inv(x)",
     "log",   log,       BLTIN1, "log(x)",
     "log10", log10,     BLTIN1, "log10(x)",
-    "exp",   exp,       BLTIN1, "exp(x)",
-    "read",  rd,        BLTIN0, "read()", 
-    "sqrt",  Sqrt,      BLTIN1, "sqrt(x)",
-    "int",   integer,   BLTIN1, "int(x)",
-    "abs",   fabs,      BLTIN1, "abs(x)",
-    "atan2", atan2,     BLTIN2, "atan2(y,x)",
-    "pow",   Pow,       BLTIN2, "pow(x,y)",
-    "inv",   inverso,   BLTIN1, "inv(x)",
     "ops",   opuesto,   BLTIN1, "ops(x)",
+    "pow",   Pow,       BLTIN2, "pow(x,y)",
+    "rand",  Rand,      BLTIN0, "rand()",
+    "read",  rd,        BLTIN0, "read()", 
+    "sin",   sin,       BLTIN1, "sin(x)",
+    "sqrt",  Sqrt,      BLTIN1, "sqrt(x)",
+    "tan",   tan,       BLTIN1, "tan(x)",
+    "time",  now,       BLTIN0, "time()",
     NULL,    NULL,
 };
 
@@ -68,9 +68,6 @@ void init(void)  /* install constants and built-ins in table */
         s->val = consts[i].cval;
     }
 
-    /* creamos el simbolo prev */
-    Symbol *prev = install("prev", UNDEF, NULL);
-
     for (   struct builtin *p = builtins;
             p->name;
             p++)
@@ -82,6 +79,9 @@ void init(void)  /* install constants and built-ins in table */
             case BLTIN2: s->ptr2 = p->func; break;
         }
     }
+
+    /* creamos el simbolo prev */
+    Symbol *prev = install("prev", UNDEF, NULL);
 }
 
 double integer(double x)

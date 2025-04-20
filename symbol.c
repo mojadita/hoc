@@ -96,6 +96,7 @@ static struct type2char {
     V(ERROR),
     V(NUMBER),
     V(VAR),
+    V(LVAR),
     V(BLTIN0),
     V(BLTIN1),
     V(BLTIN2),
@@ -152,3 +153,22 @@ void list_symbols(void)
         puts("");
 } /* list_symbols */
 
+#define RS (*ref_sym)
+
+void borrar_variables_locales(Symbol *sym)
+{
+    Symbol **ref_sym = &lista_simbolos;
+    while (*ref_sym != sym) {
+        printf("PROBANDO '%s' (%s)...",
+            RS->name, lookup_type(RS->type));
+        if (RS->type == LVAR) {
+            printf("BORRANDO");
+            Symbol *q = RS;
+            RS = q->next;
+            free(q);
+        } else {
+            ref_sym = &RS->next;
+        }
+        printf("\n");
+    }
+} /* borrar_variables_locales */
