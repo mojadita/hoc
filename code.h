@@ -27,7 +27,7 @@ Cell *code_str(const char *str);      /* install one string on Cell */
 void  execute(Cell        *p);        /* run the machine */
 Cell *define(Symbol       *symb,
              int           type);     /* put func/proc in symbol table */
-void  end_define(void);               /* housekeeping after function definition */
+void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 Cell *register_global_var(Symbol *symb); /* registers a global variable */
 

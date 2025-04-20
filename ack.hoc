@@ -14,9 +14,9 @@ func ack() {
 }
 {
     n=0;
-    c = ack(a = 3, b = 3);
-    list;
-    symbs;
+    c = ack(a = 3, b = 6);
+#    list;
+#    symbs;
     print  "ack(", a, ", ", b, ") -> ", c, "\n";
     print n, " calls to 'ack'\n";
 }

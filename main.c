@@ -62,6 +62,7 @@ static void process(FILE *in);
 int main(int argc, char *argv[]) /* hoc1 */
 {
     progname = argv[0];
+    setbuf(stdout, NULL);
     int opt;
     while ((opt = getopt(argc, argv, "hv")) != EOF) {
         switch (opt) {

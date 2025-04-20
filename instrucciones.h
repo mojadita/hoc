@@ -34,8 +34,7 @@ INST(and_then,1,   SUFF(void, addr, prog))/* operador Y && X (con cortocircuito)
 INST(or,1)                          /* operador Y || X (sin cortocircuito) */
 INST(or_else,1,    SUFF(void, addr, prog))/* operador Y || X (con cortocircuito) */
 INST(call,2,   SUFF(void, symb_int, prog))/* llama a una subrutina con los parametros de la pila */
-INST(procret,1)                     /* retorna de un procedimiento definido por el usuario */
-INST(funcret,1)                     /* retorna un valor de una funcion definida por el usuario */
+INST(ret,1)                         /* retorna de un procedimiento definido por el usuario */
 INST(argeval,1,    SUFF(void, arg, prog)) /* evalua un argumento y lo pone en la pila. */
 INST(argassign,1,  SUFF(void, arg, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(prstr,2,      SUFF(void, str, prog)) /* imprime una cadena */
@@ -65,3 +64,4 @@ INST(mularg,2,     SUFF(void, arg,  prog))/* multiplica de la pila a argumento *
 INST(divarg,2,     SUFF(void, arg,  prog))/* divide de la pila a argumento */
 INST(modarg,2,     SUFF(void, arg,  prog))/* modulo de la pila a argumento */
 INST(pwrarg,2,     SUFF(void, arg,  prog))/* potencia de la pila a argumento */
+INST(popn,1,       SUFF(void, arg,  prog))/* extrae de la pila todos los argumentos */

@@ -159,16 +159,12 @@ void borrar_variables_locales(Symbol *sym)
 {
     Symbol **ref_sym = &lista_simbolos;
     while (*ref_sym != sym) {
-        printf("PROBANDO '%s' (%s)...",
-            RS->name, lookup_type(RS->type));
         if (RS->type == LVAR) {
-            printf("BORRANDO");
             Symbol *q = RS;
             RS = q->next;
             free(q);
         } else {
             ref_sym = &RS->next;
         }
-        printf("\n");
     }
 } /* borrar_variables_locales */

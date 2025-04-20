@@ -632,10 +632,11 @@ void or_else_prt(const instr *i, const Cell *pc)
     PR("[%04x]\n", pc[0].desp);
 }
 
-void end_define(void)
+void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
+    borrar_variables_locales(subr);
 }
 
 Cell *define(Symbol *symb, int type)
@@ -720,32 +721,12 @@ void call_prt(const instr *i, const Cell *pc)
         pc[1].sym->defn - prog);
 }
 
-static void ret(void)
+void ret(const instr *i) /* return from proc */
 {
-    stackp += fp->nargs;
-
     returning = 1;
 }
 
-void procret(const instr *i) /* return from proc */
-{
-    ret();
-}
-
-void procret_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void funcret(const instr *i) /* return from func */
-{
-    Datum d = pop();
-    P_TAIL(": -> %lg", d);
-    ret();
-    push(d);
-}
-
-void funcret_prt(const instr *i, const Cell *pc)
+void ret_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
@@ -1262,3 +1243,17 @@ void modarg_prt(const instr *i, const Cell *pc)
 {
     PR("$%d\n", pc[0].args);
 }
+
+void popn(const instr *i) /* pop n elementos de la pila */
+{
+    int n = pc[0].args;
+    P_TAIL(": %d", n);
+    stackp += n;
+    UPDATE_PC();
+}
+
+void popn_prt(const instr *i, const Cell *pc)
+{
+    PR("$%d\n", pc[0].args);
+}
+

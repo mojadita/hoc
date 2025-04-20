@@ -88,7 +88,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       LIST
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel> expr_seq item do else and or
+%type  <cel> expr_seq item do else and or function
 %type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym> proc_head func_head
 
@@ -115,10 +115,12 @@ list: /* nothing */
 
 stmt: asig ';'             { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc, "return;");
-                             $$ = CODE_INST(procret); }
+                             $$ = CODE_INST(ret); }
     | RETURN asig ';'      { defnonly(indef_func, "return <asig>;");
                              $$ = $2;
-                             CODE_INST(funcret); }
+                             CODE_INST(argassign, 0); /* $0 = top() */
+                             CODE_INST(drop);
+                             CODE_INST(ret); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS       ';'      { $$ = CODE_INST(symbs); }
     | LIST        ';'      { $$ = CODE_INST(list); }
@@ -159,6 +161,7 @@ stmt: asig ';'             { CODE_INST(drop); }
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              CODE_INST(call, $1, $4); /* instruction */
+                             CODE_INST(popn, $4); /* pop arguments */
                            }
     ;
 
@@ -202,8 +205,9 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                                  execerror("Symbol '%s' is not a variable\n",
                                            $1->name);
                              }
-                             if ($1->type == UNDEF && $1->defn == NULL) { /* indefinida y no registrada */
-                                    register_global_var($1);  /* esto asigna defn */
+                             if ($1->type == UNDEF && $1->defn == NULL) {
+                                 /* indefinida y no registrada */
+                                 register_global_var($1);  /* esto asigna defn */
                              }
                              $$ = $3;
                              CODE_INST(assign, $1); }
@@ -306,23 +310,31 @@ fact: prim EXP fact         { CODE_INST(pwr);  }
 
 prim: '(' asig ')'          { $$ = $2; }
     | NUMBER                { $$ = CODE_INST(constpush, $1); }
-    | VAR                   { $$ = CODE_INST(eval, $1); }
+
     | PLS_PLS VAR           { $$ = CODE_INST(inceval, $2); }
-    | VAR PLS_PLS           { $$ = CODE_INST(evalinc, $1); }
     | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
-    | VAR MIN_MIN           { $$ = CODE_INST(evaldec, $1); }
+    | VAR     PLS_PLS       { $$ = CODE_INST(evalinc, $1); }
+    | VAR     MIN_MIN       { $$ = CODE_INST(evaldec, $1); }
+    | VAR                   { $$ = CODE_INST(eval, $1); }
+
     | PLS_PLS ARG           { $$ = CODE_INST(incarg, $2); }
-    | ARG PLS_PLS           { $$ = CODE_INST(arginc, $1); }
     | MIN_MIN ARG           { $$ = CODE_INST(decarg, $2); }
-    | ARG MIN_MIN           { $$ = CODE_INST(argdec, $1); }
+    | ARG     PLS_PLS       { $$ = CODE_INST(arginc, $1); }
+    | ARG     MIN_MIN       { $$ = CODE_INST(argdec, $1); }
     | ARG                   { defnonly(indef_proc || indef_func,
                                        "$%d assign", $1);
                               $$ = CODE_INST(argeval, $1);
                             }
+
+    | PLS_PLS LVAR          { $$ = CODE_INST(incarg, $2->argi); }
+    | MIN_MIN LVAR          { $$ = CODE_INST(decarg, $2->argi); }
+    | LVAR    PLS_PLS       { $$ = CODE_INST(arginc, $1->argi); }
+    | LVAR    MIN_MIN       { $$ = CODE_INST(argdec, $1->argi); }
     | LVAR                  { defnonly(indef_proc || indef_func,
                                        "%s($%d) assign", $1->name, $1->argi);
                               $$ = CODE_INST(argeval, $1->argi);
                             }
+
     | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
     | BLTIN1 '(' asig ')'   { $$ = $3;
@@ -330,11 +342,17 @@ prim: '(' asig ')'          { $$ = $2; }
     | BLTIN2 '(' asig ',' asig ')'
                             { $$ = $3;
                               CODE_INST(bltin2, $1); }
-    | FUNCTION mark '(' arglist_opt ')' {
+    | function mark '(' arglist_opt ')' {
                               $$ = $2;
                               CODE_INST(call, $1, $4); /* instruction */
+                              CODE_INST(popn, $4);
                             }
     ;
+
+function
+    : FUNCTION              { CODE_INST(constpush, 0.0); }
+    ;
+
 
 arglist_opt
     : arglist
@@ -347,19 +365,16 @@ arglist
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' stmt {
-                              CODE_INST(procret);
-                              end_define();
+                              CODE_INST(ret);
+                              end_define($1);
                               indef_proc = 0;
                               P("FIN DEFINICION PROCEDIMIENTO\n");
-                              borrar_variables_locales($1);
                              }
     | func_head '(' formal_arglist_opt ')' stmt {
-                              CODE_INST(constpush, 0.0);
-                              CODE_INST(funcret);
-                              end_define();
+                              CODE_INST(ret);
+                              end_define($1);
                               indef_func = 0;
                               P("FIN DEFINICION FUNCION\n");
-                              borrar_variables_locales($1);
                             }
 formal_arglist_opt
     : formal_arglist
