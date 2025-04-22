@@ -30,6 +30,7 @@ static const reserved_word reserved_words[] = {
     RW(return, RETURN),
     RW(symbs,  SYMBS),
     RW(while,  WHILE),
+    RW(local,  LOCAL),
 
     { .name = NULL }
 };

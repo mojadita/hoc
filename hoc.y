@@ -85,7 +85,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       RETURN
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
-%token       LIST
+%token       LIST LOCAL
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel> expr_seq item do else and or function
@@ -163,6 +163,12 @@ stmt: asig ';'             { CODE_INST(drop); }
                              CODE_INST(call, $1, $4); /* instruction */
                              CODE_INST(popn, $4); /* pop arguments */
                            }
+    | LOCAL lvar_list ';'  { defnonly(indef_func || indef_proc, "local <lvar_list>;");
+                           }
+    ;
+
+lvar_list: lvar_list ',' VAR
+    | VAR
     ;
 
 do  :  /* empty */         { $$ = progp;
@@ -383,12 +389,17 @@ formal_arglist_opt
 
 formal_arglist
     : formal_arglist ',' VAR {
-                              define($3, LVAR);
-                              $$ = $3->argi = $1 + 1;
+                              if ($3->type == LVAR) {
+                                  execerror("'%s' ya definido en "
+                                            "lista de parametros\n",
+                                            $3->name);
+                              }
+                              Symbol * sym = install($3->name, LVAR, NULL);
+                              $$ = sym->argi = $1 + 1;
                             }
     | VAR                   { $$ = 1;
-                              define($1, LVAR);
-                              $1->argi = 1;
+                              Symbol * sym = install($1->name, LVAR, NULL);
+                              sym->argi = 1;
                             }
     ;
 
@@ -443,5 +454,5 @@ void yyerror(char *s)   /* called for yacc syntax error */
         last->col - col, "", last->lex);
 
     //execerror("SALIENDO DEL INTERPRETE");
-    longjmp(begin, 1);
+    //longjmp(begin, 1);
 } /* yyerror */
