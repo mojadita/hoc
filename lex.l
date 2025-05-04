@@ -84,7 +84,37 @@ static char *deescape(char *in);
 " "+          {  col_no += yyleng; /* saltar blancos y tabuladores */ }
 \t            {  col_no += UQ_TAB_SIZE; col_no -= col_no % UQ_TAB_SIZE; }
 
-([0-9]+\.?|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
+0[xX][0-9a-fA-F]* {
+                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                col_no += yyleng;
+                /* numero entero hex */
+                sscanf(yytext, "%x", &yylval.num);
+                P("integer %d (%d)\n", yylval.num, INTEGER);
+
+                return INTEGER;
+              }   /* Un numero integer (hex) */
+
+0[0-7]* {
+                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                col_no += yyleng;
+                /* numero entero octal */
+                sscanf(yytext, "%o", &yylval.num);
+                P("integer %d (%d)\n", yylval.num, INTEGER);
+
+                return INTEGER;
+              }   /* Un numero integer (octal) */
+
+[1-9][0-9]* {
+                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                col_no += yyleng;
+                /* numero entero decimal */
+                sscanf(yytext, "%d", &yylval.num);
+                P("integer %d (%d)\n", yylval.num, INTEGER);
+
+                return INTEGER;
+              }   /* Un numero integer (decimal) */
+
+([0-9]+\.|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
                 add_token(NUMBER, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
                 /* numero en punto flotante */

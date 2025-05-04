@@ -81,7 +81,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       OR AND GE LE EQ NE EXP
 %token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num> ARG
-%token <num> FUNC PROC
+%token <num> FUNC PROC INTEGER
 %token       RETURN
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
@@ -211,6 +211,7 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                                  execerror("Symbol '%s' is not a variable\n",
                                            $1->name);
                              }
+
                              if ($1->type == UNDEF && $1->defn == NULL) {
                                  /* indefinida y no registrada */
                                  register_global_var($1);  /* esto asigna defn */
@@ -316,6 +317,7 @@ fact: prim EXP fact         { CODE_INST(pwr);  }
 
 prim: '(' asig ')'          { $$ = $2; }
     | NUMBER                { $$ = CODE_INST(constpush, $1); }
+    | INTEGER               { $$ = CODE_INST(constpush, (double) $1); }
 
     | PLS_PLS VAR           { $$ = CODE_INST(inceval, $2); }
     | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
