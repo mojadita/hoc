@@ -80,7 +80,6 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       PRINT WHILE IF ELSE SYMBS
 %token       OR AND GE LE EQ NE EXP
 %token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
-%token <num> ARG
 %token <num> FUNC PROC INTEGER
 %token       RETURN
 %token <sym> FUNCTION PROCEDURE
@@ -163,12 +162,6 @@ stmt: asig ';'             { CODE_INST(drop); }
                              CODE_INST(call, $1, $4); /* instruction */
                              CODE_INST(popn, $4); /* pop arguments */
                            }
-    | LOCAL lvar_list ';'  { defnonly(indef_func || indef_proc, "local <lvar_list>;");
-                           }
-    ;
-
-lvar_list: lvar_list ',' VAR
-    | VAR
     ;
 
 do  :  /* empty */         { $$ = progp;
@@ -218,6 +211,9 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
                              }
                              $$ = $3;
                              CODE_INST(assign, $1); }
+    | LVAR   '=' asig       {
+                             $$ = $3;
+                             CODE_INST(argassign, $1->argi); }
     | VAR  PLS_EQ asig    { $$ = CODE_INST(addvar, $1); }
     | VAR  MIN_EQ asig    { $$ = CODE_INST(subvar, $1); }
     | VAR  MUL_EQ asig    { $$ = CODE_INST(mulvar, $1); }
@@ -225,26 +221,12 @@ asig: VAR   '=' asig       { if ($1->type != VAR && $1->type != UNDEF) {
     | VAR  MOD_EQ asig    { $$ = CODE_INST(modvar, $1); }
     | VAR  PWR_EQ asig    { $$ = CODE_INST(pwrvar, $1); }
 
-    | ARG  PLS_EQ asig    { $$ = CODE_INST(addarg, $1); }
     | LVAR PLS_EQ asig    { $$ = CODE_INST(addarg, $1->argi); }
-    | ARG  MIN_EQ asig    { $$ = CODE_INST(subarg, $1); }
     | LVAR MIN_EQ asig    { $$ = CODE_INST(subarg, $1->argi); }
-    | ARG  MUL_EQ asig    { $$ = CODE_INST(mularg, $1); }
     | LVAR MUL_EQ asig    { $$ = CODE_INST(mularg, $1->argi); }
-    | ARG  DIV_EQ asig    { $$ = CODE_INST(divarg, $1); }
     | LVAR DIV_EQ asig    { $$ = CODE_INST(divarg, $1->argi); }
-    | ARG  MOD_EQ asig    { $$ = CODE_INST(modarg, $1); }
     | LVAR MOD_EQ asig    { $$ = CODE_INST(modarg, $1->argi); }
-    | ARG  PWR_EQ asig    { $$ = CODE_INST(pwrarg, $1); }
     | LVAR PWR_EQ asig    { $$ = CODE_INST(pwrarg, $1->argi); }
-    | ARG   '=' asig       {
-                             defnonly(indef_proc || indef_func, "$%d assign", $1);
-                             $$ = $3;
-                             CODE_INST(argassign, $1);
-                           }
-    | LVAR   '=' asig       {
-                             $$ = $3;
-                             CODE_INST(argassign, $1->argi); }
     | expr_or
     ;
 
@@ -324,15 +306,6 @@ prim: '(' asig ')'          { $$ = $2; }
     | VAR     PLS_PLS       { $$ = CODE_INST(evalinc, $1); }
     | VAR     MIN_MIN       { $$ = CODE_INST(evaldec, $1); }
     | VAR                   { $$ = CODE_INST(eval, $1); }
-
-    | PLS_PLS ARG           { $$ = CODE_INST(incarg, $2); }
-    | MIN_MIN ARG           { $$ = CODE_INST(decarg, $2); }
-    | ARG     PLS_PLS       { $$ = CODE_INST(arginc, $1); }
-    | ARG     MIN_MIN       { $$ = CODE_INST(argdec, $1); }
-    | ARG                   { defnonly(indef_proc || indef_func,
-                                       "$%d assign", $1);
-                              $$ = CODE_INST(argeval, $1);
-                            }
 
     | PLS_PLS LVAR          { $$ = CODE_INST(incarg, $2->argi); }
     | MIN_MIN LVAR          { $$ = CODE_INST(decarg, $2->argi); }

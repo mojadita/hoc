@@ -167,15 +167,6 @@ static char *deescape(char *in);
 
             return saved_token_type;
         }
-\$[1-9][0-9]*  {
-            /* ARGUMENTO DE PROCEDIMIENTO/FUNCION */
-            sscanf(yytext+1, "%d", &yylval.num);
-            P("nombre de parametro: %s\n", yytext);
-            add_token(ARG, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
-
-            return ARG;
-        }
 
 \"([^\"\n]|\\.)*\" {
             /* CADENA DE CARACTERES */
@@ -189,11 +180,11 @@ static char *deescape(char *in);
         }
 \"([^\"\n]|\\.)*\n {
             /* CADENA DE CARACTERES NO TERMINADA --> ERROR */
+            add_token(ERROR, lineno, col_no, yyleng, yytext);
             int saved_lineno = lineno++,
                 saved_col_no = col_no;
             col_no           = 1;
-            execerror("cadena no terminada en linea %d, col %d: %s",
-                saved_lineno, saved_col_no, yytext);
+            return ERROR;
         }
 
 ">="    { P("operador %s (%d)\n", yytext, GE);
@@ -273,7 +264,7 @@ static char *deescape(char *in);
             return '\n';
         }
 
-#.*     ;
+#.*     ; /* comentario */
 
 .       { P("symbol/operator '%c' (%d)\n",
                 yytext[0], yytext[0]);
