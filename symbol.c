@@ -104,6 +104,7 @@ static struct type2char {
     V(CONST),
     V(PROCEDURE),
     V(FUNCTION),
+    V(TYPE),
 #undef V
     {NULL, 0,}
 };

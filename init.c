@@ -50,12 +50,25 @@ static struct builtin { /* built-ins-1 */
     "ops",   opuesto,   BLTIN1, "ops(x)",
     "pow",   Pow,       BLTIN2, "pow(x,y)",
     "rand",  Rand,      BLTIN0, "rand()",
-    "read",  rd,        BLTIN0, "read()", 
+    "read",  rd,        BLTIN0, "read()",
     "sin",   sin,       BLTIN1, "sin(x)",
     "sqrt",  Sqrt,      BLTIN1, "sqrt(x)",
     "tan",   tan,       BLTIN1, "tan(x)",
     "time",  now,       BLTIN0, "time()",
     NULL,    NULL,
+};
+
+static struct predefined_types { /* predefined types */
+    char *name;
+    int   size;
+} builtin_types [] = {
+    "char",   sizeof(char),
+    "int",    sizeof(int),
+    "long",   sizeof(long),
+    "float",  sizeof(float),
+    "double", sizeof(double),
+    "string", sizeof(char *),
+    NULL,     0,
 };
 
 void init(void)  /* install constants and built-ins in table */
@@ -78,6 +91,15 @@ void init(void)  /* install constants and built-ins in table */
             case BLTIN1: s->ptr1 = p->func; break;
             case BLTIN2: s->ptr2 = p->func; break;
         }
+    }
+
+    /* vamos con los tipos */
+    for ( struct predefined_types *p = builtin_types;
+            p->name;
+            p++)
+    {
+        s = install(p->name, TYPE, NULL);
+        s->size = p->size;
     }
 
     /* creamos el simbolo prev */

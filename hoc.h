@@ -32,6 +32,7 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         Cell      *defn;
         int        argi;
+        size_t     size;                  /* si el tipo es TYPE */
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
         * nombres de los campos de la union pueden usarse directamente desde

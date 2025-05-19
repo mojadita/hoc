@@ -84,7 +84,7 @@ int indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %token       RETURN
 %token <sym> FUNCTION PROCEDURE
 %token <str> STRING
-%token       LIST LOCAL
+%token       LIST TYPE
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel> expr_seq item do else and or function
