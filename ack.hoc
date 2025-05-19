@@ -14,7 +14,7 @@ func ack(x, y) {
 }
 {
     n=0;
-    c = ack(a = 3, b = 6);
+    c = ack(a = 3, b = 10);
 #    list;
 #    symbs;
     print  "ack(", a, ", ", b, ") -> ", c, "\n";

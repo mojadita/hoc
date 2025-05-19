@@ -1029,8 +1029,10 @@ void addvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val   += d;
+
+    sym->defn->val += pop();
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1046,9 +1048,9 @@ void addarg(const instr *i) /* assign top value to next value */
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0]    += pop();
+    push(ref[0]);
 
-    ref[0] += top();
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1066,8 +1068,10 @@ void subvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val   -= d;
+
+    sym->defn->val -= pop();
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1083,9 +1087,9 @@ void subarg(const instr *i) /* assign top value to next value */
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0]    -= pop();
+    push(ref[0]);
 
-    ref[0] -= top();
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1103,8 +1107,10 @@ void mulvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val   *= d;
+
+    sym->defn->val *= pop();
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1116,13 +1122,13 @@ void mulvar_prt(const instr *i, const Cell *pc)
 
 void mularg(const instr *i) /* assign top value to next value */
 {
-    int arg = pc[0].args;
+    int arg    = pc[0].args;
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0]    *= pop();
+    push(ref[0]);
 
-    ref[0] *= top();
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1140,8 +1146,10 @@ void divvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val   /= d;
+
+    sym->defn->val /= pop();
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1157,9 +1165,9 @@ void divarg(const instr *i) /* assign top value to next value */
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0]    /= pop();
+    push(ref[0]);
 
-    ref[0] /= top();
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1177,8 +1185,10 @@ void pwrvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val    = pow(sym->defn->val, d);
+
+    sym->defn->val  = pow(sym->defn->val, pop());
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1190,13 +1200,13 @@ void pwrvar_prt(const instr *i, const Cell *pc)
 
 void pwrarg(const instr *i) /* assign top value to next value */
 {
-    int arg = pc[0].args;
+    int arg    = pc[0].args;
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0] = pow(ref[0], pop());
+    push(ref[0]);
 
-    ref[0] = pow(ref[0], top());
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1214,8 +1224,10 @@ void modvar(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be decremented",
                 sym->name);
     }
-    Datum   d   = top();
-    sym->defn->val    = fmod(sym->defn->val, d);
+
+    sym->defn->val = fmod(sym->defn->val, pop());
+    push(sym->defn->val);
+
     P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
     UPDATE_PC();
 }
@@ -1227,13 +1239,13 @@ void modvar_prt(const instr *i, const Cell *pc)
 
 void modarg(const instr *i) /* assign top value to next value */
 {
-    int arg = pc[0].args;
+    int arg    = pc[0].args;
 
     Datum *ref = getarg(arg);
 
-    Datum d = *ref; /* dato antes de incrementar */
+    ref[0] = fmod(ref[0], pop());
+    push(ref[0]);
 
-    ref[0] = fmod(ref[0], top());
     P_TAIL(": %.8g -> $%d -> %lg", ref[0], arg, top());
 
     UPDATE_PC();
@@ -1254,6 +1266,6 @@ void popn(const instr *i) /* pop n elementos de la pila */
 
 void popn_prt(const instr *i, const Cell *pc)
 {
-    PR("$%d\n", pc[0].args);
+    PR("%d\n", pc[0].args);
 }
 
