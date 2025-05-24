@@ -6,6 +6,7 @@
  * License: BSD
  */
 
+#include "config.h"
 #include "code.h"
 #include "instr.h"
 

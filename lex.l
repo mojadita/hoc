@@ -144,7 +144,7 @@ static char *deescape(char *in);
               }
 
 [a-zA-Z_][a-zA-Z0-9_]*  {
-            /* IDENTIFICADOR O PALABRA RESERVADA */
+            /* PALABRA RESERVADA */
             int saved_col_no = col_no;
             col_no          += yyleng;
             const reserved_word *rw = rw_lookup(yytext);
@@ -155,17 +155,29 @@ static char *deescape(char *in);
 
                 return rw->tokn;
             }
-            Symbol *s;
-            if ((s = lookup(yytext)) == NULL) {
-                /* no esta, lo instalamos */
-                s = install(yytext, UNDEF, NULL);
-            }
-            yylval.sym = s;
-            P("Symbol <%s> (%d)\n", s->name, s->type);
-            int saved_token_type = s->type == UNDEF ? VAR : s->type;
-            add_token(saved_token_type, lineno, saved_col_no, yyleng, yytext);
 
-            return saved_token_type;
+            /* BUSCAMOS EN LA TABLA DE SIMBOLOS */
+            Symbol *s;
+            if ((s = lookup(yytext)) != NULL) {
+                yylval.sym = s;
+                P("Identificador <%s> (%s / %d)\n",
+                    s->name, lookup_type(s->type), s->type);
+                add_token(s->type, lineno, saved_col_no, yyleng, yytext);
+                return s->type;
+            }
+
+            /* NI UNA COSA NI OTRA, no creamos el symbol
+             * y devolvemos un token UNDEF */
+
+            const token * t = add_token(UNDEF,
+                    lineno, saved_col_no, yyleng, yytext);
+
+            P("Undefined <%s> (%s / %d)\n",
+                t->lex, lookup_type(UNDEF), UNDEF);
+
+            yylval.str = t->lex;
+
+            return UNDEF;
         }
 
 \"([^\"\n]|\\.)*\" {

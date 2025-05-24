@@ -6,6 +6,7 @@
  * License: BSD.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -18,7 +19,7 @@
 double integer(double x);
 double Rand(void);
 
-static struct { /* constants */
+static struct constant { /* constants */
     char *name;
     double cval;
 } consts[] = {
@@ -43,7 +44,7 @@ static struct builtin { /* built-ins-1 */
     "atan2", atan2,     BLTIN2, "atan2(y,x)",
     "cos",   cos,       BLTIN1, "cos(x)",
     "exp",   exp,       BLTIN1, "exp(x)",
-    "int",   integer,   BLTIN1, "int(x)",
+    "intg",  integer,   BLTIN1, "intg(x)",
     "inv",   inverso,   BLTIN1, "inv(x)",
     "log",   log,       BLTIN1, "log(x)",
     "log10", log10,     BLTIN1, "log10(x)",
@@ -62,30 +63,36 @@ static struct predefined_types { /* predefined types */
     char *name;
     int   size;
 } builtin_types [] = {
-    "char",   sizeof(char),
-    "int",    sizeof(int),
-    "long",   sizeof(long),
-    "float",  sizeof(float),
-    "double", sizeof(double),
-    "string", sizeof(char *),
+    "char",   1,
+    "int",    1,
+    "long",   1,
+    "float",  1,
+    "double", 1,
+    "string", 1,
     NULL,     0,
 };
 
 void init(void)  /* install constants and built-ins in table */
 {
-    int i;
-    Symbol *s;
 
-    for (i = 0; consts[i].name != NULL; i++) {
-        Symbol *s = install(consts[i].name, CONST, NULL);
-        s->val = consts[i].cval;
+    /* vamos con los tipos */
+    for ( struct predefined_types *p = builtin_types;
+            p->name;
+            p++)
+    {
+        Symbol *s = install(p->name, TYPE, NULL);
+        s->size = p->size;
     }
+
+    Symbol *D = lookup("double");
+    assert(D->type == TYPE);
 
     for (   struct builtin *p = builtins;
             p->name;
             p++)
     {
-        s = install(p->name, p->type, p->help);
+        Symbol *s = install(p->name, p->type, p->help);
+        s->typref = D;
         switch(p->type) {
             case BLTIN0: s->ptr0 = p->func; break;
             case BLTIN1: s->ptr1 = p->func; break;
@@ -93,17 +100,19 @@ void init(void)  /* install constants and built-ins in table */
         }
     }
 
-    /* vamos con los tipos */
-    for ( struct predefined_types *p = builtin_types;
-            p->name;
+    for (   struct constant *p = consts;
+            p->name != NULL;
             p++)
     {
-        s = install(p->name, TYPE, NULL);
-        s->size = p->size;
+        Symbol *s = install(p->name, CONST, NULL);
+        s->typref = D;
+        s->val = p->cval;
     }
 
     /* creamos el simbolo prev */
-    Symbol *prev = install("prev", UNDEF, NULL);
+    Symbol *prev = install("prev", VAR, NULL);
+    prev->typref = D;
+    register_global_var(prev);
 }
 
 double integer(double x)

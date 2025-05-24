@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
 #include "hoc.h"
 #include "hoc.tab.h"
 

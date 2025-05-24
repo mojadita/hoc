@@ -33,7 +33,7 @@ logdir                   ?= $(vardir)/log
 
 UQ_HOC_DEBUG             ?=  0
 UQ_HOC_TRACE_PATCHING    ?=  0
-UQ_LEX_DEBUG             ?=  0
+UQ_LEX_DEBUG             ?=  1
 UQ_LEX_COMMENTS          ?=  0
 UQ_CODE_DEBUG_EXEC       ?=  0
 UQ_CODE_DEBUG_PROG       ?=  0
@@ -52,3 +52,4 @@ UQ_TAB_SIZE              ?= 4
 
 UQ_LAST_TOKENS_SZ        ?= 64
 UQ_DEFAULT_LOGLEVEL      ?= 0
+UQ_MAX_SYMBOLS_PER_DECLARATION  ?= 32

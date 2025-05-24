@@ -11,11 +11,11 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "hoc.h"
 #include "config.h"
+#include "hoc.h"
 #include "colors.h"
-#include "hoc.tab.h"
 #include "code.h"
+#include "hoc.tab.h"
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -154,18 +154,13 @@ void list_symbols(void)
         puts("");
 } /* list_symbols */
 
+
 #define RS (*ref_sym)
 
 void borrar_variables_locales(Symbol *sym)
 {
     Symbol **ref_sym = &lista_simbolos;
     while (*ref_sym != sym) {
-        if (RS->type == LVAR) {
-            Symbol *q = RS;
-            RS = q->next;
-            free(q);
-        } else {
-            ref_sym = &RS->next;
-        }
+        ref_sym = &RS->next;
     }
 } /* borrar_variables_locales */

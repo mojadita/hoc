@@ -25,11 +25,12 @@ Cell *code_cel(Cell       *cel);      /* install one reference to Cell */
 Cell *code_num(int         val);      /* install one integer on Cell */
 Cell *code_str(const char *str);      /* install one string on Cell */
 void  execute(Cell        *p);        /* run the machine */
-Cell *define(Symbol       *symb,
-             int           type);     /* put func/proc in symbol table */
+Symbol *define(const char *name,
+               int         type);     /* put func/proc in symbol table */
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 Cell *register_global_var(Symbol *symb); /* registers a global variable */
+void register_local_var(Symbol *symb, Symbol *func_proc); /* registers a local variable */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:
