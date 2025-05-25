@@ -34,6 +34,8 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         struct {                          /* si el tipo es FUNC, PROC o VAR */
             Cell      *defn;
+			int        nargs;             /* numero de argumentos */
+			int        nvars;             /* numero de variables locales */
             size_t     nxt_off,
                        max_off;
         };

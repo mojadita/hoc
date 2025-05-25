@@ -27,9 +27,8 @@ func int right_asoc(                     \
            ||((h&&(i&&j))||(k||(l||m)))))));
 
 /* main code */
-{
+func int pepe() {
     int ok, a0, n = a0 = ok = 0;
-    list;
     while (a0 < 2) {
         int a1 = 0;
         while (a1 < 2) {
@@ -92,6 +91,9 @@ func int right_asoc(                     \
     print "passed tests = ", ok,     " (", 100 *     ok /n, "%)\n";
     print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
     print "total  tests = ", n,      "\n";
+}
+{
+	pepe();
     list;
     symbs;
 }

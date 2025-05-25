@@ -97,7 +97,7 @@ struct varl *new_varlist(Cell *st, Symbol *first);
 %token <sym> TYPE
 %type  <cel> stmt cond stmtlist asig
 %type  <cel> expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel> expr_seq item do else and or function
+%type  <cel> expr_seq item do else and or function preamb
 %type  <vl>  decl_list var_init
 %type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym> proc_head func_head valid_ident
@@ -122,11 +122,13 @@ list: /* nothing */
 
 stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc != NULL, "return;");
-                             $$ = CODE_INST(ret); }
+                             $$ = CODE_INST(spadd, indef_proc->nvars);
+                             CODE_INST(ret); }
     | RETURN asig ';'      { defnonly(indef_func != NULL, "return <asig>;");
                              $$ = $2;
                              CODE_INST(argassign, 0); /* $0 = top() */
                              CODE_INST(drop);
+                             CODE_INST(spadd, indef_func->nvars);
                              CODE_INST(ret); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -168,7 +170,7 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              CODE_INST(call, $1, $4); /* instruction */
-                             CODE_INST(popn, $4); /* pop arguments */
+                             CODE_INST(spadd, $4);    /* pop arguments */
                            }
     | decl_list ';'        { $$ = $1.start; }
     ;
@@ -177,24 +179,45 @@ decl_list
     : decl_list ',' var_init { assert($$.symbs_sz < UQ_MAX_SYMBOLS_PER_DECLARATION);
                                $$                      = $1;
                                $$.symbs[$$.symbs_sz++] = $3.symbs[0];
-                               if ($3.has_initializer) {
-                                 if (indef_proc || indef_func) {
-                                     CODE_INST(argassign, $3.symbs[0]->lv_off);
-                                 } else {
-                                     CODE_INST(assign, $3.symbs[0]);
-                                 }
-                              }
-                            }
+                               assert(!(indef_proc && indef_func));
+                               if (indef_proc || indef_func) {
+                                   /* declaracion local de variables */
+                                   if (indef_proc) {
+                                      indef_proc->nvars++;
+                                   } else if (indef_func) {
+                                      indef_func->nvars++;
+                                   }
+                                   if ($3.has_initializer) {
+                                       CODE_INST(argassign, $3.symbs[0]->lv_off);
+                                       CODE_INST(drop);
+                                   }
+                               } else if ($3.has_initializer) {
+                                   /* declaracion global de variables */
+                                   CODE_INST(assign, $3.symbs[0]);
+                                   CODE_INST(drop);
+                               }
+                             }
+
     | TYPE var_init         { $$                      = $2;
                               $$.typref               = $1;
                               /* ahora que conocemos el tipo, podemos generar el codigo
                                * de inicializacion */
-                              if ($2.has_initializer) {
-                                  if (indef_proc || indef_func) {
-                                      CODE_INST(argassign, $2.symbs[0]->lv_off);
-                                  } else {
-                                      CODE_INST(assign, $2.symbs[0]);
+                              assert(!(indef_proc && indef_func));
+                              if (indef_proc || indef_func) {
+                                  /* declaracion local de variables */
+                                  if (indef_proc) {
+                                      indef_proc->nvars++;
+                                  } else if (indef_func) {
+                                      indef_func->nvars++;
                                   }
+                                  if ($2.has_initializer) {
+                                      CODE_INST(argassign, $2.symbs[0]->lv_off);
+                                      CODE_INST(drop);
+                                  }
+                              } else if ($2.has_initializer) {
+                                  /* declaracion global de variables */
+                                  CODE_INST(assign, $2.symbs[0]);
+                                  CODE_INST(drop);
                               }
                             }
     ;
@@ -317,10 +340,12 @@ expr_and
     | expr_rel
     ;
 
-and : AND                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+and : AND                   {
+                              PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                       progp - prog);
                               $$ = CODE_INST(and_then, prog);
-                              PT("<<< end   inserting unpatched CODE\n"); }
+                              PT("<<< end   inserting unpatched CODE\n");
+                              }
     ;
 
 expr_rel
@@ -380,7 +405,7 @@ prim: '(' asig ')'          { $$ = $2; }
     | function mark '(' arglist_opt ')' {
                               $$ = $2;
                               CODE_INST(call, $1, $4); /* instruction */
-                              CODE_INST(popn, $4);
+                              CODE_INST(spadd, $4);    /* eliminando argumentos */
                             }
     ;
 
@@ -399,31 +424,70 @@ arglist
     | asig                  { $$ = 1; }
     ;
 
-defn: proc_head '(' formal_arglist_opt ')' stmt {
+defn: proc_head '(' formal_arglist_opt ')' preamb stmt {
+
+                              /* PARCHEO DE CODIGO */
+                              Cell *saved_progp = progp;
+                              progp             = $5;
+                              PT(">>> begin patching CODE @ [%04lx]\n",
+                                      progp - prog);
+                              CODE_INST(spadd, -$1->nvars);
+                              PT("<<< end   patching CODE @ [%04lx], "
+                                      "continuing @ [%04lx]\n",
+                                      progp - prog, saved_progp - prog);
+                              progp = saved_progp;
+
+                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+                              CODE_INST(spadd, $1->nvars);
                               CODE_INST(ret);
+
                               end_define($1);
                               indef_proc = NULL;
                               P("FIN DEFINICION PROCEDIMIENTO\n");
                              }
-    | func_head '(' formal_arglist_opt ')' stmt {
+
+    | func_head '(' formal_arglist_opt ')' preamb stmt {
+
+                              /* PARCHEO DE CODIGO */
+                              Cell *saved_progp = progp;
+                              progp             = $5;
+                              PT(">>> begin patching CODE @ [%04lx]\n",
+                                      progp - prog);
+                              CODE_INST(spadd, -$1->nvars);
+                              PT("<<< end   patching CODE @ [%04lx], "
+                                      "continuing @ [%04lx]\n",
+                                      progp - prog, saved_progp - prog);
+                              progp = saved_progp;
+
+                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+                              CODE_INST(spadd, $1->nvars);
                               CODE_INST(ret);
+
                               end_define($1);
                               indef_func = NULL;
                               P("FIN DEFINICION FUNCION\n");
                             }
+
+preamb: /* empty */         { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+                                      progp - prog);
+                              $$ = CODE_INST(spadd, 0);
+                              PT("<<< end   inserting unpatched CODE\n");
+                            }
+
 formal_arglist_opt
-    : formal_arglist
+    : formal_arglist        { if (indef_func) indef_func->nargs = $1;
+                              if (indef_proc) indef_proc->nargs = $1; }
     | /* empty */           { $$ = 0; }
     ;
 
 formal_arglist
     : formal_arglist ',' TYPE UNDEF {
-                              Symbol * sym = install($4, LVAR, NULL);
-                              $$ = sym->lv_off = $1 + 1;
+                              Symbol *sym = install($4, LVAR, NULL);
+                              $$          = sym->lv_off = $1 + 1;
                             }
     | TYPE UNDEF            { $$ = 1;
                               Symbol * sym = install($2, LVAR, NULL);
-                              sym->lv_off = 1;
+                              sym->lv_off  = 1;
                             }
     ;
 
@@ -431,14 +495,14 @@ formal_arglist
 proc_head
     : PROC UNDEF            { $$ = define($2, PROCEDURE);
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
-                                $2->name, progp - prog);
+                                $2, progp - prog);
                               indef_proc = $$; }
     ;
 func_head
     : FUNC TYPE UNDEF       { $$ = define($3, FUNCTION);
                               $$->typref = $2;
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
-                                $2->name, progp - prog);
+                                $3, progp - prog);
                               indef_func = $$; }
     ;
 %%

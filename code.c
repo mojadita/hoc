@@ -1270,7 +1270,7 @@ void modarg_prt(const instr *i, const Cell *pc)
     PR("$%d\n", pc[0].args);
 }
 
-void popn(const instr *i) /* pop n elementos de la pila */
+void spadd(const instr *i) /* pop n elementos de la pila */
 {
     int n = pc[0].args;
     P_TAIL(": %d", n);
@@ -1278,8 +1278,7 @@ void popn(const instr *i) /* pop n elementos de la pila */
     UPDATE_PC();
 }
 
-void popn_prt(const instr *i, const Cell *pc)
+void spadd_prt(const instr *i, const Cell *pc)
 {
     PR("%d\n", pc[0].args);
 }
-

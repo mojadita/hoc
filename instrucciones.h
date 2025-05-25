@@ -64,4 +64,4 @@ INST(mularg,2,     SUFF(void, arg,  prog))/* multiplica de la pila a argumento *
 INST(divarg,2,     SUFF(void, arg,  prog))/* divide de la pila a argumento */
 INST(modarg,2,     SUFF(void, arg,  prog))/* modulo de la pila a argumento */
 INST(pwrarg,2,     SUFF(void, arg,  prog))/* potencia de la pila a argumento */
-INST(popn,1,       SUFF(void, arg,  prog))/* extrae de la pila todos los argumentos */
+INST(spadd,1,      SUFF(void, arg,  prog))/* a;ade/substrae del stack pointer */
