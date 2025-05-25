@@ -155,14 +155,21 @@ void list_symbols(void)
 } /* list_symbols */
 
 
-#define RS (*ref_sym)
+#define RS (*ref_sym)      /* Aqui es un puntero  */
 
 void borrar_variables_locales(Symbol *sym)
 {
-    Symbol **ref_sym = &lista_simbolos;
-    while (*ref_sym != sym) {
-        Symbol *q = RS;
-        RS = q->next;   /* disconnect */
-        free(q);        /* and free */
+    /* Aqui se reinterpreta como doble puntero  *(*ref_sym) */
+    Symbol *RS = &lista_simbolos; /* ojo con este     */
+		/* identificador (ver macro RS arriba, que    */
+		/* no es una variable, sino una macro que     */
+		/* cada vez, apunta a una variable diferente. */
+
+    while (RS != sym) {
+        Symbol *a_borrar = RS;
+        RS = a_borrar->next;   /* desconecta */
+        free(a_borrar);        /* y borra!!  */
     }
 } /* borrar_variables_locales */
+
+#undef RS
