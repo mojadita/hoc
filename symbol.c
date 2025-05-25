@@ -161,6 +161,8 @@ void borrar_variables_locales(Symbol *sym)
 {
     Symbol **ref_sym = &lista_simbolos;
     while (*ref_sym != sym) {
-        ref_sym = &RS->next;
+        Symbol *q = RS;
+        RS = q->next;   /* disconnect */
+        free(q);        /* and free */
     }
 } /* borrar_variables_locales */

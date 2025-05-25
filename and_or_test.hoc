@@ -1,51 +1,47 @@
 #!hoc
 /* default associativity */
-func default() {
-    return           $1 &&  $2  &&  $3  && $4    ||  $5  ||  $6  ||  $7  ||   $8 &&  $9  && $10   ||  $11  ||  $12  || $13;
-}
+func int default(int a,int b,int c,int d,int e,int f,int g,int h,int i,int j,int k,int l,int m)return a&&b&&c&&d||e||f||g||h&&i&&j||k||l||m;
+
+symbs;
 
 /* left associativity */
-func left_asoc() {
-    return (((((((((($1 &&  $2) &&  $3) && $4)   ||  $5) ||  $6) ||  $7) || (($8 &&  $9) && $10)) ||  $11) ||  $12) || $13);
-}
+func int left_asoc(int a,int b,int c,int d,int e,int f,int g,int h,int i,int j,int k,int l,int m)return ((((((((((a&&b)&&c)&&d)||e)||f)||g)||((h&&i)&&j))||k)||l)||m);
 
 /* right associativity */
-func right_asoc() {
-    return         (($1 && ($2  && ($3  && $4))) || ($5  || ($6  || ($7  || (($8 && ($9  && $10)) || ($11  || ($12  || $13)))))));
-}
+func int right_asoc(int a,int b,int c,int d,int e,int f,int g,int h,int i,int j,int k,int l,int m)return((a&&(b&&(c&&d)))||(e||(f||(g||((h&&(i&&j))||(k||(l||m)))))));
 
 /* main code */
 {
     list;
-    n = ok = a0 = 0;
+    int ok, a0, n = ok = a0 = 0;
     while (a0 < 2) {
-        a1 = 0;
+        int a1 = 0;
         while (a1 < 2) {
-            a2 = 0;
+            int a2 = 0;
             while (a2 < 2) {
-                a3 = 0;
+                int a3 = 0;
                 while (a3 < 2) {
-                    a4 = 0;
+                    int a4 = 0;
                     while (a4 < 2) {
-                        a5 = 0;
+                        int a5 = 0;
                         while (a5 < 2) {
-                            a6 = 0;
+                            int a6 = 0;
                             while (a6 < 2) {
-                                a7 = 0;
+                                int a7 = 0;
                                 while (a7 < 2) {
-                                    a8 = 0;
+                                    int a8 = 0;
                                     while (a8 < 2) {
-                                        a9 = 0;
+                                        int a9 = 0;
                                         while (a9 < 2) {
-                                            a10 = 0;
+                                            int a10 = 0;
                                             while (a10 < 2) {
-                                                a11 = 0;
+                                                int a11 = 0;
                                                 while (a11 < 2) {
-                                                    a12 = 0;
+                                                    int a12 = 0;
                                                     while (a12 < 2) {
-                                                        def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-                                                        left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-                                                        right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        int def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        int left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+                                                        int right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
                                                         n++;
                                                         /* def must be equal to left  and right */
                                                         if (def != left || def != right || left != right) {
@@ -80,4 +76,6 @@ func right_asoc() {
     print "passed tests = ", ok,     " (", 100 *     ok /n, "%)\n";
     print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
     print "total  tests = ", n,      "\n";
+    list;
+    symbs;
 }

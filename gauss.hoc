@@ -1,14 +1,14 @@
 #!hoc
-func gauss() {
-    while ($2 <= $1) {
-        $3 = $3 + $2;
-        $2 = $2 + 1;
+int n = 100;
+func int gauss(int a, int b, int c) {
+    while (b <= a) {
+        c = c + b;
+        b = b + 1;
     }
-    return $3;
+    return c;
 }
 {
     list;
-    n = 100;
     print "gauss(", n, ") -> ", gauss(n, 0, 0), "\n";
     print n, "*(", n, " + 1)/2 -> ", n*(n + 1)/2, "\n";
 }

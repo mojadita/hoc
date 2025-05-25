@@ -65,10 +65,10 @@ static struct predefined_types { /* predefined types */
 } builtin_types [] = {
     "char",   1,
     "int",    1,
-    "long",   1,
+    "long",   2,
     "float",  1,
-    "double", 1,
-    "string", 1,
+    "double", 2,
+    "string", 2,
     NULL,     0,
 };
 

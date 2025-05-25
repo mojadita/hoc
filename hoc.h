@@ -26,22 +26,22 @@ struct Symbol {                           /* Symbol table entry */
                                            * VAR, BLTIN[012], UNDEF */
     const char    *help;                  /* help text (optional) */
     Symbol        *typref;                /* ref al tipo de la
-										   * variable/func/builtin... */
+                                           * variable/func/builtin... */
     union {
         double     val;                   /* si el tipo es CONST */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
-		struct {                          /* si el tipo es FUNC, PROC o VAR */
-        	Cell      *defn;
-			size_t     nxt_off,
-					   max_off;
-		};
-		struct {                          /* si el tipo es LVAR */
-        	int        lv_off;            /* variables locales y argumentos (LVAR),
-										   * offset respecto al frame pointer (fp). */
-			Symbol    *proc_func;         /* a que proc/func pertenece este simbolo */
-		};
+        struct {                          /* si el tipo es FUNC, PROC o VAR */
+            Cell      *defn;
+            size_t     nxt_off,
+                       max_off;
+        };
+        struct {                          /* si el tipo es LVAR */
+            int        lv_off;            /* variables locales y argumentos (LVAR),
+                                           * offset respecto al frame pointer (fp). */
+            Symbol    *proc_func;         /* a que proc/func pertenece este simbolo */
+        };
         size_t     size;                  /* si el tipo es TYPE */
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
@@ -53,11 +53,11 @@ struct Symbol {                           /* Symbol table entry */
 };
 
 struct varl {
-	Symbol *typref;
+    Symbol *typref;
     Cell   *start;
     Symbol *symbs[UQ_MAX_SYMBOLS_PER_DECLARATION];
-	size_t  symbs_sz;
-	int     has_initializer;
+    size_t  symbs_sz;
+    int     has_initializer;
 };
 
 /* instala un nuevo simbolo en la tabla de simbolos, inicializado

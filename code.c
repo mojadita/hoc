@@ -164,7 +164,7 @@ Cell *register_global_var(Symbol *sym)
     /* cannot reregister a variable, so it must be
      * UNDEF, and defn must be null. */
     assert(sym->type == VAR);
-	assert(sym->defn == NULL);
+    assert(sym->defn == NULL);
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
     }
@@ -178,18 +178,18 @@ Cell *register_global_var(Symbol *sym)
 
 void register_local_var(Symbol *var, Symbol *proc_func)
 {
-	assert(var->type == LVAR);
-	assert(var->proc_func == NULL);
-	var->proc_func = proc_func;
-	var->lv_off    = proc_func->nxt_off;
-	/* TODO: LCU Sat May 24 15:33:11 -05 2025
-	 * poner el size que figura en el tipo. */
-	proc_func->nxt_off -= 1;
-	if (proc_func->nxt_off < proc_func->max_off) {
-		proc_func->max_off = proc_func->nxt_off;
-	}
-	PRG("Local Var '%s', type=%s/%d, offset=%d, proc_func=<%s>\n",
-		var->name, lookup_type(LVAR), LVAR, var->lv_off, proc_func->name);
+    assert(var->type == LVAR);
+    assert(var->proc_func == NULL);
+    var->proc_func = proc_func;
+    var->lv_off    = proc_func->nxt_off;
+    /* TODO: LCU Sat May 24 15:33:11 -05 2025
+     * poner el size que figura en el tipo. */
+    proc_func->nxt_off -= 1;
+    if (proc_func->nxt_off < proc_func->max_off) {
+        proc_func->max_off = proc_func->nxt_off;
+    }
+    PRG("Local Var '%s', type=%s/%d, offset=%d, proc_func=<%s>\n",
+        var->name, lookup_type(LVAR), LVAR, var->lv_off, proc_func->name);
 }
 
 void execute(Cell *p) /* run the machine */
@@ -659,7 +659,7 @@ void end_define(Symbol *subr)
 
 Symbol *define(const char *name, int type)
 {
-	Symbol *symb = install(name, type, NULL);
+    Symbol *symb = install(name, type, NULL);
     symb->defn = progp;
 
     return symb;
@@ -904,7 +904,7 @@ void inceval(const instr *i) /* assign top value to next value */
                 sym->name);
     }
     push(++sym->defn->val);
-    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
+    P_TAIL(": ++%s -> %.8lg", sym->name, sym->defn->val);
     UPDATE_PC();
 }
 
@@ -920,7 +920,7 @@ void evalinc(const instr *i) /* assign top value to next value */
         execerror("undefined variable '%s' cannot be incremented",
                 sym->name);
     }
-    P_TAIL(": %s -> %.8lg", sym->name, sym->defn->val);
+    P_TAIL(": %s++ -> %.8lg", sym->name, sym->defn->val);
     push(sym->defn->val++);
     UPDATE_PC();
 }

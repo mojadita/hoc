@@ -1,3 +1,4 @@
+%{
 /* hoc-sin-prec.y -- programa para implementar una calculadora.
  * Esta version no tiene precedencia de operadores.
  * Author: Edward Rivas <rivastkw@gmail.com>
@@ -6,7 +7,6 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD.
  */
-%{
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -24,8 +24,8 @@
 #include "code.h"
 
 void warning( const char *fmt, ...);
-void vwarning(const char *fmt, va_list args);
-void yyerror( char *);
+void vwarning( const char *fmt, va_list args );
+void yyerror( char * msg );
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -145,7 +145,7 @@ stmt: asig        ';'      { CODE_INST(drop); }
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(if_f_goto, saved_progp);
                              PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                 progp - prog, saved_progp - prog);
+                                     progp - prog, saved_progp - prog);
                              progp = saved_progp;
                            }
     | IF    cond do stmt else stmt {
@@ -262,7 +262,9 @@ stmtlist: /* nada */       { $$ = progp; }
     | stmtlist stmt
     ;
 
-asig: VAR    '=' asig      { $$ = $3; CODE_INST(assign, $1); }
+asig:
+      UNDEF  '=' asig      { execerror("Variable %s no esta declarada", $1); }
+    | VAR    '=' asig      { $$ = $3; CODE_INST(assign, $1); }
 
     | LVAR   '=' asig      { $$ = $3; CODE_INST(argassign, $1->lv_off); }
 
@@ -433,7 +435,8 @@ proc_head
                               indef_proc = $$; }
     ;
 func_head
-    : FUNC UNDEF            { $$ = define($2, FUNCTION);
+    : FUNC TYPE UNDEF       { $$ = define($3, FUNCTION);
+                              $$->typref = $2;
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
                                 $2->name, progp - prog);
                               indef_func = $$; }

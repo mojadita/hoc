@@ -1,16 +1,16 @@
-proc hanoi() {
+int n=0;
+proc hanoi(int a, int b, int c, int d) {
     /* si quiero mover una torre de n discos del pincho $1 al pincho $2,
      * lo que tengo que hacer es mover una torre de (n-1) discos
      * de la torre $1 a la torre $3, despues mover una torre de 1 disco
      * de la torre $1 a la torre $2, y por ultim mover una torre de (n-1)
      * discos de la torre $3 a la torre $2. */
-    if ($4 == 1) {
-        print ++n, ": ", $1, " -> ", $2, "\n";
+    if (d == 1) {
+        print ++n, ": ", a, " -> ", b, "\n";
         return;
     }
-    hanoi($1, $3, $2, $4 - 1);
-    hanoi($1, $2, $3,      1);
-    hanoi($3, $2, $1, $4 - 1);
+    hanoi(a, c, b, d - 1);
+    hanoi(a, b, c,     1);
+    hanoi(c, b, a, d - 1);
 }
-n=0;
 hanoi(1, 3, 2, 3);

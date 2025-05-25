@@ -15,7 +15,7 @@ INST(mul,1)                        /* multiplica los dos valores top de la pila 
 INST(divi,1)                       /* divide los dos valores top de la pila Y / X */
 INST(mod,1)                        /* calcula Y % X */
 INST(neg,1)                        /* calcula -X */
-INST(pwr,1)                        /* calcula Y ^ X */
+INST(pwr,1)                        /* calcula Y ^^ X */
 INST(eval,2,      SUFF(void, symb, prog))/* evalua una variable */
 INST(assign,2,    SUFF(void, symb, prog))/* asigna X a una variable */
 INST(print,1)                      /* imprime X */
