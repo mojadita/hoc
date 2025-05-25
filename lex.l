@@ -83,6 +83,7 @@ static char *deescape(char *in);
 
 " "+          {  col_no += yyleng; /* saltar blancos y tabuladores */ }
 \t            {  col_no += UQ_TAB_SIZE; col_no -= col_no % UQ_TAB_SIZE; }
+\\\n          {  col_no = 1; lineno++; }
 
 0[xX][0-9a-fA-F]* {
                 add_token(INTEGER, lineno, col_no, yyleng, yytext);
