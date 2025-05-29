@@ -76,8 +76,15 @@ install(
 Symbol *lookup(
         const char *name)
 {
+    return lookup_local(name, NULL);
+}
+
+Symbol *lookup_local(
+        const char   *name,
+        const Symbol *scope)
+{
     for (   Symbol *p = lista_simbolos;
-            p != NULL;
+            p != scope;
             p = p->next)
     {
         if (strcmp(name, p->name) == 0)
@@ -157,19 +164,19 @@ void list_symbols(void)
 
 #define RS (*ref_sym)      /* Aqui es un puntero  */
 
-void borrar_variables_locales(Symbol *sym)
+void borrar_scope(Symbol *sym)
 {
     /* Aqui se reinterpreta como doble puntero  *(*ref_sym) */
-    Symbol *RS = &lista_simbolos; /* ojo con este     */
-		/* identificador (ver macro RS arriba, que    */
-		/* no es una variable, sino una macro que     */
-		/* cada vez, apunta a una variable diferente. */
+    Symbol *RS = &lista_simbolos; /* ojo con este         */
+            /* identificador (ver macro RS arriba, que    */
+            /* no es una variable, sino una macro que     */
+            /* cada vez, apunta a una variable diferente. */
 
     while (RS != sym) {
         Symbol *a_borrar = RS;
         RS = a_borrar->next;   /* desconecta */
         free(a_borrar);        /* y borra!!  */
     }
-} /* borrar_variables_locales */
+} /* borrar_scope */
 
 #undef RS

@@ -17,8 +17,8 @@
 
 #define DYNARRAY_GROW(_arry, _type, _need, _inc) \
         do {                                     \
-            int inc = (_inc),                    \
-                nxt = _arry##_len                \
+            size_t inc = (_inc),                 \
+                   nxt = _arry##_len             \
                     + (_need) + inc - 1;         \
             /* nxt to be mult of inc */          \
             nxt    -= nxt % inc;                 \

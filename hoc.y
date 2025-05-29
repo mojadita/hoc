@@ -100,7 +100,7 @@ struct varl *new_varlist(Cell *st, Symbol *first);
 %type  <cel> expr_seq item do else and or function preamb
 %type  <vl>  decl_list var_init
 %type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym> proc_head func_head valid_ident
+%type  <sym> proc_head func_head valid_ident outer_symbol
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -175,17 +175,18 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | decl_list ';'        { $$ = $1.start; }
     ;
 
+/* DECLARACION DE VARIABLES LOCALES */
 decl_list
     : decl_list ',' var_init { assert($$.symbs_sz < UQ_MAX_SYMBOLS_PER_DECLARATION);
                                $$                      = $1;
                                $$.symbs[$$.symbs_sz++] = $3.symbs[0];
-                               assert(!(indef_proc && indef_func));
+                               assert(!(indef_proc && indef_func)); /* no ambos */
                                if (indef_proc || indef_func) {
                                    /* declaracion local de variables */
                                    if (indef_proc) {
-                                      indef_proc->nvars++;
+                                       indef_proc->nvars++;
                                    } else if (indef_func) {
-                                      indef_func->nvars++;
+                                       indef_func->nvars++;
                                    }
                                    if ($3.has_initializer) {
                                        CODE_INST(argassign, $3.symbs[0]->lv_off);
@@ -202,7 +203,7 @@ decl_list
                               $$.typref               = $1;
                               /* ahora que conocemos el tipo, podemos generar el codigo
                                * de inicializacion */
-                              assert(!(indef_proc && indef_func));
+                              assert(!(indef_proc && indef_func)); /* no ambos */
                               if (indef_proc || indef_func) {
                                   /* declaracion local de variables */
                                   if (indef_proc) {
@@ -243,9 +244,9 @@ valid_ident
                                 $$ = install($1, LVAR, NULL);
                                 register_local_var($$, indef_proc);
                              } else {
-                                $$ = install($1, VAR, NULL);
+								$$ = install($1, VAR, NULL);
                                 register_global_var($$);
-                             }
+							 }
                            }
     ;
 
@@ -254,7 +255,8 @@ do  :  /* empty */         { $$ = progp;
                                      progp - prog);
                                  CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
-                                     progp - prog); }
+                                     progp - prog);
+                           }
     ;
 
 else:  ELSE                { $$ = progp;
@@ -262,7 +264,8 @@ else:  ELSE                { $$ = progp;
                                      progp - prog);
                                  CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
-                                     progp - prog); }
+                                     progp - prog);
+                           }
     ;
 
 expr_seq
@@ -413,7 +416,6 @@ function
     : FUNCTION              { CODE_INST(constpush, 0.0); }
     ;
 
-
 arglist_opt
     : arglist
     | /* empty */           { $$ = 0; }
@@ -494,6 +496,7 @@ formal_arglist
 
 proc_head
     : PROC UNDEF            { $$ = define($2, PROCEDURE);
+                              $$->typref = NULL;
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
                                 $2, progp - prog);
                               indef_proc = $$; }

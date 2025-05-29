@@ -33,9 +33,26 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         struct {                          /* si el tipo es FUNC, PROC o VAR */
-            Cell      *defn;
-			int        nargs;             /* numero de argumentos */
-			int        nvars;             /* numero de variables locales */
+            Cell      *defn;              /* donde empieza el codigo de la funcion */
+            Symbol    *prnt_smbl_tble;    /* tabla de symbolos superior */
+            /* prototipo de la funcion */
+            Symbol    *type_func;         /* tipo devuelto por la funcion */
+
+            /* Datos necesarios para la macro DYNARRAY() */
+            Symbol   **argums;            /* puntero a array de punteros a Symbol * */
+            size_t     argums_len;        /* longitud del array de Symbol * argums */
+            size_t     argums_cap;        /* capacidad del array anterior */
+
+            Cell     **returns_to_patch;  /* lista de returns que hay que parchear */
+            size_t     returns_to_patch_len, /* num elementos en la lista */
+                       returns_to_patch_cap; /* capacidad de la lista */
+
+            Symbol   **local_scopes;      /* contextos locales de la funcion */
+            size_t     local_scopes_len,  /* forman una pila */
+                       local_scopes_cap;
+
+            int        nargs;             /* numero de argumentos */
+            int        nvars;             /* numero de variables locales */
             size_t     nxt_off,
                        max_off;
         };
@@ -58,7 +75,8 @@ struct varl {
     Symbol *typref;
     Cell   *start;
     Symbol *symbs[UQ_MAX_SYMBOLS_PER_DECLARATION];
-    size_t  symbs_sz;
+    size_t  symbs_sz,
+            symbs_cap;
     int     has_initializer;
 };
 
@@ -78,9 +96,13 @@ Symbol *install(
 Symbol *lookup(
         const char *name);
 
+Symbol *lookup_local(
+        const char *name,
+        const Symbol *scope);
+
 const char *lookup_type(int typ);
 void list_symbols(void);
-void borrar_variables_locales(Symbol *subr);
+void borrar_scope(Symbol *subr);
 
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */

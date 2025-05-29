@@ -654,7 +654,7 @@ void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
-    borrar_variables_locales(subr);
+    borrar_scope(subr);
 }
 
 Symbol *define(const char *name, int type)
