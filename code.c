@@ -659,7 +659,7 @@ void end_define(Symbol *subr)
 
 Symbol *define(const char *name, int type)
 {
-    Symbol *symb = install(name, type, NULL);
+    Symbol *symb = install(name, type);
     symb->defn = progp;
 
     return symb;

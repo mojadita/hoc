@@ -238,15 +238,15 @@ var_init
 
 valid_ident
     : UNDEF                { if (indef_func) {
-                                $$ = install($1, LVAR, NULL);
+                                $$ = install($1, LVAR);
                                 register_local_var($$, indef_func);
                              } else if (indef_proc) {
-                                $$ = install($1, LVAR, NULL);
+                                $$ = install($1, LVAR);
                                 register_local_var($$, indef_proc);
                              } else {
-								$$ = install($1, VAR, NULL);
+                                $$ = install($1, VAR);
                                 register_global_var($$);
-							 }
+                             }
                            }
     ;
 
@@ -484,11 +484,11 @@ formal_arglist_opt
 
 formal_arglist
     : formal_arglist ',' TYPE UNDEF {
-                              Symbol *sym = install($4, LVAR, NULL);
+                              Symbol *sym = install($4, LVAR);
                               $$          = sym->lv_off = $1 + 1;
                             }
     | TYPE UNDEF            { $$ = 1;
-                              Symbol * sym = install($2, LVAR, NULL);
+                              Symbol * sym = install($2, LVAR);
                               sym->lv_off  = 1;
                             }
     ;

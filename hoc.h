@@ -88,8 +88,7 @@ struct varl {
  * en el parser (en diferentes partes) para asignar variables. */
 Symbol *install(
         const char *name,
-        int         typ,
-        const char *help);
+        int         typ);
 
 /* busca un simbolo en la tabla de simbolos. Devuelve NULL si el
  * simbolo no existe. */

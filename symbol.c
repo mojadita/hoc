@@ -46,19 +46,19 @@ static Symbol *lista_simbolos = NULL;
 Symbol *
 install(
         const char *name,
-        int         typ,
-        const char *help)
+        int         typ)
 {
-    Symbol *ret_val = malloc(sizeof *ret_val);
+    /* llamamos a calloc para que inicialice con
+     * ceros */
+    Symbol *ret_val = calloc(1, sizeof *ret_val);
     assert(ret_val != NULL);
 
     ret_val->name   = strdup(name);
     assert(ret_val->name != NULL);
 
     ret_val->type   = typ;
-    ret_val->defn   = NULL;
-    ret_val->help   = help;
 
+    /* push down */
     ret_val->next   = lista_simbolos;
     lista_simbolos  = ret_val;
 

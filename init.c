@@ -80,7 +80,7 @@ void init(void)  /* install constants and built-ins in table */
             p->name;
             p++)
     {
-        Symbol *s = install(p->name, TYPE, NULL);
+        Symbol *s = install(p->name, TYPE);
         s->size = p->size;
     }
 
@@ -91,7 +91,8 @@ void init(void)  /* install constants and built-ins in table */
             p->name;
             p++)
     {
-        Symbol *s = install(p->name, p->type, p->help);
+        Symbol *s = install(p->name, p->type);
+        s->help = p->help;
         s->typref = D;
         switch(p->type) {
             case BLTIN0: s->ptr0 = p->func; break;
@@ -104,13 +105,13 @@ void init(void)  /* install constants and built-ins in table */
             p->name != NULL;
             p++)
     {
-        Symbol *s = install(p->name, CONST, NULL);
+        Symbol *s = install(p->name, CONST);
         s->typref = D;
         s->val = p->cval;
     }
 
     /* creamos el simbolo prev */
-    Symbol *prev = install("prev", VAR, NULL);
+    Symbol *prev = install("prev", VAR);
     prev->typref = D;
     register_global_var(prev);
 }
