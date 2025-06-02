@@ -44,7 +44,7 @@ get_bucket(struct hash_map *map,
     return map->buckets + (map->hash(key) % map->buckets_len);
 } /* get_bucket */
 
-struct pair *
+static struct pair *
 hash_get_pair_internal(
         equal_f          eq,
         struct bucket   *b,
@@ -59,7 +59,7 @@ hash_get_pair_internal(
 } /* hash_get_pair_internal */
 
 struct pair *
-hash_get_pair(
+hash_map_get_pair(
         struct hash_map *map,
         const char *key)
 {
@@ -67,7 +67,7 @@ hash_get_pair(
 }
 
 void *
-hash_get(
+hash_map_get(
         struct hash_map *map,
         const char      *key)
 {
@@ -76,7 +76,7 @@ hash_get(
 } /* hash_get */
 
 struct pair *
-hash_put(
+hash_map_put(
         struct hash_map *map,
         const char      *key,
         void            *val)
@@ -97,4 +97,11 @@ hash_put(
         map->size++;
     }
     return p;
+}
+
+size_t
+hash_map_size(
+        struct hash_map *map)
+{
+    return map->size;
 }

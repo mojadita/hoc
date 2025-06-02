@@ -6,13 +6,15 @@
  */
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
+#ifdef    __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 #include <sys/types.h>
 
-typedef int (*hash_f)(const char *str);
-
 /* --> 0 significa igual */
 typedef int (*equal_f)(const char *a, const char *b);
+typedef int (*hash_f)(const char *a);
 
 struct pair {
     const char *key;
@@ -32,16 +34,20 @@ void del_hash_map(   struct hash_map *map);
 size_t hash_map_size(struct hash_map *map);
 
 void *
-hash_get(            struct hash_map *map,
+hash_map_get(            struct hash_map *map,
                      const char      *key);
 
 struct pair *
-hash_get_pair(       struct hash_map *map,
+hash_map_get_pair(       struct hash_map *map,
                      const char      *key);
 
 struct pair *
-hash_put(            struct hash_map *map,
+hash_map_put(        struct hash_map *map,
                      const char      *key,
                      void            *val);
 
+
+#ifdef    __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */
 #endif /* HASH_TABLE_H */

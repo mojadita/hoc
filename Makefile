@@ -35,7 +35,7 @@ common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
-hoc_libs       = -lm 
+hoc_libs       = -lm
 toclean       += hoc.o
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
