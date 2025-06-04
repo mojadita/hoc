@@ -16,12 +16,15 @@
 
 #include "config.h"
 #include "colors.h"
+
+#include "code.h"
+#include "symbol.h"
+
 #include "hoc.h"
 #include "lex.h"
 #include "error.h"
 #include "math.h"   /*  Modulo personalizado con nuevas funciones */
 #include "instr.h"
-#include "code.h"
 
 void warning( const char *fmt, ...);
 void vwarning( const char *fmt, va_list args );

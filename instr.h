@@ -14,9 +14,6 @@
 #define I_DATA(i) (instruction_set + (i))
 
 typedef struct instr      instr;
-typedef enum   instr_code instr_code;
-
-#include "hoc.h"
 
 /* LCU: Mon Mar 24 12:27:57 -05 2025
  * este tipo enumerado se introduce a partir de la macro
@@ -27,13 +24,13 @@ typedef enum   instr_code instr_code;
  * correcta, correspondiente segun el orden en que se han
  * definido las instrucciones en el fichero mencionado
  * "instrucciones.h" */
-enum instr_code {
+typedef enum instr_code {
 #define INST(_nom,_n, ...) INST_##_nom,
 #define SUFF(_typ, _p1,_p2)
 #include "instrucciones.h"
 #undef  INST
 #undef  SUFF
-}; /* enum instr */
+} instr_code; /* enum instr */
 
 struct instr {
     instr_code    code_id;

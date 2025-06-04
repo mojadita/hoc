@@ -13,8 +13,6 @@
 #include "config.h"
 #include "colors.h"
 
-#include "code.h"
-
 #include "hoc.h"
 #include "hoc.tab.h"
 

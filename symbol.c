@@ -12,9 +12,11 @@
 #include <stdio.h>
 
 #include "config.h"
-#include "hoc.h"
-#include "colors.h"
 #include "code.h"
+#include "instr.h"
+#include "symbol.h"
+#include "colors.h"
+#include "hoc.h"
 #include "hoc.tab.h"
 
 /* La tabla de simbolos se gestiona como una lista

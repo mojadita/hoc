@@ -8,8 +8,28 @@
 #ifndef CODE_H
 #define CODE_H
 
-#include "hoc.h"
+typedef union  Cell   Cell;
+
 #include "instr.h"
+#include "symbol.h"
+
+/*  Celda de Memoria RAM donde se instala el programa  */
+union Cell {
+    struct {
+        instr_code inst: 8;
+        int        args: 8;
+        int        desp: 16;
+    };
+    Symbol      *sym;
+    double       val;
+    Cell        *cel;
+    const char  *str;
+    long         num;
+};
+
+extern Cell prog[];
+
+typedef double Datum;
 
 extern Cell *progp;                   /* next free cell for code generation */
 extern Cell *progbase;                /* pointer to first program instruction */

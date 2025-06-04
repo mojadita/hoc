@@ -6,6 +6,9 @@
  * License: BSD
  */
 
+#include <stdlib.h>
+#include <sys/types.h>
+
 #include "config.h"
 #include "code.h"
 #include "instr.h"
