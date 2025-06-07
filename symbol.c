@@ -14,7 +14,7 @@
 #include "config.h"
 #include "code.h"
 #include "instr.h"
-#include "symbol.h"
+#include "symbolP.h"
 #include "colors.h"
 #include "hoc.h"
 #include "hoc.tab.h"
@@ -31,6 +31,32 @@
  * los antiguos) */
 
 static Symbol *lista_simbolos = NULL;
+
+static SymbolTable *default_symbol_table = NULL;
+
+SymbolTable *new_symbol_table(void)
+{
+	SymbolTable *ret_val = malloc(sizeof *ret_val);
+	assert(ret_val != NULL);
+	ret_val->map = new_hash_table(17, ___rellenar_esto__, __rellenar_esto__);
+	ret_val->next = default_symbol_table;
+	default_symbol_table = ret_val;
+	return ret_val;
+} /* new_symbol_tab */
+
+void pop_symbol_table(void)
+{
+	/* desengancho */
+	SymbolTable *to_delete = default_symbol_table;
+    default_symbol_table = to_delete->next;
+
+	/* liberando */
+	del_hash_map(to_delete->map);
+	free(to_delete);
+	/* to_delete = NULL --- para que Edward
+     * comulgue con su amigo el de las clases */
+} /* pop_symbol_table */
+
 
 /**
  * @brief instala un simbolo nuevo en la tabla.

@@ -25,7 +25,8 @@ common_objs	   =  hash.o
 toclean		  += $(common_objs)
 
 test01_objs = test01.o
-test-hash_objs = test-hash.o
+
+test-hash_objs = test-hash.o crc.o
 test-hash_libs = -lgtest -lgtest_main
 toclean		  += $(test-hash_objs)
 

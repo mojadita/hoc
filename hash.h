@@ -12,18 +12,19 @@ extern "C" {
 
 #include <sys/types.h>
 
-/* --> 0 significa igual */
-typedef int (*equal_f)(const char *a, const char *b);
-typedef int (*hash_f)(const char *a);
+/*  Declaracion para dar acceso al codigo
+ *  que USA esta libreria  */
+struct hash_map;
 
 struct pair {
     const char *key;
     void       *val;
 };
 
-/*  Declaracion para dar acceso al codigo
- *  que USA esta libreria  */
-struct hash_map;
+/* --> 0 significa igual */
+typedef int  (*equal_f)(const char *a, const char *b);
+typedef int  (*hash_f)(const char *a);
+typedef void (*apply_f)(struct hash_map *h, struct pair *p, void *);
 
 struct hash_map *new_hash_map(
                      size_t           buckets,
@@ -46,6 +47,9 @@ hash_map_put(        struct hash_map *map,
                      const char      *key,
                      void            *val);
 
+void hash_map_apply( struct hash_map *h,
+					 apply_f          to_do,
+					 void            *cp);
 
 #ifdef    __cplusplus
 } /* extern "C" */

@@ -8,6 +8,7 @@ hoc.tab.h
 hoc-sin-prec.tab.h
 lex.c
 *.o
+*.core
 BUILD_DATE.txt
 *~
 .depend
