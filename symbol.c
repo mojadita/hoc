@@ -16,6 +16,7 @@
 #include "instr.h"
 #include "symbolP.h"
 #include "colors.h"
+#include "dynarray.h"
 #include "hoc.h"
 #include "hoc.tab.h"
 
@@ -32,31 +33,40 @@
 
 static Symbol *lista_simbolos = NULL;
 
-static SymbolTable *default_symbol_table = NULL;
+static Symbol **symtables     = NULL;
+static size_t   symtables_cap = 0;
+static size_t   symtables_len = 0;
 
-SymbolTable *new_symbol_table(void)
+#ifndef   UQ_SYMBOL_TABLE_INCRMNT /* { */
+#warning  UQ_SYMBOL_TABLE_INCRMNT should be in 'config.mk'
+#define   UQ_SYMBOL_TABLE_INCRMNT (8)
+#endif /* UQ_SYMBOL_TABLE_INCRMNT    } */
+
+void push_symtab()
 {
-	SymbolTable *ret_val = malloc(sizeof *ret_val);
-	assert(ret_val != NULL);
-	ret_val->map = new_hash_table(17, ___rellenar_esto__, __rellenar_esto__);
-	ret_val->next = default_symbol_table;
-	default_symbol_table = ret_val;
-	return ret_val;
-} /* new_symbol_tab */
+    DYNARRAY_GROW(
+            symtables,
+            Symbol *,
+            1,
+            UQ_SYMBOL_TABLE_INCRMNT);
 
-void pop_symbol_table(void)
+    symtables[symtables_len++]
+            = lista_simbolos;
+} /* push_symbol_table */
+
+Symbol *top_symtab()
 {
-	/* desengancho */
-	SymbolTable *to_delete = default_symbol_table;
-    default_symbol_table = to_delete->next;
+    return symtables_len > 0
+        ? symtables[symtables_len - 1]
+        : NULL;
+}
 
-	/* liberando */
-	del_hash_map(to_delete->map);
-	free(to_delete);
-	/* to_delete = NULL --- para que Edward
-     * comulgue con su amigo el de las clases */
+Symbol *pop_symtab()
+{
+    if (symtables_len == 0)
+        return NULL;
+    return symtables[--symtables_len];
 } /* pop_symbol_table */
-
 
 /**
  * @brief instala un simbolo nuevo en la tabla.
@@ -112,7 +122,7 @@ Symbol *lookup_local(
         const Symbol *scope)
 {
     for (   Symbol *p = lista_simbolos;
-            p != scope;
+            p && p != scope;
             p = p->next)
     {
         if (strcmp(name, p->name) == 0)

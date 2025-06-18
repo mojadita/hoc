@@ -64,11 +64,13 @@ static struct predefined_types { /* predefined types */
     int   size;
 } builtin_types [] = {
     "char",   1,
+    "byte",   1,
+    "short",  1,
     "int",    1,
-    "long",   2,
+    "long",   1,
     "float",  1,
-    "double", 2,
-    "string", 2,
+    "double", 1,
+    "string", 1,
     NULL,     0,
 };
 
