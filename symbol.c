@@ -65,7 +65,11 @@ Symbol *pop_symtab()
 {
     if (symtables_len == 0)
         return NULL;
-    return symtables[--symtables_len];
+
+	Symbol *ret_val = lista_symbolos;
+    list_symbolos   = symtables[--symtables_len];
+
+	return ret_val;
 } /* pop_symbol_table */
 
 /**

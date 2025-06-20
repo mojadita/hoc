@@ -18,13 +18,15 @@
 #include "code.h"
 #include "symbol.h"
 
-struct varl {
-    Symbol *typref;
-    Cell   *start;
-    Symbol *symbs[UQ_MAX_SYMBOLS_PER_DECLARATION];
-    size_t  symbs_sz,
-            symbs_cap;
-    int     has_initializer;
+struct arglst {
+	Symbol **list;
+    size_t   list_cap;
+    size_t   list_len;
+}
+
+struct arg {
+	char *name;
+	Symbol *typref;
 };
 
 /* inicializa la tabla de simbolos con las funciones builtin y las

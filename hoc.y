@@ -68,8 +68,6 @@ jmp_buf begin;
 Symbol *indef_proc,  /* 1 si estamos en una definicion de procedimiento */
        *indef_func;  /* 1 si estamos en una definicion de funcion */
 
-struct varl *new_varlist(Cell *st, Symbol *first);
-
 %}
 /* continuamos el area de definicion y configuracion
  * de yacc */
@@ -83,27 +81,31 @@ struct varl *new_varlist(Cell *st, Symbol *first);
     Cell        *cel;  /* referencia a Cell */
     int          num;  /* valor entero, para $<num> */
     const char  *str;  /* cadena de caracteres */
-    struct varl  vl;   /* lista de variables */
+    struct decl  arg;  /* lista de variables/argumentos formales */
+    struct arglst *arglst; /* lista de argumentos */
 }
 
-%token ERROR
-%token <val> NUMBER
-%token <sym> VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
-%token <sym> FUNCTION PROCEDURE
-%token       PRINT WHILE IF ELSE SYMBS
-%token       OR AND GE LE EQ NE EXP
-%token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
-%token <num> FUNC PROC INTEGER
-%token       RETURN
-%token <str> STRING UNDEF
-%token       LIST
-%token <sym> TYPE
-%type  <cel> stmt cond stmtlist asig
-%type  <cel> expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel> expr_seq item do else and or function preamb
-%type  <vl>  decl_list var_init
-%type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym> proc_head func_head valid_ident outer_symbol
+%token           ERROR
+%token <val>     NUMBER
+%token <sym>     VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
+%token <sym>     FUNCTION PROCEDURE
+%token           PRINT WHILE IF ELSE SYMBS
+%token           OR AND GE LE EQ NE EXP
+%token           PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
+%token <num>     FUNC PROC INTEGER
+%token           RETURN
+%token <str>     STRING UNDEF
+%token           LIST
+%token <sym>     TYPE
+
+%type  <cel>     stmt cond stmtlist asig
+%type  <cel>     expr_or expr_and expr_rel expr term fact prim mark
+%type  <cel>     expr_seq item do else and or function preamb
+%type  <vl>      decl_list var_init
+%type  <num>     arglist_opt arglist formal_arglist_opt formal_arglist
+%type  <sym>     proc_head func_head valid_ident definable
+%type  <arg>     formal_arg
+%type  <arglist> formal_arglist
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -473,6 +475,8 @@ defn: proc_head '(' formal_arglist_opt ')' preamb stmt {
                               P("FIN DEFINICION FUNCION\n");
                             }
 
+	;
+
 preamb: /* empty */         { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                       progp - prog);
                               $$ = CODE_INST(spadd, 0);
@@ -486,14 +490,35 @@ formal_arglist_opt
     ;
 
 formal_arglist
-    : formal_arglist ',' TYPE UNDEF {
-                              Symbol *sym = install($4, LVAR);
-                              $$          = sym->lv_off = $1 + 1;
+    : formal_arglist ',' formal_arg {
+						      Symbl *arg = install($3.name, LVAR);
+							  arg->typref = $3.typref;
+							  $$ = $1;
+                              DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
+							  $$->list[$$->list_len++] = $1;
                             }
-    | TYPE UNDEF            { $$ = 1;
-                              Symbol * sym = install($2, LVAR);
-                              sym->lv_off  = 1;
+    | formal_arg            { push_symtab(); /* contexto nuevo */
+							  Symbol * arg = install($1.name, LVAR);
+							  arg->typref  = $1.typref;
+							  $$ = new_symb_list();
+						      DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
+							  $$->list[$$->list_len++] = $1;
                             }
+    ;
+
+formal_arg
+    : TYPE UNDEF            { $$.name = $2; $$.type = $1; }
+    | TYPE definable        { if (lookup_local($2->name, top_symtab())) {
+                                  execerror("Symbol '%s' already used in scope\n",
+                                          $2->name);
+                              }
+							  $$.name = $2->name; $$.type = $1;
+                            }
+    ;
+
+definable
+    : LVAR
+    | VAR
     ;
 
 
