@@ -103,7 +103,7 @@ struct varl *new_varlist(Cell *st, Symbol *first);
 %type  <cel> expr_seq item do else and or function preamb
 %type  <vl>  decl_list var_init
 %type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym> proc_head func_head valid_ident outer_symbol
+%type  <sym> proc_head func_head valid_ident declarable
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -240,7 +240,8 @@ var_init
     ;
 
 valid_ident
-    : UNDEF                { if (indef_func) {
+    : UNDEF                {
+							 if (indef_func) {
                                 $$ = install($1, LVAR);
                                 register_local_var($$, indef_func);
                              } else if (indef_proc) {
@@ -251,7 +252,27 @@ valid_ident
                                 register_global_var($$);
                              }
                            }
+	| declarable           { if (lookup_local($1->name, top_symtab())) {
+							     execerror("Symbol '%s' already defined",
+									 $1->name);
+							 }
+							 if (indef_func) {
+                                $$ = install($1->name, LVAR);
+                                register_local_var($$, indef_func);
+                             } else if (indef_proc) {
+                                $$ = install($1->name, LVAR);
+                                register_local_var($$, indef_proc);
+                             } else {
+                                $$ = install($1->name, VAR);
+                                register_global_var($$);
+                             }
+						   }
     ;
+
+declarable
+	: LVAR
+	| VAR
+	;
 
 do  :  /* empty */         { $$ = progp;
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",

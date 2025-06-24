@@ -87,6 +87,8 @@ Symbol *lookup_local(
         const char *name,
         const Symbol *scope);
 
+Symbol *top_symtab(void);
+
 const char *lookup_type(int typ);
 void list_symbols(void);
 void borrar_scope(Symbol *subr);
