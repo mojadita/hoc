@@ -1,46 +1,36 @@
-/* intern.c -- implementacion de la funcion intern().
- * Author: Edward Rivas <rivastkw@gmail.com>
- * Date: Mon Jun  2 12:07:03 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+/* intern.c -- Internalizacion de cadenas de caracteres.
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ * Date: Sun Jun 29 09:24:56 -05 2025
+ * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 
-#include <assert.h>
 #include <string.h>
 
-#include "hash.h"
+#include "config.h"
+#include "dynarray.h"
+
 #include "intern.h"
 
-#include "config.h"
+#ifndef   UQ_INTERN_INCREMENT /* { */
+#warning  UQ_INTERN_INCREMENT should be defined in config.mk
+#define   UQ_INTERN_INCREMENT (32)
+#endif /* UQ_INTERN_INCREMENT    } */
 
-static struct hash_map *strings;
+static char   **data;
+static size_t   data_len = 0,
+                data_cap = 0;
 
-static int
-hash(const char *s)
+const char *intern(const char *s)
 {
-	int c, ret_val=119;
-	while ((c = *s++) != 0) {
-		ret_val *= 23;
-		ret_val += c;
-		ret_val %= 1337;
-	}
-	return ret_val;
-} /* hash */
+	int i;
+	for (i = 0; i < data_len && strcmp(s, data[i]) != 0; i++)
+		continue;
+	/* i >= data_len || strcmp(s, data[i]) == 0 */
 
-const char *
-intern(const char *s)
-{
-	if (strings == NULL) {
-		strings = new_hash_map(UQ_HASH_MAX_BUCKETS, hash, strcmp);
-		assert(strings != NULL);
-	}
+	if (i < data_len) return data[i];
 
-	struct pair *p = hash_map_get_pair(strings, s);
+	DYNARRAY_GROW(data, char *, 1, UQ_INTERN_INCREMENT);
 
-	if (!p) { /* no existe */
-		s = strdup(s);
-		p = hash_map_put(strings, s, s);
-	}
-
-	return p->val;
+	return (data[data_len++] = strdup(s));
 } /* intern */
