@@ -1,6 +1,6 @@
 .Dd @DOC_DATE@
 .Dt @PROGRAM_NAME_UC@ 1
-.Os "SCO UNIX
+.Os
 .Sh NAME
 .Nm @PROGRAM_NAME@
 .Nd a simple
