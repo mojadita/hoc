@@ -18,16 +18,6 @@
 #include "code.h"
 #include "symbol.h"
 
-struct arglst {
-	Symbol **list;
-    size_t   list_cap;
-    size_t   list_len;
-}
-
-struct arg {
-	char *name;
-	Symbol *typref;
-};
 
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */

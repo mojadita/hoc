@@ -157,39 +157,6 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     return ret_val;
 }
 
-Cell *register_global_var(Symbol *sym)
-{
-    /* cannot reregister a variable, so it must be
-     * UNDEF, and defn must be null. */
-    assert(sym->type == VAR);
-    assert(sym->defn == NULL);
-    if (progp >= varbase) {
-        execerror("variables zone exhausted (progp >= varbase)\n");
-    }
-    sym->defn = --varbase;
-    PRG("Symbol '%s', type=%s, pos=[%04lx]\n",
-        sym->name,
-        lookup_type(sym->type),
-        sym->defn ? sym->defn - prog : -1);
-    return sym->defn;
-} /* register_global_var */
-
-void register_local_var(Symbol *var, Symbol *proc_func)
-{
-    assert(var->type == LVAR);
-    assert(var->proc_func == NULL);
-    var->proc_func = proc_func;
-    var->lv_off    = proc_func->nxt_off;
-    /* TODO: LCU Sat May 24 15:33:11 -05 2025
-     * poner el size que figura en el tipo. */
-    proc_func->nxt_off -= 1;
-    if (proc_func->nxt_off < proc_func->max_off) {
-        proc_func->max_off = proc_func->nxt_off;
-    }
-    PRG("Local Var '%s', type=%s/%d, offset=%d, proc_func=<%s>\n",
-        var->name, lookup_type(LVAR), LVAR, var->lv_off, proc_func->name);
-}
-
 void execute(Cell *p) /* run the machine */
 {
     EXEC(BRIGHT YELLOW " BEGIN [%04lx]" ANSI_END "\n", (p - prog));

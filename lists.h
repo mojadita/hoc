@@ -12,56 +12,51 @@
 #include "code.h"
 #include "symbol.h"
 
+typedef struct var_init_s       var_init;
+typedef struct list_of_vars_s   list_of_vars;
+
+typedef struct formal_param_s   formal_param;
 typedef struct list_of_params_s list_of_params;
-typedef struct param_s param;
 
-/* podemos tener dos tipos de listas:
- * 1. listas de parametros de una funcion.  En estas listas
- *    cada elemento de la lista representa dos tokens y ademas:
- *     a. el nombre del parametro (parm_name)
- *     b. el Symbol asociado al tipo del parametro.
- *     c. el offset del simbolo en la pila de la funcion llamada.
- *        Este valor especifica el desplazamiento del parametro
- *        respecto al frame pointer, y debe ser calculado una vez
- *        que todos los parametros han sido tenidos en cuenta.
- *        Este valor se calcula restando del offset calculado de
- *        la lista de parametros el tama;o del tipo del parametro.
- *     d. Posicion del codigo de inicializacion de la variable
- *        local.  Este valor representa la posicion de comienzo
- *        del codigo de inicializacion de la variable.  Solo para
- *        listas de variables.
- * 2. Offset maximo alcanzado tras procesar toda la lista.  Este
- *    sera instalado en el simbolo asociado a la funcion y se emplea
- *    tras leer la lista de parametros para sumarlo a todos los
- *    parametros de la lista a fin de que el frame pointer finalmente
- *    tenga offset 0 (sumamos este offset a todos los parametros de
- *    la funcion a fin de que todos los parametros tengan offset
- *    positivo respecto a este registro)
- * 3. Puntero a la celda de memoria de programa donde comienza el
- *    codigo de inicializacion que da el valor inicial a una variable.
- */
+struct var_init_s {
+	int         offset;
+	const char *var_name;
+	Cell       *initializer;
+}; /* var_init_s */
 
-struct param_s {
-    Symbol     *type;      /* param type */
-    const char *parm_name; /* param name */
-    off_t       offset;    /* offset respect frame pointer fp */
-    Cell       *init;      /* pointer to initialization code
-                            * or NULL if no initialization code */
-}; /* param */
+struct list_of_vars_s {
+	Symbol     *typref;
+	Cell       *start;
+	var_init   *data;
+	size_t      data_len,
+                data_cap;
+    int         accum_offset;
+}; /* list_of_vars */
+
+struct formal_param_s {
+    const char *param_name; /* param name */
+    Symbol     *type;       /* param type */
+    off_t       offset;     /* offset respect frame pointer fp */
+}; /* formal_param_s */
 
 struct list_of_params_s {
-    param  *data;
-    size_t  data_len,
-            data_cap;
-    off_t   offset;
-    Symbol *type;
+    formal_param **data;
+    size_t         data_len,
+                   data_cap;
+    int            accum_offset;
 }; /* list_of_params */
 
 list_of_params *
-new_list_of_params(
-        Symbol         *type);
+new_list_of_params();
 
-param *
+list_of_vars *
+new_list_of_vars(Symbol *type);
+
+void add_to_list_of_vars(
+		list_of_vars   *lst,
+		const var_init *to_add);
+
+formal_param *
 add_to_list_of_params(
         list_of_params *list,
         Symbol         *type,

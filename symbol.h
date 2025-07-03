@@ -41,10 +41,8 @@ struct Symbol {                           /* Symbol table entry */
             size_t     local_scopes_len,  /* forman una pila */
                        local_scopes_cap;
 
-            int        nargs;             /* numero de argumentos */
-            int        nvars;             /* numero de variables locales */
-            size_t     nxt_off,
-                       max_off;
+            size_t     scope_offset,
+                       scope_offset_max;
         };
         struct {                          /* si el tipo es LVAR */
             int        lv_off;            /* variables locales y argumentos (LVAR),
@@ -63,6 +61,7 @@ struct Symbol {                           /* Symbol table entry */
 
 SymbolTable *new_symbol_table(void);
 void pop_symbol_table(void);
+Symbol *top_symtab(void);
 
 void symbol_table_list(
 		const SymbolTable *symtab);

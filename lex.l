@@ -15,6 +15,7 @@
 #include "code.h"
 #include "lex.h"
 #include "reserved_words.h"
+#include "intern.h"
 
 #ifndef   UQ_LEX_DEBUG
 #warning  UQ_LEX_DEBUG deberia ser configurado en config.mk
@@ -86,7 +87,7 @@ static char *deescape(char *in);
 \\\n          {  col_no = 1; lineno++; }
 
 0[xX][0-9a-fA-F]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                add_token(INTEGER, lineno, col_no, yyleng, intern(yytext));
                 col_no += yyleng;
                 /* numero entero hex */
                 sscanf(yytext, "%x", &yylval.num);
@@ -96,7 +97,7 @@ static char *deescape(char *in);
               }   /* Un numero integer (hex) */
 
 0[0-7]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                add_token(INTEGER, lineno, col_no, yyleng, intern(yytext));
                 col_no += yyleng;
                 /* numero entero octal */
                 sscanf(yytext, "%o", &yylval.num);
@@ -106,7 +107,7 @@ static char *deescape(char *in);
               }   /* Un numero integer (octal) */
 
 [1-9][0-9]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
+                add_token(INTEGER, lineno, col_no, yyleng, intern(yytext));
                 col_no += yyleng;
                 /* numero entero decimal */
                 sscanf(yytext, "%d", &yylval.num);
@@ -116,7 +117,7 @@ static char *deescape(char *in);
               }   /* Un numero integer (decimal) */
 
 ([0-9]+\.|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
-                add_token(NUMBER, lineno, col_no, yyleng, yytext);
+                add_token(NUMBER, lineno, col_no, yyleng, intern(yytext));
                 col_no += yyleng;
                 /* numero en punto flotante */
                 sscanf(yytext, "%lf", &yylval.val);
@@ -152,18 +153,19 @@ static char *deescape(char *in);
             if (rw) {
                 P("reserved word '%s' -> %s(%d)\n",
                     rw->name, rw->tokn_str, rw->tokn);
-                add_token(rw->tokn, lineno, saved_col_no, yyleng, yytext);
+                add_token(rw->tokn, lineno, saved_col_no, yyleng, rw->name);
 
                 return rw->tokn;
             }
 
             /* BUSCAMOS EN LA TABLA DE SIMBOLOS */
             Symbol *s;
-            if ((s = lookup(yytext)) != NULL) {
+			const char *n = intern(yytext);
+            if ((s = lookup(n)) != NULL) {
                 yylval.sym = s;
                 P("Identificador <%s> (%s / %d)\n",
                     s->name, lookup_type(s->type), s->type);
-                add_token(s->type, lineno, saved_col_no, yyleng, yytext);
+                add_token(s->type, lineno, saved_col_no, yyleng, n);
                 return s->type;
             }
 
@@ -171,23 +173,24 @@ static char *deescape(char *in);
              * y devolvemos un token UNDEF */
 
             const token * t = add_token(UNDEF,
-                    lineno, saved_col_no, yyleng, yytext);
+                    lineno, saved_col_no, yyleng, n);
 
             P("Undefined <%s> (%s / %d)\n",
-                t->lex, lookup_type(UNDEF), UNDEF);
+                n, lookup_type(UNDEF), UNDEF);
 
-            yylval.str = t->lex;
+            yylval.str = n;
 
             return UNDEF;
         }
 
 \"([^\"\n]|\\.)*\" {
             /* CADENA DE CARACTERES */
-            add_token(STRING, lineno, col_no, yyleng, yytext);
+			const char *n = intern(yytext);
+            add_token(STRING, lineno, col_no, yyleng, n);
             col_no += yyleng;
-            yylval.str = deescape(yytext);
+            yylval.str = intern(deescape(yytext));
             P("cadena de caracteres: %s -> [%s]\n",
-                yytext, yylval.str);
+                n, yylval.str);
 
             return STRING;
         }
@@ -201,71 +204,71 @@ static char *deescape(char *in);
         }
 
 ">="    { P("operador %s (%d)\n", yytext, GE);
-            add_token(GE, lineno, col_no, yyleng, yytext);
+            add_token(GE, lineno, col_no, yyleng, ">=");
             col_no += yyleng;
           return GE;  }
 "<="    { P("operador %s (%d)\n", yytext, LE);
-            add_token(LE, lineno, col_no, yyleng, yytext);
+            add_token(LE, lineno, col_no, yyleng, "<=");
             col_no += yyleng;
           return LE;  }
 "=="    { P("operador %s (%d)\n", yytext, EQ);
-            add_token(EQ, lineno, col_no, yyleng, yytext);
+            add_token(EQ, lineno, col_no, yyleng, "==");
             col_no += yyleng;
           return EQ;  }
 "!="    { P("operador %s (%d)\n", yytext, NE);
-            add_token(NE, lineno, col_no, yyleng, yytext);
+            add_token(NE, lineno, col_no, yyleng, "!=");
             col_no += yyleng;
           return NE;  }
 "&&"    { P("operador %s (%d)\n", yytext, AND);
-            add_token(AND, lineno, col_no, yyleng, yytext);
+            add_token(AND, lineno, col_no, yyleng, "&&");
             col_no += yyleng;
           return AND; }
 "||"    { P("operador %s (%d)\n", yytext, OR);
-            add_token(OR, lineno, col_no, yyleng, yytext);
+            add_token(OR, lineno, col_no, yyleng, "||");
             col_no += yyleng;
           return OR;  }
 "^^"    { P("operador %s (%d)\n", yytext, EXP);
-            add_token(EXP, lineno, col_no, yyleng, yytext);
+            add_token(EXP, lineno, col_no, yyleng, "^^");
             col_no += yyleng;
           return EXP; }
 
 "++"    { P("operador %s (%d)\n", yytext, PLS_PLS);
-            add_token(EXP, lineno, col_no, yyleng, yytext);
+            add_token(EXP, lineno, col_no, yyleng, "++");
             col_no += yyleng;
           return PLS_PLS; }
 
 "--"    { P("operador %s (%d)\n", yytext, MIN_MIN);
-            add_token(MIN_MIN, lineno, col_no, yyleng, yytext);
+            add_token(MIN_MIN, lineno, col_no, yyleng, "--");
             col_no += yyleng;
           return MIN_MIN; }
 
 "+="    { P("operador %s (%d)\n", yytext, PLS_EQ);
-            add_token(PLS_EQ, lineno, col_no, yyleng, yytext);
+            add_token(PLS_EQ, lineno, col_no, yyleng, "+=");
             col_no += yyleng;
           return PLS_EQ; }
 
 "-="    { P("operador %s (%d)\n", yytext, MIN_EQ);
-            add_token(MIN_EQ, lineno, col_no, yyleng, yytext);
+            add_token(MIN_EQ, lineno, col_no, yyleng, "-=");
             col_no += yyleng;
           return MIN_EQ; }
 
 "*="    { P("operador %s (%d)\n", yytext, MUL_EQ);
-            add_token(MUL_EQ, lineno, col_no, yyleng, yytext);
+            add_token(MUL_EQ, lineno, col_no, yyleng, "*=");
             col_no += yyleng;
           return MUL_EQ; }
 
 "/="    { P("operador %s (%d)\n", yytext, DIV_EQ);
-            add_token(DIV_EQ, lineno, col_no, yyleng, yytext);
+            add_token(DIV_EQ, lineno, col_no, yyleng, "/=");
             col_no += yyleng;
           return DIV_EQ; }
 
 "%="    { P("operador %s (%d)\n", yytext, MOD_EQ);
-            add_token(MOD_EQ, lineno, col_no, yyleng, yytext);
+            add_token(MOD_EQ, lineno, col_no, yyleng, "%=");
             col_no += yyleng;
           return MOD_EQ; }
 
 "^^="   { P("operador %s (%d)\n", yytext, PWR_EQ);
-            add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
+            add_token(PWR_EQ, lineno, col_no, yyleng, "^^=");
             col_no += yyleng;
           return PWR_EQ; }
 
@@ -281,7 +284,7 @@ static char *deescape(char *in);
 
 .       { P("symbol/operator '%c' (%d)\n",
                 yytext[0], yytext[0]);
-          add_token(yytext[0], lineno, col_no, 1, yytext);
+          add_token(yytext[0], lineno, col_no, 1, intern(yytext));
           col_no += yyleng;
           return yytext[0];
         }
@@ -304,13 +307,10 @@ void reset_add_token(void)
             i < UQ_LAST_TOKENS_SZ;
             i++, last_token++)
     {
-        last_token->tok = 0;
-        last_token->lin = 0;
-        last_token->col = 0;
-        last_token->len = 0;
-        if (last_token->lex) {
-            free((void *)last_token->lex);
-        }
+        last_token->tok   = 0;
+        last_token->lin   = 0;
+        last_token->col   = 0;
+        last_token->len   = 0;
         last_token->lex   = NULL;
         token_buffer_full = 0;
     }
@@ -336,10 +336,7 @@ add_token(
     last_token->lin = lin;
     last_token->col = col;
     last_token->len = len;
-    if (last_token->lex != NULL) {
-        free((void *)last_token->lex);
-    }
-    last_token->lex = strdup(lex);
+    last_token->lex = lex;
 
     return last_token;
 } /* add_token */

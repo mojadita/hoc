@@ -1,6 +1,6 @@
 /* lists.c -- estructuras para manejo de listas.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
- * Date:
+ * Date: Mon Jun 30 09:22:39 -05 2025
  * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
  * License: BSD
  */
@@ -13,26 +13,22 @@
 #include "lists.h"
 
 list_of_params *
-new_list_of_params(
-        Symbol         *type)
+new_list_of_params()
 {
     list_of_params *ret_val = malloc(sizeof *ret_val);
     assert(ret_val != NULL);
 
     const static list_of_params ini = {
-        .data     = NULL,
-        .data_len = 0,
-        .data_cap = 0,
-        .offset   = 0,
-        .type     = NULL,
+        .data         = NULL,
+        .data_len     = 0,
+        .data_cap     = 0,
+        .accum_offset = 0,
     };
 
     *ret_val = ini;
 
     return ret_val;
 } /* new_list_of_params */
-
-
 
 param *
 add_to_list_of_params(
@@ -52,9 +48,10 @@ add_to_list_of_params(
         .type      = type,
         .parm_name = param_name,
         .offset    = offset,
-        .init      = init,
     };
 
-    return &(list->data[list->data_len++] = val);
+	param *ret_val = list->data + list->data_len++;
+	*ret_val       = val;
 
+    return ret_val;
 } /* add_to_list_of_params */

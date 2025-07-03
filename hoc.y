@@ -1,5 +1,5 @@
 %{
-/* hoc-sin-prec.y -- programa para implementar una calculadora.
+/* hoc.y -- programa para implementar una calculadora.
  * Esta version no tiene precedencia de operadores.
  * Author: Edward Rivas <rivastkw@gmail.com>
  *       y Luis Colorado <luiscoloradourcola@gmail.com>
@@ -16,9 +16,11 @@
 
 #include "config.h"
 #include "colors.h"
+#include "dynarray.h"
 
 #include "code.h"
 #include "symbol.h"
+#include "lists.h"
 
 #include "hoc.h"
 #include "lex.h"
@@ -75,14 +77,16 @@ Symbol *indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    const instr *inst; /* instruccion maquina */
-    Symbol      *sym;  /* puntero a simbolo */
-    double       val;  /* valor double */
-    Cell        *cel;  /* referencia a Cell */
-    int          num;  /* valor entero, para $<num> */
-    const char  *str;  /* cadena de caracteres */
-    struct decl  arg;  /* lista de variables/argumentos formales */
-    struct arglst *arglst; /* lista de argumentos */
+    const instr     *inst; /* instruccion maquina */
+    Symbol          *sym;  /* puntero a simbolo */
+    double           val;  /* valor double */
+    Cell            *cel;  /* referencia a Cell */
+    int              num;  /* valor entero, para $<num> */
+    const char      *str;  /* cadena de caracteres */
+    var_init         vi;   /* inicializador de un var_init */
+    formal_param     fp;   /* formal parameter. */
+    list_of_vars    *lv;   /* lista de variables e inicializadores */
+    list_of_params  *lp;   /* lista de parametros formales */
 }
 
 %token           ERROR
@@ -101,11 +105,13 @@ Symbol *indef_proc,  /* 1 si estamos en una definicion de procedimiento */
 %type  <cel>     stmt cond stmtlist asig
 %type  <cel>     expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel>     expr_seq item do else and or function preamb
-%type  <vl>      decl_list var_init
-%type  <num>     arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>     proc_head func_head valid_ident definable
-%type  <arg>     formal_arg
-%type  <arglist> formal_arglist
+%type  <sym>     proc_head func_head definable
+%type  <num>     arglist_opt arglist formal_arglist_opt
+%type  <lv>      decl_list
+%type  <lp>      formal_arglist
+%type  <vi>      var_init
+%type  <fp>      formal_arg
+%type  <str>     valid_ident
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -177,81 +183,68 @@ stmt: asig        ';'      { CODE_INST(drop); }
                              CODE_INST(call, $1, $4); /* instruction */
                              CODE_INST(spadd, $4);    /* pop arguments */
                            }
-    | decl_list ';'        { $$ = $1.start; }
+    | decl_list ';'        {
+                             $$ = $1->start;
+                             assert(!(indef_func && indef_proc));
+                             if (indef_func || indef_proc) {
+                                /* variables locales */
+                                Symbol *indef        = indef_func ? indef_func
+                                                                  : indef_proc;
+                                indef->scope_offset += $1->accum_offset;
+                                if (indef->scope_offset     < indef->scope_offset_max) {
+                                    indef->scope_offset_max = indef->scope_offset;
+                                }
+                             } else {
+                                /* variables globales */
+                                assert(progp < varbase + $1->accum_offset);
+                                varbase += $1->accum_offset;
+                             }
+                           }
     ;
 
-/* DECLARACION DE VARIABLES LOCALES */
+/* DECLARACION DE VARIABLES GLOBALES/LOCALES */
 decl_list
-    : decl_list ',' var_init { assert($$.symbs_sz < UQ_MAX_SYMBOLS_PER_DECLARATION);
-                               $$                      = $1;
-                               $$.symbs[$$.symbs_sz++] = $3.symbs[0];
-                               assert(!(indef_proc && indef_func)); /* no ambos */
-                               if (indef_proc || indef_func) {
-                                   /* declaracion local de variables */
-                                   if (indef_proc) {
-                                       indef_proc->nvars++;
-                                   } else if (indef_func) {
-                                       indef_func->nvars++;
-                                   }
-                                   if ($3.has_initializer) {
-                                       CODE_INST(argassign, $3.symbs[0]->lv_off);
-                                       CODE_INST(drop);
-                                   }
-                               } else if ($3.has_initializer) {
-                                   /* declaracion global de variables */
-                                   CODE_INST(assign, $3.symbs[0]);
-                                   CODE_INST(drop);
-                               }
-                             }
+    : decl_list ',' var_init
+                           {
+                             $$         = $1;
+                             add_to_list_of_vars($$, &$3);
+                           }
 
-    | TYPE var_init         { $$                      = $2;
-                              $$.typref               = $1;
-                              /* ahora que conocemos el tipo, podemos generar el codigo
-                               * de inicializacion */
-                              assert(!(indef_proc && indef_func)); /* no ambos */
-                              if (indef_proc || indef_func) {
-                                  /* declaracion local de variables */
-                                  if (indef_proc) {
-                                      indef_proc->nvars++;
-                                  } else if (indef_func) {
-                                      indef_func->nvars++;
-                                  }
-                                  if ($2.has_initializer) {
-                                      CODE_INST(argassign, $2.symbs[0]->lv_off);
-                                      CODE_INST(drop);
-                                  }
-                              } else if ($2.has_initializer) {
-                                  /* declaracion global de variables */
-                                  CODE_INST(assign, $2.symbs[0]);
-                                  CODE_INST(drop);
-                              }
+    | TYPE          var_init
+                           {
+                             $$         = new_list_of_vars($1);
+
+							 assert(!(indef_func && indef_proc));
+							 if (indef_func || indef_proc) {
+								 Symbol*indef     = indef_func ? indef_func
+                                                               : indef_proc;
+                                 $$->accum_offset = indef->scope_offset;
+							 }
+                             add_to_list_of_vars($$, &$2);
                             }
     ;
 
 var_init
-    : valid_ident          { $$.start           = progp;
-                             $$.symbs[0]        = $1;
-                             $$.symbs_sz        =  1;
-                             $$.has_initializer =  0;
+    : valid_ident          { $$.var_name    = $1;
+                             $$.initializer = NULL;
                            }
-    | valid_ident '=' asig { $$.start    = $3;
-                             $$.symbs[0] = $1;
-                             $$.symbs_sz =  1;
-                             $$.has_initializer =  1;
+    | valid_ident '=' asig {
+                             $$.var_name    = $1;
+                             $$.initializer = $3;
+                             CODE_INST(noop);  /* para insertar mas tarde
+                                                * el patching code ---conversion
+                                                * al tipo de la variable*/
                            }
     ;
 
 valid_ident
-    : UNDEF                { if (indef_func) {
-                                $$ = install($1, LVAR);
-                                register_local_var($$, indef_func);
-                             } else if (indef_proc) {
-                                $$ = install($1, LVAR);
-                                register_local_var($$, indef_proc);
-                             } else {
-                                $$ = install($1, VAR);
-                                register_global_var($$);
+    : UNDEF
+    | definable            {
+                             if (lookup_local($1->name, top_symtab())) {
+                                  execerror("Symbol '%s' already used in scope\n",
+                                          $1->name);
                              }
+                             $$ = $1->name;
                            }
     ;
 
@@ -438,7 +431,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb stmt {
                               progp             = $5;
                               PT(">>> begin patching CODE @ [%04lx]\n",
                                       progp - prog);
-                              CODE_INST(spadd, -$1->nvars);
+                              CODE_INST(spadd, $1->scope_offset_max);
                               PT("<<< end   patching CODE @ [%04lx], "
                                       "continuing @ [%04lx]\n",
                                       progp - prog, saved_progp - prog);
@@ -475,8 +468,12 @@ defn: proc_head '(' formal_arglist_opt ')' preamb stmt {
                               P("FIN DEFINICION FUNCION\n");
                             }
 
-	;
+    ;
 
+/*
+ * LCU: Thu Jul  3 11:38:35 -05 2025
+ * TODO:
+ */
 preamb: /* empty */         { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                       progp - prog);
                               $$ = CODE_INST(spadd, 0);
@@ -491,18 +488,18 @@ formal_arglist_opt
 
 formal_arglist
     : formal_arglist ',' formal_arg {
-						      Symbl *arg = install($3.name, LVAR);
-							  arg->typref = $3.typref;
-							  $$ = $1;
+                              Symbl *arg = install($3.name, LVAR);
+                              arg->typref = $3.typref;
+                              $$ = $1;
                               DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
-							  $$->list[$$->list_len++] = $1;
+                              $$->list[$$->list_len++] = $1;
                             }
     | formal_arg            { push_symtab(); /* contexto nuevo */
-							  Symbol * arg = install($1.name, LVAR);
-							  arg->typref  = $1.typref;
-							  $$ = new_symb_list();
-						      DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
-							  $$->list[$$->list_len++] = $1;
+                              Symbol * arg = install($1.name, LVAR);
+                              arg->typref  = $1.typref;
+                              $$ = new_symb_list();
+                              DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
+                              $$->list[$$->list_len++] = $1;
                             }
     ;
 
@@ -512,7 +509,7 @@ formal_arg
                                   execerror("Symbol '%s' already used in scope\n",
                                           $2->name);
                               }
-							  $$.name = $2->name; $$.type = $1;
+                              $$.name = $2->name; $$.type = $1;
                             }
     ;
 
@@ -538,15 +535,55 @@ func_head
     ;
 %%
 
-struct varl *new_varlist(Cell *st, Symbol *first)
-{
-    struct varl *ret_val = malloc(sizeof *ret_val);
-    assert(ret_val != NULL);
-    ret_val->symbs[0] = first;
-    ret_val->symbs_sz = 1;
+#ifndef   UQ_LIST_OF_VARS_INCRMNT  /* { */
+#warning  UQ_LIST_OF_VARS_INCRMNT should be defined in 'config.mk'
+#define   UQ_LIST_OF_VARS_INCRMNT (32)
+#endif /* UQ_LIST_OF_VARS_INCRMNT     } */
 
-    return ret_val;
-} /* new_varlist */
+void add_to_list_of_vars(list_of_vars *lst, const var_init *vi)
+{
+    DYNARRAY_GROW(lst->data, var_init, 1, UQ_LIST_OF_VARS_INCRMNT);
+    var_init *vd      = lst->data + lst->data_len++;
+    *vd               = *vi;
+    vd->offset        = lst->accum_offset - lst->typref->size;
+    lst->accum_offset = vd->offset;
+    /* actualizacion de start si tenemos inicializador */
+    if (!lst->start && vd->initializer)
+        lst->start = vd->initializer;
+
+    /* ahora que conocemos el tipo, podemos generar el codigo
+     * tras la inicializacion */
+    assert(!(indef_proc && indef_func)); /* no ambos */
+    if (indef_proc || indef_func) {
+        Symbol *lv    = install(vd->var_name, LVAR);
+        lv->lv_off    = vd->offset;
+        lv->proc_func = indef_proc
+                            ? indef_proc
+                            : indef_func;
+        if (vd->initializer) {
+            CODE_INST(argassign, vd->offset);
+            CODE_INST(drop);
+        }
+        P("Local Var '%s', type=%s/%d, offset=%d, proc_func=<%s>\n",
+            lv->name,
+            lookup_type(LVAR),
+            LVAR,
+            lv->lv_off,
+            lv->proc_func->name);
+    } else {
+        /* declaracion global de variables */
+        Symbol *gv = install(vd->var_name, VAR);
+        gv->defn   = varbase + vd->offset;
+        if (vd->initializer) {
+            CODE_INST(assign, gv->defn);
+            CODE_INST(drop);
+        }
+        P("Symbol '%s', type=%s, pos=[%04lx]\n",
+            gv->name,
+            lookup_type(gv->type),
+            gv->defn ? gv->defn - prog : -1);
+    }
+} /* add_to_list_of_vars */
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
