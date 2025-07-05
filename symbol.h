@@ -24,7 +24,6 @@ struct Symbol {                           /* Symbol table entry */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         struct {                          /* si el tipo es FUNC, PROC o VAR */
             Cell      *defn;              /* donde empieza el codigo de la funcion */
-            Symbol    *prnt_smbl_tble;    /* tabla de symbolos superior */
             /* prototipo de la funcion */
             Symbol    *type_func;         /* tipo devuelto por la funcion */
 
@@ -37,12 +36,7 @@ struct Symbol {                           /* Symbol table entry */
             size_t     returns_to_patch_len, /* num elementos en la lista */
                        returns_to_patch_cap; /* capacidad de la lista */
 
-            Symbol   **local_scopes;      /* contextos locales de la funcion */
-            size_t     local_scopes_len,  /* forman una pila */
-                       local_scopes_cap;
-
-            size_t     scope_offset,
-                       scope_offset_max;
+			scope      *main_scope;
         };
         struct {                          /* si el tipo es LVAR */
             int        lv_off;            /* variables locales y argumentos (LVAR),

@@ -615,20 +615,29 @@ void or_else_prt(const instr *i, const Cell *pc)
     PR("[%04x]\n", pc[0].desp);
 }
 
-void end_define(Symbol *subr)
+Symbol *define_subr(
+        const char *name,
+        int         type,
+        Symbol     *typref,
+        const char *text)
+{
+    Symbol *symb     = install(name, type);
+    symb->defn       = progp;
+    symb->typref     = typref;
+    symb->main_scope = start_scope();
+
+    P("DEFINIENDO %s '%s' @ [%04lx]\n",
+            text, name, progp - prog);
+
+    return symb;
+} /* define_subr */
+
+void define_subr_end(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
     borrar_scope(subr);
-}
-
-Symbol *define(const char *name, int type)
-{
-    Symbol *symb = install(name, type);
-    symb->defn = progp;
-
-    return symb;
-}
+} /* define_subr_end */
 
 void symb_int_prog(const instr *i, Cell *pc, va_list args)
 {
