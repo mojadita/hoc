@@ -12,8 +12,8 @@
 #include "symbol.h"
 
 struct SymbolTable {
-		struct hash_map *map;
-		SymbolTable     *next;
+        struct hash_map *map;
+        SymbolTable     *next;
 }; /* SymbolTable */
 
 #endif /* SYMBOL_H_PRIVATE */

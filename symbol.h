@@ -36,7 +36,8 @@ struct Symbol {                           /* Symbol table entry */
             size_t     returns_to_patch_len, /* num elementos en la lista */
                        returns_to_patch_cap; /* capacidad de la lista */
 
-			scope      *main_scope;
+            scope      *main_scope;
+            int         params_size;
         };
         struct {                          /* si el tipo es LVAR */
             int        lv_off;            /* variables locales y argumentos (LVAR),
@@ -58,7 +59,7 @@ void pop_symbol_table(void);
 Symbol *top_symtab(void);
 
 void symbol_table_list(
-		const SymbolTable *symtab);
+        const SymbolTable *symtab);
 SymbolTable *symbol_table_active(void);
 
 /* instala un nuevo simbolo en la tabla de simbolos, inicializado

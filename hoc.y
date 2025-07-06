@@ -481,28 +481,41 @@ preamb: /* empty */         { PT(">>> begin inserting unpatched CODE @ [%04lx]\n
                             }
 
 formal_paramlist_opt
-    : formal_paramlist      { if (indef_func) indef_func->nargs = $1;
-                              if (indef_proc) indef_proc->nargs = $1; }
+    : formal_paramlist      { $$ = $1;
+                              $$->accum_offset--; /* tama;o lista parametros */
+                              for (int i = 0; i < $$.data_len; ++i) {
+                                  $$.data[i].offset -= $$->accum_offset;
+                              }
+                            }
+/*
+      +++++++3+++++++++2+++++++++1+++++++++ ---------1---------2---------3------
+      76543210987654321098765432109876543210123456789012345678901234567890123456
+                                           [  d1   ][ d2][d3               ][d4]
+                                                   0    1                  2   3
+                                                            |
+                       ,------------------------------------'
+                       v
+      +++++++3+++++++++2+++++++++1+++++++++
+      76543210987654321098765432109876543210
+      [  d1   ][ d2][d3               ][d4]
+              0    1                  2   3
+*/
+
     | /* empty */           { $$ = 0; }
     ;
 
 formal_paramlist
     : formal_paramlist ',' formal_param {
-                              Symbl *arg = install($3.name, LVAR);
-                              arg->typref = $3.typref;
                               $$ = $1;
-                              DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
-                              $$->list[$$->list_len++] = $1;
+                              add_to_formal_param_list(
+                                      $$,
+                                      $3);
                             }
     | formal_param          {
-                              /* LCU: Sat Jul  5 03:45:50 -05 2025
-                               * TODO: continuar aqui.
-                               */
-                              Symbol * arg = install($1.name, LVAR);
-                              arg->typref  = $1.typref;
-                              $$ = new_symb_list();
-                              DYNARRAY_GROW($$->list, Symbol*, 1, UQ_SYMBLIST_INCRMNT);
-                              $$->list[$$->list_len++] = $1;
+                              $$ = new_formal_paramlist();
+                              add_to_formal_param_list(
+                                      $$,
+                                      &$1);
                             }
     ;
 
@@ -513,10 +526,9 @@ formal_param
                                             "in parameter list\n",
                                             $2->name);
                               }
-                              $$.param_name = $2->name; $$.type = $1;
-                              scope *s      = get_current_scope();
-                              assert(s != NULL);
-                              $$.offset     = scope_calculate_offset($1);
+                              $$.param         = install($2, LVAR);
+                              $$.param->typref = $$.type = $1;
+                              $$.offset        = scope_calculate_offset($1);
                             }
     ;
 

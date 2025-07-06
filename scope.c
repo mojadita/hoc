@@ -113,8 +113,8 @@ Symbol *install(const char *sym_name, int sym_type)
 
 int scope_calculate_offset(Symbol *type)
 {
-    scope *s = get_current_scope();
-    s->base_offset -= type->size;
+    scope *s          = get_current_scope();
+    s->base_offset   -= type->size;
     if (s->base_offset < s->max_offset)
         s->max_offset = s->base_offset;
     return s->base_offset;

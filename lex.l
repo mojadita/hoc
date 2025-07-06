@@ -160,7 +160,7 @@ static char *deescape(char *in);
 
             /* BUSCAMOS EN LA TABLA DE SIMBOLOS */
             Symbol *s;
-			const char *n = intern(yytext);
+            const char *n = intern(yytext);
             if ((s = lookup(n)) != NULL) {
                 yylval.sym = s;
                 P("Identificador <%s> (%s / %d)\n",
@@ -185,7 +185,7 @@ static char *deescape(char *in);
 
 \"([^\"\n]|\\.)*\" {
             /* CADENA DE CARACTERES */
-			const char *n = intern(yytext);
+            const char *n = intern(yytext);
             add_token(STRING, lineno, col_no, yyleng, n);
             col_no += yyleng;
             yylval.str = intern(deescape(yytext));

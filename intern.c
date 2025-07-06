@@ -23,14 +23,14 @@ static size_t   data_len = 0,
 
 const char *intern(const char *s)
 {
-	int i;
-	for (i = 0; i < data_len && strcmp(s, data[i]) != 0; i++)
-		continue;
-	/* i >= data_len || strcmp(s, data[i]) == 0 */
+    int i;
+    for (i = 0; i < data_len && strcmp(s, data[i]) != 0; i++)
+        continue;
+    /* i >= data_len || strcmp(s, data[i]) == 0 */
 
-	if (i < data_len) return data[i];
+    if (i < data_len) return data[i];
 
-	DYNARRAY_GROW(data, char *, 1, UQ_INTERN_INCREMENT);
+    DYNARRAY_GROW(data, char *, 1, UQ_INTERN_INCREMENT);
 
-	return (data[data_len++] = strdup(s));
+    return (data[data_len++] = strdup(s));
 } /* intern */

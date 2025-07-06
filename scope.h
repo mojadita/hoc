@@ -66,15 +66,15 @@ typedef struct scope_s scope;
 #include "symbol.h"
 
 struct scope_s {
-	Symbol *sentinel;    /* este Symbol marca el
-						  * final del scope. */
-	int     base_offset; /* offset base del scope,
-						  * aumenta a medida que se
-						  * a;aden variables al
-						  * mismo. */
-	int     max_offset;  /* valor maximo alcanzado por
-						  * la variable base_offset en
-						  * este scope y subscopes */
+    Symbol *sentinel;    /* este Symbol marca el
+                          * final del scope. */
+    int     base_offset; /* offset base del scope,
+                          * aumenta a medida que se
+                          * a;aden variables al
+                          * mismo. */
+    int     max_offset;  /* valor maximo alcanzado por
+                          * la variable base_offset en
+                          * este scope y subscopes */
 }; /* struct scope_s */
 
 /**
@@ -136,7 +136,7 @@ void    end_scope(void);
  * @return El Symbol encontrado o NULL si no existe.
  */
 Symbol *lookup(
-		const char *sym_name);
+        const char *sym_name);
 
 /**
  * @brief Busca un simbolo en la tabla de simbolos.
@@ -153,7 +153,7 @@ Symbol *lookup(
  *         el ambito actual.
  */
 Symbol *lookup_current_scope(
-		const char *sym_name);
+        const char *sym_name);
 
 /**
  * @brief instala un simbolo nuevo en la tabla
@@ -170,7 +170,7 @@ Symbol *lookup_current_scope(
  * @return La funcion retorna un puntero al
  *         nuevo Symbol creado. */
 Symbol *install(
-		const char *sym_name,
-		int         sym_type);
+        const char *sym_name,
+        int         sym_type);
 
 #endif /* SCOPE_H */
