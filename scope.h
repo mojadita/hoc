@@ -86,7 +86,7 @@ struct scope_s {
  *         en la inicializacion define varios simbolos
  *         "predefinidos")
  */
-Symbol *get_current_symbol()
+Symbol *get_current_symbol();
 
 /**
  * @brief obtiene el ambito actual.

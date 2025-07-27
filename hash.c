@@ -42,8 +42,8 @@ static struct bucket *
 get_bucket(struct hash_map *map,
         const char *key)
 {
-	int hsh = map->hash(key);
-	int bkt = hsh % map->buckets_len;
+    int hsh = map->hash(key);
+    int bkt = hsh % map->buckets_len;
     return map->buckets + bkt;
 } /* get_bucket */
 
@@ -110,15 +110,15 @@ hash_map_size(
 }
 
 void hash_map_apply(
-		struct hash_map *h,
-		apply_f          to_do,
-		void            *cp)
+        struct hash_map *h,
+        apply_f          to_do,
+        void            *cp)
 {
-	struct bucket *b = h->buckets;
-	for (int i = 0; i < h->buckets_len; ++i, ++b) {
-		struct pair *p = b->elem;
-		for (int j = 0; j < b->elem_len; ++j, ++p) {
-			to_do(h, p, cp);
-		}
-	}
+    struct bucket *b = h->buckets;
+    for (int i = 0; i < h->buckets_len; ++i, ++b) {
+        struct pair *p = b->elem;
+        for (int j = 0; j < b->elem_len; ++j, ++p) {
+            to_do(h, p, cp);
+        }
+    }
 } /* hash_map_apply */

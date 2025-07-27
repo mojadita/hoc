@@ -10,6 +10,8 @@
 typedef struct Symbol Symbol;
 typedef struct SymbolTable SymbolTable;
 
+#include "scope.h"
+
 struct Symbol {                           /* Symbol table entry */
     char          *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:

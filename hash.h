@@ -48,8 +48,8 @@ hash_map_put(        struct hash_map *map,
                      void            *val);
 
 void hash_map_apply( struct hash_map *h,
-					 apply_f          to_do,
-					 void            *cp);
+                     apply_f          to_do,
+                     void            *cp);
 
 #ifdef    __cplusplus
 } /* extern "C" */

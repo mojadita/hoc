@@ -1,6 +1,6 @@
 %{
 /* hoc.y -- programa para implementar una calculadora.
- * Esta version no tiene precedencia de operadores.
+ * Esta version no usa precedencia de operadores.
  * Author: Edward Rivas <rivastkw@gmail.com>
  *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Mon Dec 30 14:06:56 -05 2024
@@ -21,6 +21,7 @@
 #include "code.h"
 #include "symbol.h"
 #include "lists.h"
+#include "intern.h"
 
 #include "hoc.h"
 #include "lex.h"
@@ -133,17 +134,17 @@ stmt: asig        ';'      { CODE_INST(drop); }
                               * TODO: saltar al final de la funcion (parcheando
                               * este codigo cuando el final de la funcion se
                               * conozca) */
-                             $$ = CODE_INST(spadd, indef_proc->nvars);
-                             CODE_INST(ret); }
+                             $$ = CODE_INST(noop, ); /* parchear a Goto al final */
+                             CODE_INST(ret); }   /* y esta instruccion desaparece */
     | RETURN asig ';'      { defnonly(indef_func != NULL, "return <asig>;");
                              $$ = $2;
-                             /* LCU: Sat Jul  5 02:01:50 -05 2025
-                              * TODO: saltar al final de la funcion (parcheando
-                              * este codigo cuando se sepa donde esta el final
-                              * de la funcion) */
                              CODE_INST(argassign, 0); /* $0 = top() */
                              CODE_INST(drop);
-                             CODE_INST(spadd, indef_func->nvars);
+                             /* LCU: Fri Jul 18 18:16:26 EEST 2025
+                              * TODO: saltar al final de la funcion (parcheando
+                              * este codigo cuando el final de la funcion se
+                              * conozca) */
+                             CODE_INST(noop); /* parchear a Goto al final */
                              CODE_INST(ret); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -562,7 +563,7 @@ func_head
 #define   UQ_LIST_OF_VARS_INCRMNT (32)
 #endif /* UQ_LIST_OF_VARS_INCRMNT     } */
 
-void add_to_decl_list(list_of_vars *lst, const var_init *vi)
+void add_to_decl_list(decl_list *lst, const var_init *vi)
 {
     DYNARRAY_GROW(lst->data, var_init, 1, UQ_LIST_OF_VARS_INCRMNT);
     var_init *vd      = lst->data + lst->data_len++;
