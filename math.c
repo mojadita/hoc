@@ -94,3 +94,8 @@ double now(void)
     double n = time(NULL);
     return (double)n;
 }
+
+double integer(double x)
+{
+    return (int) x;
+}

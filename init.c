@@ -65,10 +65,10 @@ static struct predefined_types { /* predefined types */
 } builtin_types [] = {
     "char",   1,
     "int",    1,
-    "long",   2,
+    "long",   1,
     "float",  1,
-    "double", 2,
-    "string", 2,
+    "double", 1,
+    "string", 1,
     NULL,     0,
 };
 
@@ -114,9 +114,4 @@ void init(void)  /* install constants and built-ins in table */
     Symbol *prev = install("prev", VAR);
     prev->typref = D;
     register_global_var(prev);
-}
-
-double integer(double x)
-{
-    return (int) x;
 }

@@ -18,5 +18,6 @@ double opuesto( double x );
 double Rand(void);
 double rd(void);
 double now(void);
+double integer(double x);
 
 #endif /* MATH_H */
