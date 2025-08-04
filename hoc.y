@@ -23,6 +23,9 @@
 #include "instr.h"
 #include "code.h"
 
+#include "symbol.h"
+#include "cell.h"
+
 void warning( const char *fmt, ...);
 void vwarning( const char *fmt, va_list args );
 void yyerror( char * msg );

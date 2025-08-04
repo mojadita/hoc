@@ -15,61 +15,10 @@
 
 #define OUTPUT_FMT   "%32.8g"
 
-typedef union  Cell   Cell;
-typedef struct Symbol Symbol;
 
+#include "cell.h"
+#include "symbol.h"
 #include "instr.h"
-
-struct Symbol {                           /* Symbol table entry */
-    char          *name;                  /* nombre del simbolo */
-    int            type;                  /* tipo del simbolo:
-                                           * VAR, BLTIN[012], UNDEF */
-    const char    *help;                  /* help text (optional) */
-    Symbol        *typref;                /* ref al tipo de la
-                                           * variable/func/builtin... */
-    union {
-        double     val;                   /* si el tipo es CONST */
-        double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
-        double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
-        double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
-        struct {                          /* si el tipo es FUNC, PROC o VAR */
-            Cell      *defn;              /* donde empieza el codigo de la funcion */
-            Symbol    *prnt_smbl_tble;    /* tabla de symbolos superior */
-            /* prototipo de la funcion */
-            Symbol    *type_func;         /* tipo devuelto por la funcion */
-
-            /* Datos necesarios para la macro DYNARRAY() */
-            Symbol   **argums;            /* puntero a array de punteros a Symbol * */
-            size_t     argums_len;        /* longitud del array de Symbol * argums */
-            size_t     argums_cap;        /* capacidad del array anterior */
-
-            Cell     **returns_to_patch;  /* lista de returns que hay que parchear */
-            size_t     returns_to_patch_len, /* num elementos en la lista */
-                       returns_to_patch_cap; /* capacidad de la lista */
-
-            Symbol   **local_scopes;      /* contextos locales de la funcion */
-            size_t     local_scopes_len,  /* forman una pila */
-                       local_scopes_cap;
-
-            int        nargs;             /* numero de argumentos */
-            int        nvars;             /* numero de variables locales */
-            size_t     nxt_off,
-                       max_off;
-        };
-        struct {                          /* si el tipo es LVAR */
-            int        lv_off;            /* variables locales y argumentos (LVAR),
-                                           * offset respecto al frame pointer (fp). */
-            Symbol    *proc_func;         /* a que proc/func pertenece este simbolo */
-        };
-        size_t     size;                  /* si el tipo es TYPE */
-    }  /* no hay nombre de campo */ ;
-       /* union anonima, el nombre del campo no existe, de forma que los
-        * nombres de los campos de la union pueden usarse directamente desde
-        * la estructura Symbol.  Esto ***solo*** es valido en C, y no en
-        * C++ */
-    Symbol        *next;                  /* enlace al siguiente
-                                           * simbolo de la tabla.*/
-};
 
 struct varl {
     Symbol *typref;
@@ -121,20 +70,6 @@ extern char *progname;
 typedef double Datum;
 
 extern Datum pop(void);
-
-/*  Celda de Memoria RAM donde se instala el programa  */
-union Cell {
-    struct {
-        instr_code inst: 8;
-        int        args: 8;
-        int        desp: 16;
-    };
-    Symbol      *sym;
-    double       val;
-    Cell        *cel;
-    const char  *str;
-    long         num;
-};
 
 extern Cell prog[];
 

@@ -11,6 +11,9 @@
 #include "hoc.h"
 #include "instr.h"
 
+#include "cell.h"
+#include "symbol.h"
+
 extern Cell *progp;                   /* next free cell for code generation */
 extern Cell *progbase;                /* pointer to first program instruction */
 extern Cell *varbase;
