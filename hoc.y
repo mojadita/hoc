@@ -189,11 +189,19 @@ gvar_decl_list
                                       if ($$.start == NULL && $3.start != NULL) {
                                         $$.start = $3.start;
                                       }
-                                      register_global_var($3.name, $$.typref);
+                                      Symbol *s = register_global_var($3.name, $$.typref);
+									  if ($3.start) {
+										  CODE_INST(assign, s);
+										  CODE_INST(drop);
+                                      }
                                     }
     | TYPE gvar_init                { $$.typref = $1;
                                       $$.start  = $2.start ? $2.start : NULL;
-                                      register_global_var($2.name, $$.typref);
+                                      Symbol *s = register_global_var($2.name, $$.typref);
+									  if ($2.start) {
+										  CODE_INST(assign, s);
+										  CODE_INST(drop);
+                                      }
                                     }
     ;
 

@@ -97,7 +97,7 @@ void initcode(void)  /* initalize for code generation */
     returning = 0;
 } /* initcode */
 
-Cell *register_global_var(
+Symbol *register_global_var(
 		const char *name,
 		Symbol     *typref)
 {
@@ -111,7 +111,7 @@ Cell *register_global_var(
         lookup_type(sym->type),
 		typref->name,
         sym->defn ? sym->defn - prog : -1);
-    return sym->defn;
+    return sym;
 } /* register_global_var */
 
 

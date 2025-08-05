@@ -32,7 +32,7 @@ Symbol *define(const char *name,
                int         type);     /* put func/proc in symbol table */
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
-Cell *register_global_var(const char *name, Symbol *typref); /* registers a global variable */
+Symbol *register_global_var(const char *name, Symbol *typref); /* registers a global variable */
 void register_local_var(Symbol *symb, Symbol *func_proc); /* registers a local variable */
 
 /* instructions */
