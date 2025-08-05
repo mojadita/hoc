@@ -15,6 +15,7 @@
 #include "hoc.tab.h"
 #include "math.h"
 #include "code.h"
+#include "scope.h"
 
 double integer(double x);
 double Rand(void);
@@ -80,7 +81,7 @@ void init(void)  /* install constants and built-ins in table */
             p->name;
             p++)
     {
-        Symbol *s = install(p->name, TYPE);
+        Symbol *s = install(p->name, TYPE, NULL);
         s->size = p->size;
     }
 
@@ -91,7 +92,7 @@ void init(void)  /* install constants and built-ins in table */
             p->name;
             p++)
     {
-        Symbol *s = install(p->name, p->type);
+        Symbol *s = install(p->name, p->type, NULL);
         s->help = p->help;
         s->typref = D;
         switch(p->type) {
@@ -105,13 +106,13 @@ void init(void)  /* install constants and built-ins in table */
             p->name != NULL;
             p++)
     {
-        Symbol *s = install(p->name, CONST);
+        Symbol *s = install(p->name, CONST, NULL);
         s->typref = D;
         s->val = p->cval;
     }
 
     /* creamos el simbolo prev */
-    Symbol *prev = install("prev", VAR);
+    Symbol *prev = install("prev", VAR, NULL);
     prev->typref = D;
     register_global_var(prev);
 }

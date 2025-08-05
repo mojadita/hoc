@@ -7,9 +7,12 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "config.h"
 #include "scope.h"
 #include "dynarray.h"
+#include "hoc.tab.h"
 
 #ifndef   UQ_SCOPES_INCRMNT /* { */
 #warning  UQ_SCOPES_INCRMNT should be set in 'config.mk'
@@ -42,53 +45,63 @@ scope *get_root_scope()
 scope *start_scope()
 {
     DYNARRAY_GROW(scopes, scope, 1, UQ_SCOPES_INCRMNT);
-    scope *scop = scopes + scopes_len++;
-    scope *prnt = scopes_len > 1 ? s-1 : NULL; /* prnt == parent, NO PRINT!!! */
+    scope *scop   = scopes + scopes_len++;
+    scope *parent = scopes_len > 1 ? scop - 1 : NULL; /* parent == parent, NO PRINT!!! */
     scop->sentinel = current_symbol;
-    if (prnt) {
-        scop->base_offset = prnt->base_offset;
-        scop->max_offset  = prnt->max_offset;
+    if (parent) {
+        scop->base_offset = parent->base_offset + parent->size;
+        scop->size        = 0;
     } else {
-        scop->base_offset = scop->max_offset = 0;
+        scop->base_offset = scop->size = 0;
     }
     return scop;
 } /* start_scope */
 
-void end_scope()
+Symbol *end_scope()
 {
-    scope *sc = get_current_scope();
-    assert(sc != NULL);
+	Symbol *ret_val = current_symbol;
+    scope  *scop    = get_current_scope();
+    assert(scop != NULL);
     for(    Symbol *sym = current_symbol;
-            sym != NULL && sym != sc->sentinel;
+            sym != NULL && sym != scop->sentinel;
             sym = current_symbol)
     {
         current_symbol = sym->next;
         assert(current_symbol->type == LVAR);
-        free(sym);
     }
+	return ret_val;
 } /* end_scope */
 
-static Symbol *lookup_internal(const char *sym_name, Symbol *sentl)
+static Symbol *
+lookup_internal(
+		const char *sym_name,
+		Symbol     *sentl)
 {
     Symbol *ret_val;
 
+	printf("buscamos %s...\n", sym_name);
     for (   ret_val = current_symbol;
-            ret_val != NULL && ret_val != sentl
+            ret_val != NULL && ret_val != sentl;
             ret_val = ret_val->next)
     {
-        if (ret_val->name == sym_name)
+		printf("probamos sym<%s:%8p> == name<%s:%8p>...",
+			ret_val->name, ret_val->name, sym_name, sym_name);
+        if (strcmp(ret_val->name, sym_name) == 0) {
+			printf("OK!!!\n");
             return ret_val;
+		}
+		printf("??? KO?\n");
     }
     return NULL;
 } /* lookup_internal */
 
 Symbol *lookup_current_scope(const char *sym_name)
 {
-    scope *sc = get_current_scope();
+    scope *scop = get_current_scope();
     return lookup_internal(
             sym_name,
-            sc  ? sc->sentinel
-                : NULL);
+            scop ? scop->sentinel
+                 : NULL);
 } /* lookup_current_scope */
 
 Symbol *lookup(const char *sym_name)
@@ -98,24 +111,26 @@ Symbol *lookup(const char *sym_name)
             NULL);
 } /* lookup */
 
-Symbol *install(const char *sym_name, int sym_type)
+Symbol *install(
+		const char *sym_name,
+		int         sym_type,
+		Symbol     *lvar_type)
 {
     Symbol *ret_val = calloc(1, sizeof *ret_val);
     assert(ret_val != NULL);
 
     ret_val->name   = sym_name;
     ret_val->type   = sym_type;
+	if (sym_type == LVAR) {
+		scope *scop = get_current_scope();
+		assert(scop != NULL);
+		scop->size -= lvar_type->size;
+		ret_val->offset = scop->base_offset + scop->size;
+	}
+
+	/* insertamos el simbolo en el scope */
     ret_val->next   = current_symbol;
     current_symbol  = ret_val;
 
     return ret_val;
 } /* install */
-
-int scope_calculate_offset(Symbol *type)
-{
-    scope *s          = get_current_scope();
-    s->base_offset   -= type->size;
-    if (s->base_offset < s->max_offset)
-        s->max_offset = s->base_offset;
-    return s->base_offset;
-} /* scope_calculate_offset */

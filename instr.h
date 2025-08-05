@@ -16,8 +16,6 @@
 typedef struct instr      instr;
 typedef enum   instr_code instr_code;
 
-//#include "hoc.h"
-
 /* LCU: Mon Mar 24 12:27:57 -05 2025
  * este tipo enumerado se introduce a partir de la macro
  * INST(_nom) y del fichero de instrucciones "instrucciones.h"
@@ -34,6 +32,8 @@ enum instr_code {
 #undef  INST
 #undef  SUFF
 }; /* enum instr */
+
+#include "cell.h"
 
 struct instr {
     instr_code    code_id;

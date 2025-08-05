@@ -18,6 +18,8 @@
 #include "hoc.h"
 #include "hoc.tab.h"
 
+#include "scope.h"
+
 
 #ifndef  UQ_CODE_DEBUG_EXEC
 #warning UQ_CODE_DEBUG_EXEC deberia ser incluido en config.mk
@@ -97,6 +99,24 @@ void initcode(void)  /* initalize for code generation */
     returning = 0;
 } /* initcode */
 
+Cell *register_global_var(Symbol *sym)
+{
+    /* cannot reregister a variable, so it must be
+     * UNDEF, and defn must be null. */
+    assert(sym->type == VAR);
+    assert(sym->defn == NULL);
+    if (progp >= varbase) {
+        execerror("variables zone exhausted (progp >= varbase)\n");
+    }
+    sym->defn = --varbase;
+    PRG("Symbol '%s', type=%s, pos=[%04lx]\n",
+        sym->name,
+        lookup_type(sym->type),
+        sym->defn ? sym->defn - prog : -1);
+    return sym->defn;
+} /* register_global_var */
+
+
 int stacksize(void) /* return the stack size */
 {
     return stack + UQ_NSTACK - stackp;
@@ -157,39 +177,6 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     progp        += i->n_cells;
 
     return ret_val;
-}
-
-Cell *register_global_var(Symbol *sym)
-{
-    /* cannot reregister a variable, so it must be
-     * UNDEF, and defn must be null. */
-    assert(sym->type == VAR);
-    assert(sym->defn == NULL);
-    if (progp >= varbase) {
-        execerror("variables zone exhausted (progp >= varbase)\n");
-    }
-    sym->defn = --varbase;
-    PRG("Symbol '%s', type=%s, pos=[%04lx]\n",
-        sym->name,
-        lookup_type(sym->type),
-        sym->defn ? sym->defn - prog : -1);
-    return sym->defn;
-} /* register_global_var */
-
-void register_local_var(Symbol *var, Symbol *proc_func)
-{
-    assert(var->type == LVAR);
-    assert(var->proc_func == NULL);
-    var->proc_func = proc_func;
-    var->lv_off    = proc_func->nxt_off;
-    /* TODO: LCU Sat May 24 15:33:11 -05 2025
-     * poner el size que figura en el tipo. */
-    proc_func->nxt_off -= 1;
-    if (proc_func->nxt_off < proc_func->max_off) {
-        proc_func->max_off = proc_func->nxt_off;
-    }
-    PRG("Local Var '%s', type=%s/%d, offset=%d, proc_func=<%s>\n",
-        var->name, lookup_type(LVAR), LVAR, var->lv_off, proc_func->name);
 }
 
 void execute(Cell *p) /* run the machine */
@@ -650,19 +637,21 @@ void or_else_prt(const instr *i, const Cell *pc)
     PR("[%04x]\n", pc[0].desp);
 }
 
+/* se llama al definir una funcion (o procedimiento) */
+Symbol *define(const char *name, int type)
+{
+    Symbol *symb = install(name, type, NULL);
+    symb->defn   = progp;
+
+    return symb;
+}
+
+/* se llama al terminar la definicion de una funcion
+ * (o prodecimiento) */
 void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
-    borrar_scope(subr);
-}
-
-Symbol *define(const char *name, int type)
-{
-    Symbol *symb = install(name, type);
-    symb->defn = progp;
-
-    return symb;
 }
 
 void symb_int_prog(const instr *i, Cell *pc, va_list args)

@@ -123,8 +123,11 @@ int scope_calculate_offset(Symbol *type);
 
 /**
  * @brief Destruye el ambito mas reciente.
+ * @return el simbolo definido en ultimo lugar en el scope
+ * que se ha eliminado (este simbolo ya no se encontrara
+ * en la tabla de simbolos)
  */
-void    end_scope(void);
+Symbol *end_scope(void);
 
 /**
  * @brief Busca un simbolo en la tabla de simbolos.
@@ -169,6 +172,7 @@ Symbol *lookup_current_scope(
  *         nuevo Symbol creado. */
 Symbol *install(
         const char *sym_name,
-        int         sym_type);
+        int         sym_type,
+        Symbol     *lvar_type);
 
 #endif /* SCOPE_H */

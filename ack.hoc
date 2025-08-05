@@ -16,16 +16,12 @@ func int ack(int x, int y) {
     if (y == 0) return ack(x - 1, 1);
     return ack(x - 1, ack(x, y - 1));
 }
-int a = 3, b = 10;
+int a = 3, b = 5;
 proc ackerman() {
     print  "ack(", a, ", ", b, ") -> ", ack(a, b), "\n";
     print n, " calls to 'ack'\n";
 }
-{
-    ackerman();
-    list;
-    symbs;
-}
+ackerman();
 /* ack(1, 1) -> ack(0, ack(1, 0)) -> ack(0, 2) -> 3
  * ack(1, 0) -> ack(0, 1) -> 2
  * ack(0, 1) -> 2

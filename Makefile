@@ -31,7 +31,7 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 toinstall     ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
 
 common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
-                reserved_words.o main.o do_help.o instr.o
+                reserved_words.o main.o do_help.o instr.o scope.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)

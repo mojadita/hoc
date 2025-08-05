@@ -1,7 +1,7 @@
 #!hoc
 /* default associativity */
-func int default(                        \
-        int a, int b, int c, int d,      \
+func int default( \
+	    int a, int b, int c, int d,      \
         int e, int f, int g, int h,      \
         int i, int j, int k, int l,      \
         int m)                           \
@@ -10,25 +10,25 @@ func int default(                        \
 
 /* left associativity */
 func int left_asoc(                          \
-        int a, int b, int c, int d,          \
-        int e, int f, int g, int h,          \
-        int i, int j, int k, int l,          \
-        int m)                               \
-    return (((((((((a&&b)&&c)&&d)||e)||f)||g)\
-           ||((h&&i)&&j))||k)||l)||m;
+        int n, int o, int p, int q,          \
+        int r, int s, int t, int u,          \
+        int v, int w, int x, int y,          \
+        int z)                               \
+    return (((((((((n&&o)&&p)&&q)||r)||s)||t)\
+           ||((u&&v)&&w))||x)||y)||z;
 
 /* right associativity */
 func int right_asoc(                     \
-        int a, int b, int c, int d,      \
-        int e, int f, int g, int h,      \
-        int i, int j, int k, int l,      \
-        int m)                           \
-    return ((a&&(b&&(c&&d)))||(e||(f||(g \
-           ||((h&&(i&&j))||(k||(l||m)))))));
+        int aa, int ab, int ac, int ad,      \
+        int ae, int af, int ag, int ah,      \
+        int ai, int aj, int ak, int al,      \
+        int am)                           \
+    return ((aa&&(ab&&(ac&&ad)))||(ae||(af||(ag \
+           ||((ah&&(ai&&aj))||(ak||(al||am)))))));
 
 /* main code */
 func int pepe() {
-    int ok, a0, n = a0 = ok = 0;
+    int ok, a0, nn = a0 = ok = 0;
     while (a0 < 2) {
         int a1 = 0;
         while (a1 < 2) {
@@ -60,7 +60,7 @@ func int pepe() {
 	n++;
 	/* def must be equal to left  and right */
 	if (def != left || def != right || left != right) \
-		print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n"; \
+		print "Test #", nn, ": def=", def, ", left=", left, ", right=", right, "\n"; \
 	else ok++;
 	a12++;
                                                     }
@@ -88,9 +88,9 @@ func int pepe() {
         }
         a0++;
     }
-    print "passed tests = ", ok,     " (", 100 *     ok /n, "%)\n";
-    print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
-    print "total  tests = ", n,      "\n";
+    print "passed tests = ", ok,     " (", 100 *     ok /nn, "%)\n";
+    print "failed tests = ", nn - ok, " (", 100 *(nn - ok)/nn, "%)\n";
+    print "total  tests = ", nn,      "\n";
 }
 {
 	pepe();

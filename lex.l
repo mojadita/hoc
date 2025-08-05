@@ -15,6 +15,7 @@
 #include "code.h"
 #include "lex.h"
 #include "reserved_words.h"
+#include "scope.h"
 
 #ifndef   UQ_LEX_DEBUG
 #warning  UQ_LEX_DEBUG deberia ser configurado en config.mk

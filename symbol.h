@@ -12,7 +12,7 @@ typedef struct Symbol_s Symbol;
 #include "cell.h"
 
 struct Symbol_s {                         /* Symbol table entry */
-    char          *name;                  /* nombre del simbolo */
+    const char    *name;                  /* nombre del simbolo */
     int            type;                  /* tipo del simbolo:
                                            * VAR, BLTIN[012], UNDEF */
     const char    *help;                  /* help text (optional) */
@@ -48,7 +48,7 @@ struct Symbol_s {                         /* Symbol table entry */
                        max_off;
         };
         struct {                          /* si el tipo es LVAR */
-            int        lv_off;            /* variables locales y argumentos (LVAR),
+            int        offset;            /* variables locales y argumentos (LVAR),
                                            * offset respecto al frame pointer (fp). */
             Symbol    *proc_func;         /* a que proc/func pertenece este simbolo */
         };

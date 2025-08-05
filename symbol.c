@@ -12,10 +12,12 @@
 #include <stdio.h>
 
 #include "config.h"
-#include "hoc.h"
+//#include "hoc.h"
 #include "colors.h"
-#include "code.h"
+//#include "code.h"
+#include "instr.h"
 #include "hoc.tab.h"
+#include "scope.h"
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -28,72 +30,6 @@
  * los simbolos recientes son mas accesibles que
  * los antiguos) */
 
-static Symbol *lista_simbolos = NULL;
-
-/**
- * @brief instala un simbolo nuevo en la tabla.
- *
- * @param name es el nombre del nuevo simbolo
- * @param typ es el tipo del simbolo.
- * @param val es el valor a asignar al nuevo
- *            simbolo, cuando el tipo es VAR.
- * @param ptr es el puntero a la funcion que
- *            calculara el valor de la expre-
- *            sion cuando se seleccione este
- *            simbolo.
- * @return La funcion retorna un puntero al
- *         nuevo Symbol creado. */
-Symbol *
-install(
-        const char *name,
-        int         typ)
-{
-    /* llamamos a calloc para que inicialice con
-     * ceros */
-    Symbol *ret_val = calloc(1, sizeof *ret_val);
-    assert(ret_val != NULL);
-
-    ret_val->name   = strdup(name);
-    assert(ret_val->name != NULL);
-
-    ret_val->type   = typ;
-
-    /* push down */
-    ret_val->next   = lista_simbolos;
-    lista_simbolos  = ret_val;
-
-    return ret_val;
-} /* install */
-
-/**
- * @brief busca un simbolo en la lista.
- * @param name el nombre del simbolo que
- *        buscamos.
- * @return El puntero al Symbol encontrado,
- *         o NULL, en caso de que el Symbol
- *         no exista.
- */
-Symbol *lookup(
-        const char *name)
-{
-    return lookup_local(name, NULL);
-}
-
-Symbol *lookup_local(
-        const char   *name,
-        const Symbol *scope)
-{
-    for (   Symbol *p = lista_simbolos;
-            p != scope;
-            p = p->next)
-    {
-        if (strcmp(name, p->name) == 0)
-            return p;
-    }
-
-    /* p == NULL */
-    return NULL;
-} /* lookup */
 
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
@@ -129,7 +65,7 @@ void list_symbols(void)
 {
     int col = 0;
 
-    for (   Symbol *p = lista_simbolos;
+    for (   Symbol *p = get_current_symbol();
             p != NULL;
             p = p->next)
     {
@@ -160,23 +96,3 @@ void list_symbols(void)
     if (col != 0)
         puts("");
 } /* list_symbols */
-
-
-#define RS (*ref_sym)      /* Aqui es un puntero  */
-
-void borrar_scope(Symbol *sym)
-{
-    /* Aqui se reinterpreta como doble puntero  *(*ref_sym) */
-    Symbol *RS = &lista_simbolos; /* ojo con este         */
-            /* identificador (ver macro RS arriba, que    */
-            /* no es una variable, sino una macro que     */
-            /* cada vez, apunta a una variable diferente. */
-
-    while (RS != sym) {
-        Symbol *a_borrar = RS;
-        RS = a_borrar->next;   /* desconecta */
-        free(a_borrar);        /* y borra!!  */
-    }
-} /* borrar_scope */
-
-#undef RS
