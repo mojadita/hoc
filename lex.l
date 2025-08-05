@@ -16,6 +16,7 @@
 #include "lex.h"
 #include "reserved_words.h"
 #include "scope.h"
+#include "intern.h"
 
 #ifndef   UQ_LEX_DEBUG
 #warning  UQ_LEX_DEBUG deberia ser configurado en config.mk
@@ -149,22 +150,23 @@ static char *deescape(char *in);
             /* PALABRA RESERVADA */
             int saved_col_no = col_no;
             col_no          += yyleng;
-            const reserved_word *rw = rw_lookup(yytext);
+			const char *lexema = intern(yytext);
+            const reserved_word *rw = rw_lookup(lexema);
             if (rw) {
                 P("reserved word '%s' -> %s(%d)\n",
                     rw->name, rw->tokn_str, rw->tokn);
-                add_token(rw->tokn, lineno, saved_col_no, yyleng, yytext);
+                add_token(rw->tokn, lineno, saved_col_no, yyleng, lexema);
 
                 return rw->tokn;
             }
 
             /* BUSCAMOS EN LA TABLA DE SIMBOLOS */
             Symbol *s;
-            if ((s = lookup(yytext)) != NULL) {
+            if ((s = lookup(lexema)) != NULL) {
                 yylval.sym = s;
                 P("Identificador <%s> (%s / %d)\n",
                     s->name, lookup_type(s->type), s->type);
-                add_token(s->type, lineno, saved_col_no, yyleng, yytext);
+                add_token(s->type, lineno, saved_col_no, yyleng, lexema);
                 return s->type;
             }
 
@@ -172,7 +174,7 @@ static char *deescape(char *in);
              * y devolvemos un token UNDEF */
 
             const token * t = add_token(UNDEF,
-                    lineno, saved_col_no, yyleng, yytext);
+                    lineno, saved_col_no, yyleng, lexema);
 
             P("Undefined <%s> (%s / %d)\n",
                 t->lex, lookup_type(UNDEF), UNDEF);
@@ -184,11 +186,13 @@ static char *deescape(char *in);
 
 \"([^\"\n]|\\.)*\" {
             /* CADENA DE CARACTERES */
-            add_token(STRING, lineno, col_no, yyleng, yytext);
+            const token *t = add_token(STRING, lineno, col_no, yyleng, yytext);
             col_no += yyleng;
-            yylval.str = deescape(yytext);
+			const char *s;
+            yylval.str = intern(s = deescape(yytext));
+			free((void *)s);
             P("cadena de caracteres: %s -> [%s]\n",
-                yytext, yylval.str);
+                t->lex, yylval.str);
 
             return STRING;
         }
@@ -305,13 +309,11 @@ void reset_add_token(void)
             i < UQ_LAST_TOKENS_SZ;
             i++, last_token++)
     {
-        last_token->tok = 0;
-        last_token->lin = 0;
-        last_token->col = 0;
-        last_token->len = 0;
-        if (last_token->lex) {
-            free((void *)last_token->lex);
-        }
+        last_token->tok   = 0;
+        last_token->lin   = 0;
+        last_token->col   = 0;
+        last_token->len   = 0;
+		last_token->lex   = NULL;
         last_token->lex   = NULL;
         token_buffer_full = 0;
     }
@@ -337,10 +339,7 @@ add_token(
     last_token->lin = lin;
     last_token->col = col;
     last_token->len = len;
-    if (last_token->lex != NULL) {
-        free((void *)last_token->lex);
-    }
-    last_token->lex = strdup(lex);
+    last_token->lex = intern(lex);
 
     return last_token;
 } /* add_token */

@@ -37,7 +37,7 @@ static const reserved_word reserved_words[] = {
 
 const reserved_word *
 rw_lookup(
-        char        *lex)
+        const char  *lex)
 {
     for (   const reserved_word *rw = reserved_words;
             rw->name;

@@ -13,6 +13,7 @@
 #include "scope.h"
 #include "dynarray.h"
 #include "hoc.tab.h"
+#include "intern.h"
 
 #ifndef   UQ_SCOPES_INCRMNT /* { */
 #warning  UQ_SCOPES_INCRMNT should be set in 'config.mk'
@@ -79,18 +80,14 @@ lookup_internal(
 {
     Symbol *ret_val;
 
-	printf("buscamos %s...\n", sym_name);
+	sym_name = intern(sym_name);
+
     for (   ret_val = current_symbol;
             ret_val != NULL && ret_val != sentl;
             ret_val = ret_val->next)
     {
-		printf("probamos sym<%s:%8p> == name<%s:%8p>...",
-			ret_val->name, ret_val->name, sym_name, sym_name);
-        if (strcmp(ret_val->name, sym_name) == 0) {
-			printf("OK!!!\n");
+        if (ret_val->name == sym_name)
             return ret_val;
-		}
-		printf("??? KO?\n");
     }
     return NULL;
 } /* lookup_internal */
@@ -116,6 +113,7 @@ Symbol *install(
 		int         sym_type,
 		Symbol     *lvar_type)
 {
+	sym_name = intern(sym_name);
     Symbol *ret_val = calloc(1, sizeof *ret_val);
     assert(ret_val != NULL);
 

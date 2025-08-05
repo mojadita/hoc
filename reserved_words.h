@@ -16,6 +16,6 @@ struct reserved_word { /* reserved statements */
     const char * tokn_str;
 };
 
-const reserved_word *rw_lookup(char *lexeme);
+const reserved_word *rw_lookup(const char *lexeme);
 
 #endif /* RESERVED_WORDS_H */
