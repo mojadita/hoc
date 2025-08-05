@@ -112,7 +112,5 @@ void init(void)  /* install constants and built-ins in table */
     }
 
     /* creamos el simbolo prev */
-    Symbol *prev = install("prev", VAR, NULL);
-    prev->typref = D;
-    register_global_var(prev);
+    register_global_var("prev", D);
 }

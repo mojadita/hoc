@@ -62,4 +62,7 @@ struct Symbol_s {                         /* Symbol table entry */
                                            * simbolo de la tabla.*/
 };
 
+const char *lookup_type(int typ);
+void list_symbols(void);
+
 #endif /* SYMBOL_H */

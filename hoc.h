@@ -20,9 +20,17 @@
 #include "symbol.h"
 #include "instr.h"
 
+typedef struct gvar_decl_list_s {
+	Cell   *start;
+	Symbol *typref;
+} gvar_decl_list;
 
-const char *lookup_type(int typ);
-void list_symbols(void);
+typedef struct gvar_init_s {
+	const char *name;
+	Cell *start;
+} gvar_init;
+
+#include "hoc.tab.h"
 
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */

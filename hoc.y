@@ -82,27 +82,31 @@ Symbol *indef_proc,  /* != NULL si estamos en una definicion de procedimiento */
     Cell        *cel;  /* referencia a Cell */
     int          num;  /* valor entero, para $<num> */
     const char  *str;  /* cadena de caracteres */
+    gvar_decl_list gvl; /* global var declaration list */
+    gvar_init    gvi;  /* global var name & initializer */
 }
 
-%token ERROR
-%token <val> NUMBER
-%token <sym> VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
-%token <sym> FUNCTION PROCEDURE
-%token       PRINT WHILE IF ELSE SYMBS
-%token       OR AND GE LE EQ NE EXP
-%token       PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
-%token <num> FUNC PROC INTEGER
-%token       RETURN
-%token <str> STRING UNDEF
-%token       LIST
-%token <sym> TYPE
-%type  <cel> stmt cond stmtlist asig
-%type  <cel> expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel> expr_seq item do else and or function preamb
-%type        lvar_decl_list lvar_init
-%type  <num> arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym> proc_head func_head
-%type  <str> lvar_valid_ident gvar_valid_ident
+%token        ERROR
+%token <val>  NUMBER
+%token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
+%token <sym>  FUNCTION PROCEDURE
+%token        PRINT WHILE IF ELSE SYMBS
+%token        OR AND GE LE EQ NE EXP
+%token        PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
+%token <num>  FUNC PROC INTEGER
+%token        RETURN
+%token <str>  STRING UNDEF
+%token        LIST
+%token <sym>  TYPE
+%type  <cel>  stmt cond stmtlist asig
+%type  <cel>  expr_or expr_and expr_rel expr term fact prim mark
+%type  <cel>  expr_seq item do else and or function preamb
+%type         lvar_decl_list lvar_init
+%type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
+%type  <sym>  proc_head func_head
+%type  <str>  lvar_valid_ident gvar_valid_ident
+%type  <gvl> gvar_decl_list
+%type  <gvi>  gvar_init
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -181,13 +185,21 @@ stmt: asig        ';'      { CODE_INST(drop); }
 
 /* DECLARACION DE VARIABLES GLOBALES */
 gvar_decl_list
-    : gvar_decl_list ',' gvar_init
-    | TYPE gvar_init
+    : gvar_decl_list ',' gvar_init  { $$ = $1;
+                                      if ($$.start == NULL && $3.start != NULL) {
+                                        $$.start = $3.start;
+                                      }
+                                      register_global_var($3.name, $$.typref);
+                                    }
+    | TYPE gvar_init                { $$.typref = $1;
+                                      $$.start  = $2.start ? $2.start : NULL;
+                                      register_global_var($2.name, $$.typref);
+                                    }
     ;
 
 gvar_init
-    : gvar_valid_ident
-    | gvar_valid_ident '=' asig
+    : gvar_valid_ident              { $$.name = $1; $$.start = NULL; }
+    | gvar_valid_ident '=' asig     { $$.name = $1; $$.start = $3; }
     ;
 
 gvar_valid_ident

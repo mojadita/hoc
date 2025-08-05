@@ -16,10 +16,8 @@
 #include "code.h"
 
 #include "hoc.h"
-#include "hoc.tab.h"
 
 #include "scope.h"
-
 
 #ifndef  UQ_CODE_DEBUG_EXEC
 #warning UQ_CODE_DEBUG_EXEC deberia ser incluido en config.mk
@@ -99,19 +97,19 @@ void initcode(void)  /* initalize for code generation */
     returning = 0;
 } /* initcode */
 
-Cell *register_global_var(Symbol *sym)
+Cell *register_global_var(
+		const char *name,
+		Symbol     *typref)
 {
-    /* cannot reregister a variable, so it must be
-     * UNDEF, and defn must be null. */
-    assert(sym->type == VAR);
-    assert(sym->defn == NULL);
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
     }
+	Symbol *sym = install(name, VAR, NULL);
     sym->defn = --varbase;
-    PRG("Symbol '%s', type=%s, pos=[%04lx]\n",
+    PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
         sym->name,
         lookup_type(sym->type),
+		typref->name,
         sym->defn ? sym->defn - prog : -1);
     return sym->defn;
 } /* register_global_var */
