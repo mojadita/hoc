@@ -28,8 +28,10 @@ Cell *code_cel(Cell       *cel);      /* install one reference to Cell */
 Cell *code_num(int         val);      /* install one integer on Cell */
 Cell *code_str(const char *str);      /* install one string on Cell */
 void  execute(Cell        *p);        /* run the machine */
-Symbol *define(const char *name,
-               int         type);     /* put func/proc in symbol table */
+Symbol *define(const char *name,      /* put func/proc in symbol table */
+               int         type,
+			   Symbol     *typref,
+			   Cell       *entry_point);
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 Symbol *register_global_var(const char *name, Symbol *typref); /* registers a global variable */

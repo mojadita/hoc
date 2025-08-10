@@ -11,7 +11,7 @@
 
 #include <stdarg.h>
 
-#define I_DATA(i) (instruction_set + (i))
+//#define I_DATA(i) (instruction_set + (i))
 
 typedef struct instr      instr;
 typedef enum   instr_code instr_code;

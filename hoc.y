@@ -16,6 +16,7 @@
 
 #include "config.h"
 #include "colors.h"
+#include "dynarray.h"
 #include "hoc.h"
 #include "lex.h"
 #include "error.h"
@@ -30,6 +31,9 @@
 void warning( const char *fmt, ...);
 void vwarning( const char *fmt, va_list args );
 void yyerror( char * msg );
+
+static void patch_block(Symbol *subr, Cell*patch_point);
+static void patch_returns(Symbol *subr, Cell *target);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -48,6 +52,11 @@ jmp_buf begin;
 #warning  UQ_MAX_SYMBOLS_PER_DECLARATION deberia ser configurado en config.mk
 #define   UQ_MAX_SYMBOLS_PER_DECLARATION  20
 #endif /* UQ_MAX_SYMBOLS_PER_DECLARATION    } */
+
+#ifndef   UQ_RETURNS_TO_PATCH_INCRMNT /* { */
+#warning  UQ_RETURNS_TO_PATCH_INCRMNT deberia ser configurado en config.mk
+#define   UQ_RETURNS_TO_PATCH_INCRMNT  4
+#endif /* UQ_RETURNS_TO_PATCH_INCRMNT    } */
 
 #if       UQ_HOC_DEBUG /* {{ */
 # define P(_fmt, ...)                     \
@@ -131,14 +140,25 @@ list: /* nothing */
 
 stmt: asig        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly(indef_proc != NULL, "return;");
-                             $$ = CODE_INST(spadd, indef_proc->nvars);
-                             CODE_INST(ret); }
+
+							 PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
+                             $$ = CODE_INST(Goto, 0);
+							 PT("<<< end inserting unpatched code\n");
+							 add_patch_return(indef_proc, $$);
+                           }
     | RETURN asig ';'      { defnonly(indef_func != NULL, "return <asig>;");
                              $$ = $2;
-                             CODE_INST(argassign, 0); /* $0 = top() */
+                             /* asigno a la direccion de retorno de la funcion, en la
+                              * cima de la lista de parametros */
+                             CODE_INST(argassign, indef_func->size_lvars);
                              CODE_INST(drop);
-                             CODE_INST(spadd, indef_func->nvars);
-                             CODE_INST(ret); }
+
+							 PT(">>> inserting unpatched code @ [%04lx]\n",
+							         progp - prog);
+                             $$ = CODE_INST(Goto, 0);
+							 PT("<<< end inserting unpatched code\n");
+							 add_patch_return(indef_proc, $$);
+                           }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
     | LIST           ';'   { $$ = CODE_INST(list); }
@@ -190,17 +210,17 @@ gvar_decl_list
                                         $$.start = $3.start;
                                       }
                                       Symbol *s = register_global_var($3.name, $$.typref);
-									  if ($3.start) {
-										  CODE_INST(assign, s);
-										  CODE_INST(drop);
+                                      if ($3.start) {
+                                          CODE_INST(assign, s);
+                                          CODE_INST(drop);
                                       }
                                     }
     | TYPE gvar_init                { $$.typref = $1;
                                       $$.start  = $2.start ? $2.start : NULL;
                                       Symbol *s = register_global_var($2.name, $$.typref);
-									  if ($2.start) {
-										  CODE_INST(assign, s);
-										  CODE_INST(drop);
+                                      if ($2.start) {
+                                          CODE_INST(assign, s);
+                                          CODE_INST(drop);
                                       }
                                     }
     ;
@@ -416,59 +436,48 @@ arglist
     | asig                  { $$ = 1; }
     ;
 
-defn: proc_head '(' formal_arglist_opt ')' preamb stmt {
+defn: proc_head '(' formal_arglist_opt ')' preamb block {
 
                               /* PARCHEO DE CODIGO */
-                              Cell *saved_progp = progp;
-                              progp             = $5;
-                              PT(">>> begin patching CODE @ [%04lx]\n",
-                                      progp - prog);
-                              CODE_INST(spadd, -$1->nvars);
-                              PT("<<< end   patching CODE @ [%04lx], "
-                                      "continuing @ [%04lx]\n",
-                                      progp - prog, saved_progp - prog);
-                              progp = saved_progp;
+							  patch_block($1, $5);      /* parcheamos el spadd, 0 de preamb */
+							  patch_returns($1, progp); /* parcheamos todos los RETURN del
+                                                         * block */
 
-                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(spadd, $1->nvars);
-                              CODE_INST(ret);
-
+							  /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+						      CODE_INST(spadd, $1->size_lvars);
+							  CODE_INST(ret);
                               end_define($1);
                               indef_proc = NULL;
                               P("FIN DEFINICION PROCEDIMIENTO\n");
-                             }
+                            }
 
-    | func_head '(' formal_arglist_opt ')' preamb stmt {
+    | func_head '(' formal_arglist_opt ')' preamb block {
 
                               /* PARCHEO DE CODIGO */
-                              Cell *saved_progp = progp;
-                              progp             = $5;
-                              PT(">>> begin patching CODE @ [%04lx]\n",
-                                      progp - prog);
-                              CODE_INST(spadd, -$1->nvars);
-                              PT("<<< end   patching CODE @ [%04lx], "
-                                      "continuing @ [%04lx]\n",
-                                      progp - prog, saved_progp - prog);
-                              progp = saved_progp;
+							  patch_block($1, $5);
+							  patch_returns($1, progp);
 
-                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(spadd, $1->nvars);
-                              CODE_INST(ret);
+							  /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+						      CODE_INST(spadd, $1->size_lvars);
+							  CODE_INST(ret);
 
                               end_define($1);
                               indef_func = NULL;
                               P("FIN DEFINICION FUNCION\n");
                             }
 
-preamb: /* empty */         { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
-                                      progp - prog);
-                              $$ = CODE_INST(spadd, 0);
-                              PT("<<< end   inserting unpatched CODE\n");
+preamb: /* empty */         {
+							  PT(">>> INSERTING UNPATCHED CODE @ [%04lx]\n", progp - prog);
+							  $$ = CODE_INST(spadd, 0);
+							  PT("<<< END INSERTING UNPACHED CODE\n");
                             }
 
+block
+    : '{' stmtlist '}'
+
 formal_arglist_opt
-    : formal_arglist        { if (indef_func) indef_func->nargs = $1;
-                              if (indef_proc) indef_proc->nargs = $1; }
+    : formal_arglist        { if (indef_func) indef_func->size_args = $1;
+                              if (indef_proc) indef_proc->size_args = $1; }
     | /* empty */           { $$ = 0; }
     ;
 
@@ -483,20 +492,62 @@ formal_arglist
 
 
 proc_head
-    : PROC UNDEF            { $$ = define($2, PROCEDURE);
-                              $$->typref = NULL;
+    : PROC UNDEF            {
+                              $$ = define($2, PROCEDURE, NULL, progp);
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
-                                $2, progp - prog);
-                              indef_proc = $$; }
+                                        $2, progp - prog);
+                              indef_proc = $$;
+                            }
     ;
 func_head
-    : FUNC TYPE UNDEF       { $$ = define($3, FUNCTION);
-                              $$->typref = $2;
+    : FUNC TYPE UNDEF       {
+                              $$ = define($3, FUNCTION, $2, progp);
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
                                 $3, progp - prog);
-                              indef_func = $$; }
+                              indef_func = $$;
+                            }
     ;
+
 %%
+
+void patch_block(Symbol *subr, Cell*patch_point)
+{
+	/* PARCHEO DE CODIGO */
+	Cell *saved_progp = progp;
+	progp             = patch_point;
+	PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
+	CODE_INST(spadd, -subr->size_lvars);
+	PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
+	progp = saved_progp;
+} /* patch_block */
+
+void add_patch_return(Symbol *subr, Cell *patch_point)
+{
+	DYNARRAY_GROW(
+			subr->returns_to_patch,
+			Cell *,
+			1,
+			UQ_RETURNS_TO_PATCH_INCRMNT);
+	subr->returns_to_patch[subr->returns_to_patch_len++]
+			= patch_point;
+} /* add_patch_return */
+
+void patch_returns(Symbol *subr, Cell *target)
+{
+	PT("<<< SAVING PROGRAMMING POINT @ [%04lx]\n", progp - prog);
+	Cell *saved_progp = progp; /* salvamos el puntero de programacion */
+
+	/* para cada punto a parchear */
+	for (int i = 0; i < subr->returns_to_patch_len; ++i) {
+		Cell *point_to_patch = subr->returns_to_patch[i];
+		progp                = point_to_patch;
+		PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", point_to_patch - prog);
+		CODE_INST(Goto, target);
+		PT("<<< END   PATCHING CODE @ [%04lx]\n", point_to_patch - prog);
+	}
+	PT("<<< RESTORING PROGRAMMING POINT @ [%04lx]\n", saved_progp - prog);
+	progp = saved_progp;
+} /* patch_returns */
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {

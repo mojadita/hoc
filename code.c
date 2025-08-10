@@ -636,10 +636,23 @@ void or_else_prt(const instr *i, const Cell *pc)
 }
 
 /* se llama al definir una funcion (o procedimiento) */
-Symbol *define(const char *name, int type)
+Symbol *define(
+		const char *name,   /* nombre de la funcion/procedimiento */
+		int         type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
+        Symbol     *typref, /* simbolo del tipo del valor devuelto por la
+                             * funcion, NULL para proc */
+        Cell       *entry)  /* punto de entrada a la funcion */
 {
-    Symbol *symb = install(name, type, NULL);
-    symb->defn   = progp;
+	P_TAIL("define(\"%s\", %s, %s, [%04lx]);\n",
+			name,
+			lookup_type(type),
+			typref  ? typref->name
+					: "VOID",
+			entry - prog);
+    Symbol *symb     = install(name, type, NULL);
+	symb->typref     = typref;
+    symb->defn       = entry;
+	symb->main_scope = start_scope();
 
     return symb;
 }
@@ -650,6 +663,8 @@ void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
+	end_scope();
+	P_TAIL("end_define(%s);\n", subr->name);
 }
 
 void symb_int_prog(const instr *i, Cell *pc, va_list args)

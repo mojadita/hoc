@@ -33,7 +33,7 @@ logdir                   ?= $(vardir)/log
 
 UQ_HOC_DEBUG             ?=  1
 UQ_HOC_TRACE_PATCHING    ?=  1
-UQ_LEX_DEBUG             ?=  1
+UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
 UQ_CODE_DEBUG_EXEC       ?=  0
 UQ_CODE_DEBUG_PROG       ?=  1
@@ -50,8 +50,9 @@ UQ_NPROG                 ?= 2000
 UQ_NFRAME                ?= 100000
 UQ_TAB_SIZE              ?= 4
 
-UQ_LAST_TOKENS_SZ        ?= 64
-UQ_DEFAULT_LOGLEVEL      ?= 0
+UQ_LAST_TOKENS_SZ               ?= 64
+UQ_DEFAULT_LOGLEVEL             ?= 0
 UQ_MAX_SYMBOLS_PER_DECLARATION  ?= 32
-UQ_SCOPES_INCRMNT        ?= 10
-UQ_INTERN_INCRMNT        ?= 10
+UQ_SCOPES_INCRMNT               ?= 10
+UQ_RETURNS_TO_PATCH_INCRMNT     ?= 4
+UQ_INTERN_INCRMNT               ?= 10

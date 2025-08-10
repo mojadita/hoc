@@ -10,6 +10,7 @@
 typedef struct Symbol_s Symbol;
 
 #include "cell.h"
+#include "scope.h"
 
 struct Symbol_s {                         /* Symbol table entry */
     const char    *name;                  /* nombre del simbolo */
@@ -25,9 +26,7 @@ struct Symbol_s {                         /* Symbol table entry */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         struct {                          /* si el tipo es FUNC, PROC o VAR */
             Cell      *defn;              /* donde empieza el codigo de la funcion */
-            Symbol    *prnt_smbl_tble;    /* tabla de symbolos superior */
-            /* prototipo de la funcion */
-            Symbol    *type_func;         /* tipo devuelto por la funcion */
+            scope     *main_scope;        /* scope principal */
 
             /* Datos necesarios para la macro DYNARRAY() */
             Symbol   **argums;            /* puntero a array de punteros a Symbol * */
@@ -38,14 +37,8 @@ struct Symbol_s {                         /* Symbol table entry */
             size_t     returns_to_patch_len, /* num elementos en la lista */
                        returns_to_patch_cap; /* capacidad de la lista */
 
-            Symbol   **local_scopes;      /* contextos locales de la funcion */
-            size_t     local_scopes_len,  /* forman una pila */
-                       local_scopes_cap;
-
-            int        nargs;             /* numero de argumentos */
-            int        nvars;             /* numero de variables locales */
-            size_t     nxt_off,
-                       max_off;
+            int        size_args;         /* tama;o de los argumentos */
+            int        size_lvars;        /* tama;o de las variables locales */
         };
         struct {                          /* si el tipo es LVAR */
             int        offset;            /* variables locales y argumentos (LVAR),
