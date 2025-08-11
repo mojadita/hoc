@@ -75,8 +75,7 @@ jmp_buf begin;
 
 #define CODE_INST(I, ...) code_inst(INST_##I, ##__VA_ARGS__)
 
-Symbol *indef_proc,  /* != NULL si estamos en una definicion de procedimiento */
-       *indef_func;  /* != NULL si estamos en una definicion de funcion */
+Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
 
 %}
 /* continuamos el area de definicion y configuracion
@@ -139,25 +138,24 @@ list: /* nothing */
     ;
 
 stmt: asig        ';'      { CODE_INST(drop); }
-    | RETURN      ';'      { defnonly(indef_proc != NULL, "return;");
+    | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
 
 							 PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(Goto, 0);
 							 PT("<<< end inserting unpatched code\n");
-							 add_patch_return(indef_proc, $$);
+							 add_patch_return(indef, $$);
                            }
-    | RETURN asig ';'      { defnonly(indef_func != NULL, "return <asig>;");
+    | RETURN asig ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION), "return <asig>;");
                              $$ = $2;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
-                             CODE_INST(argassign, indef_func->size_lvars);
+                             CODE_INST(argassign, indef->size_args);
                              CODE_INST(drop);
 
-							 PT(">>> inserting unpatched code @ [%04lx]\n",
-							         progp - prog);
-                             $$ = CODE_INST(Goto, 0);
+							 PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
+                             Cell *p = CODE_INST(Goto, prog);
 							 PT("<<< end inserting unpatched code\n");
-							 add_patch_return(indef_proc, $$);
+							 add_patch_return(indef, p);
                            }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -399,10 +397,7 @@ prim: '(' asig ')'          { $$ = $2; }
     | MIN_MIN LVAR          { $$ = CODE_INST(decarg, $2->offset); }
     | LVAR    PLS_PLS       { $$ = CODE_INST(arginc, $1->offset); }
     | LVAR    MIN_MIN       { $$ = CODE_INST(argdec, $1->offset); }
-    | LVAR                  { defnonly(indef_proc || indef_func,
-                                       "%s($%d) assign", $1->name, $1->offset);
-                              $$ = CODE_INST(argeval, $1->offset);
-                            }
+    | LVAR                  { $$ = CODE_INST(argeval, $1->offset); }
 
     | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
@@ -443,7 +438,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
 						      CODE_INST(spadd, $1->size_lvars);
 							  CODE_INST(ret);
                               end_define($1);
-                              indef_proc = NULL;
+                              indef = NULL;
                               P("FIN DEFINICION PROCEDIMIENTO\n");
                             }
 
@@ -458,7 +453,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
 							  CODE_INST(ret);
 
                               end_define($1);
-                              indef_func = NULL;
+                              indef = NULL;
                               P("FIN DEFINICION FUNCION\n");
                             }
 
@@ -472,27 +467,31 @@ block
     : '{' stmtlist '}'
 
 formal_arglist_opt
-    : formal_arglist        { if (indef_func) indef_func->size_args = $1;
-                              if (indef_proc) indef_proc->size_args = $1; }
-    | /* empty */           { $$ = 0; }
+    : formal_arglist        { if (indef) indef->size_args = $1;
+								PT("*** formal_arg_list_opt == %d\n", $1);
+                            }
+    | /* empty */           { if (indef) indef->size_args = $$ = 0; }
     ;
 
 formal_arglist
     : formal_arglist ',' TYPE UNDEF {
                               Symbol *sym = install($4, LVAR, $3);
+							  sym->offset = $$;
+							  $$ -= $3->size;
                             }
-    | TYPE UNDEF            { $$ = 1;
+    | TYPE UNDEF            {
                               Symbol *sym = install($2, LVAR, $1);
+							  sym->offset = 0;
+						      $$ = - $1->size;
                             }
     ;
-
 
 proc_head
     : PROC UNDEF            {
                               $$ = define($2, PROCEDURE, NULL, progp);
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
                                         $2, progp - prog);
-                              indef_proc = $$;
+                              indef = $$;
                             }
     ;
 func_head
@@ -500,7 +499,7 @@ func_head
                               $$ = define($3, FUNCTION, $2, progp);
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
                                 $3, progp - prog);
-                              indef_func = $$;
+                              indef = $$;
                             }
     ;
 

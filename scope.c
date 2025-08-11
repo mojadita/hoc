@@ -60,27 +60,28 @@ scope *start_scope()
 
 Symbol *end_scope()
 {
-	Symbol *ret_val = current_symbol;
+    Symbol *ret_val = current_symbol;
     scope  *scop    = get_current_scope();
     assert(scop != NULL);
     for(    Symbol *sym = current_symbol;
             sym != NULL && sym != scop->sentinel;
-            sym = current_symbol)
+            sym = sym->next)
     {
-        current_symbol = sym->next;
-        assert(current_symbol->type == LVAR);
+        assert(sym->type == LVAR);
     }
-	return ret_val;
+    current_symbol = scop->sentinel;
+
+    return ret_val;
 } /* end_scope */
 
 static Symbol *
 lookup_internal(
-		const char *sym_name,
-		Symbol     *sentl)
+        const char *sym_name,
+        Symbol     *sentl)
 {
     Symbol *ret_val;
 
-	sym_name = intern(sym_name);
+    sym_name = intern(sym_name);
 
     for (   ret_val = current_symbol;
             ret_val != NULL && ret_val != sentl;
@@ -109,24 +110,24 @@ Symbol *lookup(const char *sym_name)
 } /* lookup */
 
 Symbol *install(
-		const char *sym_name,
-		int         sym_type,
-		Symbol     *lvar_type)
+        const char *sym_name,
+        int         sym_type,
+        Symbol     *lvar_type)
 {
-	sym_name = intern(sym_name);
+    sym_name = intern(sym_name);
     Symbol *ret_val = calloc(1, sizeof *ret_val);
     assert(ret_val != NULL);
 
     ret_val->name   = sym_name;
     ret_val->type   = sym_type;
-	if (sym_type == LVAR) {
-		scope *scop = get_current_scope();
-		assert(scop != NULL);
-		scop->size -= lvar_type->size;
-		ret_val->offset = scop->base_offset + scop->size;
-	}
+    if (sym_type == LVAR) {
+        scope *scop = get_current_scope();
+        assert(scop != NULL);
+        scop->size -= lvar_type->size;
+        ret_val->offset = scop->base_offset + scop->size;
+    }
 
-	/* insertamos el simbolo en el scope */
+    /* insertamos el simbolo en el scope */
     ret_val->next   = current_symbol;
     current_symbol  = ret_val;
 
