@@ -114,7 +114,7 @@ Symbol *indef_proc,  /* != NULL si estamos en una definicion de procedimiento */
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym>  proc_head func_head
 %type  <str>  lvar_valid_ident gvar_valid_ident
-%type  <gvl> gvar_decl_list
+%type  <gvl>  gvar_decl_list
 %type  <gvi>  gvar_init
 
 %%
@@ -255,10 +255,6 @@ lvar_definable_ident
     : VAR
     | LVAR
     ;
-
-
-
-
 
 do  :  /* empty */         { $$ = progp;
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
