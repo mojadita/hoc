@@ -35,7 +35,7 @@ Symbol *define(const char *name,      /* put func/proc in symbol table */
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 Symbol *register_global_var(const char *name, Symbol *typref); /* registers a global variable */
-void register_local_var(Symbol *symb, Symbol *func_proc); /* registers a local variable */
+Symbol *register_local_var(const char *name, Symbol *typref); /* registers a local variable */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:
