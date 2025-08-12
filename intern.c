@@ -8,6 +8,7 @@
 
 #include <string.h>
 
+#include "config.h"
 #include "intern.h"
 #include "dynarray.h"
 

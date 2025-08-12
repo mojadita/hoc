@@ -10,7 +10,6 @@ lex.c
 *.o
 BUILD_DATE.txt
 *~
-.depend
 ack
 config.h
 config.h.in
