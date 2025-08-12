@@ -217,7 +217,7 @@ create_scope :             {
                              if (get_root_scope() == NULL) {
                                  scope *sc = start_scope();
                                  indef = define("$main", MAIN_FUNCTION, NULL, progp);
-								 indef->main_scope = sc;
+                                 indef->main_scope = sc;
                                  PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                                  $$ = CODE_INST(spadd, 0);
                                  PT("<<< end UNPATCHED code\n");
@@ -264,18 +264,25 @@ lvar_decl_list
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      Symbol *s = register_local_var($3.name, $$.typref);
+                                      scope *scop = get_current_scope();
+                                      Symbol *sym = register_local_var(
+                                            $3.name,
+                                            $$.typref,
+                                            -(scop->base_offset + scop->size));
                                       if ($3.start) {
-										  CODE_INST(argassign, s);
+                                          CODE_INST(argassign, sym);
                                           CODE_INST(drop);
                                       }
                                     }
 
     | TYPE lvar_init                { $$.typref = $1;
                                       $$.start  = $2.start ? $2.start : NULL;
-									  Symbol *s = register_local_var($2.name, $$.typref);
+                                      scope *scop = get_current_scope();
+                                      Symbol *sym = register_local_var(
+                                            $2.name, $$.typref,
+                                            -(scop->base_offset + scop->size));
                                       if ($2.start) {
-                                          CODE_INST(argassign, s);
+                                          CODE_INST(argassign, sym);
                                           CODE_INST(drop);
                                       }
                                     }

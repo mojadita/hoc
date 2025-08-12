@@ -104,13 +104,27 @@ Symbol *register_global_var(
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
     }
-	Symbol *sym = install(name, VAR, NULL);
+    Symbol *sym = install(name, VAR, typref);
     sym->defn = --varbase;
     PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
         sym->name,
         lookup_type(sym->type),
-		typref->name,
+	typref->name,
         sym->defn ? sym->defn - prog : -1);
+    return sym;
+} /* register_global_var */
+
+Symbol *register_local_var(
+		const char *name,
+		Symbol     *typref,
+		int         offset)
+{
+    Symbol *sym = install(name, LVAR, typref);
+    PRG("Symbol '%s', type=%s, typref=%s, offset=<%d>\n",
+	    sym->name,
+	    lookup_type(sym->type),
+	    typref->name,
+	    offset);
     return sym;
 } /* register_global_var */
 
