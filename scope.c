@@ -67,7 +67,8 @@ Symbol *end_scope()
             sym != NULL && sym != scop->sentinel;
             sym = sym->next)
     {
-        assert(sym->type == LVAR);
+        assert(sym->type == LVAR
+            || sym->type == MAIN_FUNCTION);
     }
     current_symbol = scop->sentinel;
 

@@ -652,7 +652,6 @@ Symbol *define(
     Symbol *symb     = install(name, type, NULL);
 	symb->typref     = typref;
     symb->defn       = entry;
-	symb->main_scope = start_scope();
 
     return symb;
 }
@@ -663,7 +662,6 @@ void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
-	end_scope();
 	P_TAIL("end_define(%s);\n", subr->name);
 }
 
