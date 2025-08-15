@@ -150,7 +150,7 @@ static char *deescape(char *in);
             /* PALABRA RESERVADA */
             int saved_col_no = col_no;
             col_no          += yyleng;
-			const char *lexema = intern(yytext);
+            const char *lexema = intern(yytext);
             const reserved_word *rw = rw_lookup(lexema);
             if (rw) {
                 P("reserved word '%s' -> %s(%d)\n",
@@ -188,9 +188,9 @@ static char *deescape(char *in);
             /* CADENA DE CARACTERES */
             const token *t = add_token(STRING, lineno, col_no, yyleng, yytext);
             col_no += yyleng;
-			const char *s;
+            const char *s;
             yylval.str = intern(s = deescape(yytext));
-			free((void *)s);
+            free((void *)s);
             P("cadena de caracteres: %s -> [%s]\n",
                 t->lex, yylval.str);
 
@@ -313,7 +313,7 @@ void reset_add_token(void)
         last_token->lin   = 0;
         last_token->col   = 0;
         last_token->len   = 0;
-		last_token->lex   = NULL;
+        last_token->lex   = NULL;
         last_token->lex   = NULL;
         token_buffer_full = 0;
     }

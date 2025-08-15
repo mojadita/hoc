@@ -14,7 +14,7 @@
 
 static const char **cadenas;
 size_t              cadenas_len,
-					cadenas_cap;
+                    cadenas_cap;
 
 #ifndef   UQ_INTERN_INCRMNT /* { */
 #warning  UQ_INTERN_INCRMNT should be defined in 'config.mk'
@@ -22,12 +22,12 @@ size_t              cadenas_len,
 #endif /* UQ_INTERN_INCRMNT    } */
 
 const char *intern(
-		const char *name)
+        const char *name)
 {
-	for (int i = 0; i < cadenas_len; i++) {
-		if (strcmp(name, cadenas[i]) == 0)
-			return cadenas[i];
-	}
-	DYNARRAY_GROW(cadenas, const char *, 1, UQ_INTERN_INCRMNT);
-	return cadenas[cadenas_len++] = strdup(name);
+    for (int i = 0; i < cadenas_len; i++) {
+        if (strcmp(name, cadenas[i]) == 0)
+            return cadenas[i];
+    }
+    DYNARRAY_GROW(cadenas, const char *, 1, UQ_INTERN_INCRMNT);
+    return cadenas[cadenas_len++] = strdup(name);
 } /* intern */

@@ -84,14 +84,14 @@ Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    const instr *inst; /* instruccion maquina */
-    Symbol      *sym;  /* puntero a simbolo */
-    double       val;  /* valor double */
-    Cell        *cel;  /* referencia a Cell */
-    int          num;  /* valor entero, para $<num> */
-    const char  *str;  /* cadena de caracteres */
-    gvar_decl_list gvl; /* global var declaration list */
-    gvar_init    gvi;  /* global var name & initializer */
+    const instr  *inst; /* instruccion maquina */
+    Symbol       *sym;  /* puntero a simbolo */
+    double        val;  /* valor double */
+    Cell         *cel;  /* referencia a Cell */
+    int           num;  /* valor entero, para $<num> */
+    const char   *str;  /* cadena de caracteres */
+    var_decl_list vdl; /* global var declaration list */
+    var_init      vi;  /* global var name & initializer */
 }
 
 %token        ERROR
@@ -106,15 +106,14 @@ Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion
 %token <str>  STRING UNDEF
 %token        LIST
 %token <sym>  TYPE
-%type  <cel>  stmt cond stmtlist asig
+%type  <cel>  stmt stmt_noif if if_else stmt_if_else cond stmtlist asig
 %type  <cel>  expr_or expr_and expr_rel expr term fact prim mark
 %type  <cel>  expr_seq item do else and or function preamb create_scope
-%type         lvar_decl_list lvar_init
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head
+%type  <sym>  proc_head func_head lvar_definable_ident
 %type  <str>  lvar_valid_ident gvar_valid_ident
-%type  <gvl>  gvar_decl_list lvar_decl_list
-%type  <gvi>  gvar_init lvar_init
+%type  <vdl>  gvar_decl_list lvar_decl_list
+%type  <vi>   gvar_init lvar_init
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -137,9 +136,18 @@ list: /* nothing */
                          return 1; }
     ;
 
-stmt: asig        ';'      { CODE_INST(drop); }
-    | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
+stmt: stmt_noif
+    | if
+    ;
 
+stmt_if_else
+    : stmt_noif
+    | if_else
+	;
+
+stmt_noif
+    : asig        ';'      { CODE_INST(drop); }
+    | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
                              PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(Goto, 0);
                              PT("<<< end inserting unpatched code\n");
@@ -160,7 +168,8 @@ stmt: asig        ';'      { CODE_INST(drop); }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
     | LIST           ';'   { $$ = CODE_INST(list); }
-    | WHILE cond do stmt   { CODE_INST(Goto, $2);
+    | WHILE cond do stmt   { $$ = $2;
+                             CODE_INST(Goto, $2);
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
@@ -169,30 +178,6 @@ stmt: asig        ';'      { CODE_INST(drop); }
                                 "continuing @ [%04lx]\n",
                                  progp - prog, saved_progp - prog);
                              progp = saved_progp; }
-    | IF    cond do stmt   { Cell *saved_progp = progp;
-                             progp = $3;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto, saved_progp);
-                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                     progp - prog, saved_progp - prog);
-                             progp = saved_progp;
-                           }
-    | IF    cond do stmt else stmt {
-                             Cell *saved_progp = progp;
-                             progp = $3;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto, $6);
-                             PT("<<< end patching CODE @ [%04lx], "
-                                   "continuing @ [%04lx]\n",
-                                   progp - prog, saved_progp - prog);
-                             progp = $5;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(Goto, saved_progp);
-                             PT("<<< end patching CODE @ [%04lx], "
-                                   "continuing @ [%04lx]\n",
-                                   progp - prog, saved_progp - prog);
-                             progp = saved_progp;
-                           }
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              CODE_INST(call, $1, $4); /* instruction */
@@ -210,6 +195,37 @@ stmt: asig        ';'      { CODE_INST(drop); }
                                  CODE_INST(spadd, indef->size_lvars);
                              }
                              end_scope();
+                           }
+    ;
+
+if  : IF cond do stmt_if_else { $$ = $2;
+                             Cell *saved_progp = progp;
+                             progp = $3;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(if_f_goto, saved_progp);
+                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
+                                     progp - prog, saved_progp - prog);
+                             progp = saved_progp;
+                           }
+    ;
+
+if_else
+    : IF cond do stmt_if_else else stmt {
+                             $$ = $2;
+                             Cell *saved_progp = progp;
+                             progp = $3;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(if_f_goto, $6);
+                             PT("<<< end patching CODE @ [%04lx], "
+                                   "continuing @ [%04lx]\n",
+                                   progp - prog, saved_progp - prog);
+                             progp = $5;
+                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                                 CODE_INST(Goto, saved_progp);
+                             PT("<<< end patching CODE @ [%04lx], "
+                                   "continuing @ [%04lx]\n",
+                                   progp - prog, saved_progp - prog);
+                             progp = saved_progp;
                            }
     ;
 
@@ -294,8 +310,8 @@ lvar_init
     ;
 
 lvar_valid_ident
-    : UNDEF                {  }
-    | lvar_definable_ident {  }
+    : UNDEF
+    | lvar_definable_ident { $$ = $1->name; }
     ;
 
 lvar_definable_ident

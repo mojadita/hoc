@@ -21,15 +21,22 @@ typedef double Datum;
 #include "symbol.h"
 #include "instr.h"
 
-typedef struct gvar_decl_list_s {
-	Cell   *start;
-	Symbol *typref;
-} gvar_decl_list;
+typedef struct var_decl_list_s {
+    Cell   *start;   /* codigo de inicializacion de la
+                      * secuencia de inicializadores */
+    Symbol *typref;  /* tipo de la lista de variables */
+} var_decl_list;
 
-typedef struct gvar_init_s {
-	const char *name;
-	Cell *start;
-} gvar_init;
+typedef struct var_init_s {
+    const char *name;
+    union {
+        Cell   *start;   /* posicion absoluta de la variable
+                          * en memoria (variables globales) */
+        int     offset;  /* posicion relativa al frame pointer
+                          * de la variable en memoria
+                          * (variables locales) */
+    };
+} var_init;
 
 #include "hoc.tab.h"
 

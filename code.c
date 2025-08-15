@@ -98,8 +98,8 @@ void initcode(void)  /* initalize for code generation */
 } /* initcode */
 
 Symbol *register_global_var(
-		const char *name,
-		Symbol     *typref)
+        const char *name,
+        Symbol     *typref)
 {
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
@@ -109,22 +109,22 @@ Symbol *register_global_var(
     PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
         sym->name,
         lookup_type(sym->type),
-	typref->name,
+    typref->name,
         sym->defn ? sym->defn - prog : -1);
     return sym;
 } /* register_global_var */
 
 Symbol *register_local_var(
-		const char *name,
-		Symbol     *typref,
-		int         offset)
+        const char *name,
+        Symbol     *typref,
+        int         offset)
 {
     Symbol *sym = install(name, LVAR, typref);
     PRG("Symbol '%s', type=%s, typref=%s, offset=<%d>\n",
-	    sym->name,
-	    lookup_type(sym->type),
-	    typref->name,
-	    offset);
+        sym->name,
+        lookup_type(sym->type),
+        typref->name,
+        offset);
     return sym;
 } /* register_global_var */
 
@@ -651,20 +651,20 @@ void or_else_prt(const instr *i, const Cell *pc)
 
 /* se llama al definir una funcion (o procedimiento) */
 Symbol *define(
-		const char *name,   /* nombre de la funcion/procedimiento */
-		int         type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
+        const char *name,   /* nombre de la funcion/procedimiento */
+        int         type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
         Symbol     *typref, /* simbolo del tipo del valor devuelto por la
                              * funcion, NULL para proc */
         Cell       *entry)  /* punto de entrada a la funcion */
 {
-	P_TAIL("define(\"%s\", %s, %s, [%04lx]);\n",
-			name,
-			lookup_type(type),
-			typref  ? typref->name
-					: "VOID",
-			entry - prog);
+    P_TAIL("define(\"%s\", %s, %s, [%04lx]);\n",
+            name,
+            lookup_type(type),
+            typref  ? typref->name
+                    : "VOID",
+            entry - prog);
     Symbol *symb     = install(name, type, NULL);
-	symb->typref     = typref;
+    symb->typref     = typref;
     symb->defn       = entry;
 
     return symb;
@@ -676,7 +676,7 @@ void end_define(Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
-	P_TAIL("end_define(%s);\n", subr->name);
+    P_TAIL("end_define(%s);\n", subr->name);
 }
 
 void symb_int_prog(const instr *i, Cell *pc, va_list args)
