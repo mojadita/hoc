@@ -143,7 +143,7 @@ stmt: stmt_noif
 stmt_if_else
     : stmt_noif
     | if_else
-	;
+    ;
 
 stmt_noif
     : asig        ';'      { CODE_INST(drop); }
@@ -183,6 +183,7 @@ stmt_noif
                              CODE_INST(call, $1, $4); /* instruction */
                              CODE_INST(spadd, $4);    /* pop arguments */
                            }
+
     | '{' create_scope stmtlist '}'  { $$ = $2;
                              scope *cs = get_current_scope();
                              if (cs == indef->main_scope) {
@@ -421,15 +422,15 @@ and : AND                   {
     ;
 
 expr_rel
-        : '!' expr_rel      { $$ = $2; CODE_INST(not); }
-        | expr '<' expr     { CODE_INST(lt); }
-        | expr '>' expr     { CODE_INST(gt); }
-        | expr EQ  expr     { CODE_INST(eq); }
-        | expr NE  expr     { CODE_INST(ne); }
-        | expr GE  expr     { CODE_INST(ge); }
-        | expr LE  expr     { CODE_INST(le); }
-        | expr
-        ;
+    : '!' expr_rel      { $$ = $2; CODE_INST(not); }
+    | expr '<' expr     { CODE_INST(lt); }
+    | expr '>' expr     { CODE_INST(gt); }
+    | expr EQ  expr     { CODE_INST(eq); }
+    | expr NE  expr     { CODE_INST(ne); }
+    | expr GE  expr     { CODE_INST(ge); }
+    | expr LE  expr     { CODE_INST(le); }
+    | expr
+    ;
 
 expr: term
     | '-' term              { $$ = $2; CODE_INST(neg);  }
@@ -523,15 +524,18 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
                               indef = NULL;
                               P("FIN DEFINICION FUNCION\n");
                             }
+    ;
 
 preamb: /* empty */         {
                               PT(">>> INSERTING UNPATCHED CODE @ [%04lx]\n", progp - prog);
                               $$ = CODE_INST(spadd, 0);
                               PT("<<< END INSERTING UNPACHED CODE\n");
                             }
+    ;
 
 block
     : '{' stmtlist '}'
+    ;
 
 formal_arglist_opt
     : formal_arglist        { if (indef) indef->size_args = $1;
@@ -562,6 +566,7 @@ proc_head
                               indef = $$;
                             }
     ;
+
 func_head
     : FUNC TYPE UNDEF       {
                               $$ = define($3, FUNCTION, $2, progp);
