@@ -47,7 +47,9 @@ scope *start_scope()
 {
     DYNARRAY_GROW(scopes, scope, 1, UQ_SCOPES_INCRMNT);
     scope *scop   = scopes + scopes_len++;
-    scope *parent = scopes_len > 1 ? scop - 1 : NULL; /* parent == parent, NO PRINT!!! */
+    scope *parent = scopes_len > 1
+		? scop - 1
+		: NULL;
     scop->sentinel = current_symbol;
     if (parent) {
         scop->base_offset = parent->base_offset + parent->size;
@@ -55,6 +57,8 @@ scope *start_scope()
     } else {
         scop->base_offset = scop->size = 0;
     }
+	printf("Start scope: base_offset = %d, size = %d\n",
+			scop->base_offset, scop->size);
     return scop;
 } /* start_scope */
 
@@ -63,6 +67,8 @@ Symbol *end_scope()
     Symbol *ret_val = current_symbol;
     scope  *scop    = get_current_scope();
     assert(scop != NULL);
+	printf("Start scope: base_offset = %d, size = %d\n",
+			scop->base_offset, scop->size);
     for(    Symbol *sym = current_symbol;
             sym != NULL && sym != scop->sentinel;
             sym = sym->next)

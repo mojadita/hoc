@@ -43,7 +43,6 @@ struct Symbol_s {                         /* Symbol table entry */
         struct {                          /* si el tipo es LVAR */
             int        offset;            /* variables locales y argumentos (LVAR),
                                            * offset respecto al frame pointer (fp). */
-            Symbol    *proc_func;         /* a que proc/func pertenece este simbolo */
         };
         size_t     size;                  /* si el tipo es TYPE */
     }  /* no hay nombre de campo */ ;

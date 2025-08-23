@@ -42,8 +42,7 @@ Symbol *register_global_var(
 
 Symbol *register_local_var(
         const char *name,
-        Symbol *typref,
-        int offset); /* registers a local variable */
+        Symbol *typref); /* registers a local variable */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:

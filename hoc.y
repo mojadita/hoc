@@ -190,8 +190,8 @@ stmt_noif
                              $$ = $2;
                              scope *cs = get_current_scope();
                              if (cs->base_offset + cs->size > size_lvars) {
-                                 PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
                                  size_lvars = cs->base_offset + cs->size;
+                                 PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
                              }
                              if (get_root_scope() == cs && (size_lvars > 0)) {
                                  Cell *saved_progp = progp;
@@ -285,25 +285,20 @@ lvar_decl_list
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      scope *scop = get_current_scope();
                                       Symbol *sym = register_local_var(
-                                            $3.name,
-                                            $$.typref,
-                                            -(scop->base_offset + scop->size));
+                                            $3.name, $$.typref);
                                       if ($3.start) {
-                                          CODE_INST(argassign, sym);
+                                          CODE_INST(argassign, sym->offset);
                                           CODE_INST(drop);
                                       }
                                     }
 
     | TYPE lvar_init                { $$.typref = $1;
                                       $$.start  = $2.start;
-                                      scope *scop = get_current_scope();
                                       Symbol *sym = register_local_var(
-                                            $2.name, $$.typref,
-                                            -(scop->base_offset + scop->size));
+                                            $2.name, $$.typref);
                                       if ($2.start) {
-                                          CODE_INST(argassign, sym);
+                                          CODE_INST(argassign, sym->offset);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -543,8 +538,9 @@ block
     ;
 
 formal_arglist_opt
-    : formal_arglist        { if (indef) indef->size_args = $1;
-                                PT("*** formal_arg_list_opt == %d\n", $1);
+    : formal_arglist        { if (indef)
+								  indef->size_args = $1;
+							  PT("*** formal_arg_list_opt == %d\n", $1);
                             }
     | /* empty */           { if (indef) indef->size_args = $$ = 0; }
     ;

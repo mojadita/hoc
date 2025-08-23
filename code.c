@@ -14,7 +14,6 @@
 #include "colors.h"
 
 #include "code.h"
-
 #include "hoc.h"
 
 #include "scope.h"
@@ -87,11 +86,18 @@ typedef struct Frame { /* proc/func call stack frame */
 Frame  frame[UQ_NFRAME];
 Frame *fp     = frame + UQ_NFRAME;      /* frame pointer */
 
+static Datum *getarg(int arg);    /* return a pointer to argument */
+
 void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
     stackp    = stack + UQ_NSTACK;
     fp        = frame + UQ_NFRAME;
+	fp--;
+	fp->sym   = NULL;
+	fp->retpc = NULL;
+	fp->argn  = stackp;
+	fp->nargs = 0;
     returning = 0;
 } /* initcode */
 
@@ -99,30 +105,44 @@ Symbol *register_global_var(
         const char *name,
         Symbol     *typref)
 {
+	assert(get_current_scope() == NULL);
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
     }
+	if (lookup(name)) {
+		execerror("Variable %s already defined\n", name);
+	}
     Symbol *sym = install(name, VAR, typref);
     sym->defn = --varbase;
     PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
         sym->name,
         lookup_type(sym->type),
-    typref->name,
+		typref->name,
         sym->defn ? sym->defn - prog : -1);
     return sym;
 } /* register_global_var */
 
 Symbol *register_local_var(
         const char *name,
-        Symbol     *typref,
-        int         offset)
+        Symbol     *typref)
 {
+	scope *scop = get_current_scope();
+	assert(scop != NULL);
+	if (lookup_current_scope(name)) {
+		execerror("Variable %s already defined in current scope\n", name);
+	}
     Symbol *sym = install(name, LVAR, typref);
-    PRG("Symbol '%s', type=%s, typref=%s, offset=<%d>\n",
+	PRG("scop->size{%d} += typref->size{%zd}\n", scop->size, typref->size);
+	scop->size += typref->size;
+	sym->offset = -(scop->base_offset + scop->size);
+	PRG("sym->offset{%d} = -(scop->base_offset{%d} + scop->size{%d})\n",
+		sym->offset, scop->base_offset, scop->size);
+
+    PRG("Symbol '%s', type=%s, typref=%s, offset=%d\n",
         sym->name,
         lookup_type(sym->type),
         typref->name,
-        offset);
+        sym->offset);
     return sym;
 } /* register_global_var */
 
@@ -765,7 +785,7 @@ static Datum *getarg(int arg)    /* return a pointer to argument */
             arg, fp->nargs,
             fp->sym->name);
     }
-    return fp->argn + fp->nargs - arg;
+    return fp->argn + arg;
 }
 
 void arg_prog(const instr *i, Cell *pc, va_list args)
