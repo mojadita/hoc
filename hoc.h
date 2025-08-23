@@ -29,13 +29,8 @@ typedef struct var_decl_list_s {
 
 typedef struct var_init_s {
     const char *name;
-    union {
-        Cell   *start;   /* posicion absoluta de la variable
+    Cell       *start;   /* posicion absoluta de la variable
                           * en memoria (variables globales) */
-        int     offset;  /* posicion relativa al frame pointer
-                          * de la variable en memoria
-                          * (variables locales) */
-    };
 } var_init;
 
 #include "hoc.tab.h"

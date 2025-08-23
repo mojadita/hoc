@@ -77,6 +77,8 @@ jmp_buf begin;
 
 Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
 
+size_t size_lvars = 0;
+
 %}
 /* continuamos el area de definicion y configuracion
  * de yacc */
@@ -124,15 +126,16 @@ list: /* nothing */
     | list defn  '\n'
     | list gvar_decl_list ';' '\n'        {  }
 
-    | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
+    | list stmt  '\n'  {
+                         CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list asig  '\n'  {
-                         Symbol *prev = lookup("prev");
+    | list asig  '\n'  { Symbol *prev = lookup("prev");
                          CODE_INST(assign, prev);
                          CODE_INST(print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list error '\n' { /* yyerrok; */
+    | list error '\n' {  yyerrok;
+                         CODE_INST(STOP);
                          return 1; }
     ;
 
@@ -183,21 +186,36 @@ stmt_noif
                              CODE_INST(call, $1, $4); /* instruction */
                              CODE_INST(spadd, $4);    /* pop arguments */
                            }
-
-    | '{' create_scope stmtlist '}'  { $$ = $2;
+    | '{' create_scope stmtlist '}'  {
+                             $$ = $2;
                              scope *cs = get_current_scope();
-                             if (cs == indef->main_scope) {
+                             if (cs->base_offset + cs->size > size_lvars) {
+                                 PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
+                                 size_lvars = cs->base_offset + cs->size;
+                             }
+                             if (get_root_scope() == cs && (size_lvars > 0)) {
                                  Cell *saved_progp = progp;
                                  progp = $2;
                                  PT(">>> begin PATCHING code @ [%04lx]\n", progp - prog);
-                                 CODE_INST(spadd, -indef->size_lvars);
+                                 CODE_INST(spadd, -size_lvars);
                                  PT("<<< end   PATCHING code\n");
                                  progp = saved_progp;
-                                 CODE_INST(spadd, indef->size_lvars);
+                                 CODE_INST(spadd, size_lvars);
                              }
                              end_scope();
                            }
     ;
+
+create_scope :             { scope *sc = start_scope();
+                             if (get_root_scope() == sc) {
+                                 size_lvars = 0;
+                                 PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
+                                 $$ = CODE_INST(noop);
+                                 PT("<<< end   UNPATCHED code\n");
+                             }
+                           }
+    ;
+
 
 if  : IF cond do stmt_if_else { $$ = $2;
                              Cell *saved_progp = progp;
@@ -227,20 +245,6 @@ if_else
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
                              progp = saved_progp;
-                           }
-    ;
-
-create_scope :             {
-                             if (get_root_scope() == NULL) {
-                                 scope *sc = start_scope();
-                                 indef = define("$main", MAIN_FUNCTION, NULL, progp);
-                                 indef->main_scope = sc;
-                                 PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
-                                 $$ = CODE_INST(spadd, 0);
-                                 PT("<<< end UNPATCHED code\n");
-                             } else {
-                                 start_scope();
-                             }
                            }
     ;
 
@@ -293,7 +297,7 @@ lvar_decl_list
                                     }
 
     | TYPE lvar_init                { $$.typref = $1;
-                                      $$.start  = $2.start ? $2.start : NULL;
+                                      $$.start  = $2.start;
                                       scope *scop = get_current_scope();
                                       Symbol *sym = register_local_var(
                                             $2.name, $$.typref,
@@ -306,8 +310,8 @@ lvar_decl_list
     ;
 
 lvar_init
-    : lvar_valid_ident
-    | lvar_valid_ident '=' asig { }
+    : lvar_valid_ident          { $$.name = $1; $$.start = NULL; }
+    | lvar_valid_ident '=' asig { $$.name = $1; $$.start = $3; }
     ;
 
 lvar_valid_ident
@@ -356,6 +360,7 @@ mark: /* nada */           { $$ = progp; }
 stmtlist: /* nada */       { $$ = progp; }
     | stmtlist '\n'
     | stmtlist stmt
+	| stmtlist lvar_decl_list ';'
     ;
 
 asig:

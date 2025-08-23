@@ -87,8 +87,6 @@ typedef struct Frame { /* proc/func call stack frame */
 Frame  frame[UQ_NFRAME];
 Frame *fp     = frame + UQ_NFRAME;      /* frame pointer */
 
-static Datum *getarg(int arg);    /* return a pointer to argument */
-
 void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
