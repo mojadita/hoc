@@ -52,16 +52,11 @@ scope *start_scope()
 		: NULL;
     scop->sentinel = current_symbol;
     if (parent) {
-		printf("hay parent: base_offset = %d, size = %d\n",
-				parent->base_offset, parent->size);
         scop->base_offset = parent->base_offset + parent->size;
         scop->size        = 0;
     } else {
-		printf("no hay parent\n");
         scop->base_offset = scop->size = 0;
     }
-	printf("START scope: base_offset = %d, size = %d\n",
-			scop->base_offset, scop->size);
     return scop;
 } /* start_scope */
 
@@ -70,8 +65,6 @@ Symbol *end_scope()
     Symbol *ret_val = current_symbol;
     scope  *scop    = get_current_scope();
     assert(scop != NULL);
-	printf("END scope: base_offset = %d, size = %d\n",
-			scop->base_offset, scop->size);
     for(    Symbol *sym = current_symbol;
             sym != NULL && sym != scop->sentinel;
             sym = sym->next)

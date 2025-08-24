@@ -132,11 +132,8 @@ Symbol *register_local_var(
 		execerror("Variable %s already defined in current scope\n", name);
 	}
     Symbol *sym = install(name, LVAR, typref);
-	PRG("scop->size{%d} += typref->size{%zd}\n", scop->size, typref->size);
 	scop->size += typref->size;
 	sym->offset = -(scop->base_offset + scop->size);
-	PRG("sym->offset{%d} = -(scop->base_offset{%d} + scop->size{%d})\n",
-		sym->offset, scop->base_offset, scop->size);
 
     PRG("Symbol '%s', type=%s, typref=%s, offset=%d\n",
         sym->name,
