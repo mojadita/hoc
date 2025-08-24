@@ -131,12 +131,6 @@ Symbol *install(
 
     ret_val->name   = sym_name;
     ret_val->type   = sym_type;
-    if (sym_type == LVAR) {
-        scope *scop = get_current_scope();
-        assert(scop != NULL);
-        scop->size -= lvar_type->size;
-        ret_val->offset = scop->base_offset + scop->size;
-    }
 
     /* insertamos el simbolo en el scope */
     ret_val->next   = current_symbol;
