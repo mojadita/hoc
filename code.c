@@ -728,8 +728,8 @@ void call(const instr *i)   /* call a function */
         sym->name, fp->nargs, fp->retpc - prog, niv, max_niv);
     EXEC(  "              -> Parametros: ");
     const char *sep = "";
-    for (int i = 1; i <= fp->nargs; i++) {
-        P_TAIL("%s%.8g", sep, *getarg(i));
+    for (int i = 0; i < sym->argums_len; i++) {
+        P_TAIL("%s%.8g", sep, *getarg(sym->argums[i]->offset));
         sep = ", ";
     }
     P_TAIL("\n");

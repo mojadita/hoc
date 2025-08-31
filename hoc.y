@@ -58,6 +58,11 @@ jmp_buf begin;
 #define   UQ_RETURNS_TO_PATCH_INCRMNT  4
 #endif /* UQ_RETURNS_TO_PATCH_INCRMNT    } */
 
+#ifndef   UQ_ARGUMS_INCRMNT /* { */
+#warning  UQ_ARGUMS_INCRMNT deberia ser configurado en config.mk
+#define   UQ_ARGUMS_INCRMNT  8
+#endif /* UQ_ARGUMS_INCRMNT    } */
+
 #if       UQ_HOC_DEBUG /* {{ */
 # define P(_fmt, ...)                     \
     printf("%s:%d:%s "_fmt,               \
@@ -110,9 +115,9 @@ size_t size_lvars = 0;
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist asig
 %type  <cel>  expr_or expr_and expr_rel expr term fact prim mark
-%type  <cel>  expr_seq item do else and or function preamb create_scope
+%type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident
+%type  <sym>  proc_head func_head lvar_definable_ident function
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list lvar_decl_list
 %type  <vi>   gvar_init lvar_init
@@ -124,7 +129,10 @@ list: /* nothing */
     | list       '\n'
 
     | list defn  '\n'
-    | list gvar_decl_list ';' '\n'        {  }
+    | list gvar_decl_list ';' '\n' {
+                         CODE_INST(STOP);
+                         return 1;
+                       }
 
     | list stmt  '\n'  {
                          CODE_INST(STOP);  /* para que execute() pare al final */
@@ -136,9 +144,9 @@ list: /* nothing */
                          return 1; }
     | list error '\n' {  yyerrok;
                          CODE_INST(STOP);
-						 while (get_current_scope()) {
-							end_scope();
-						 }
+                         while (get_current_scope()) {
+                            end_scope();
+                         }
                          return 1; }
     ;
 
@@ -206,8 +214,8 @@ stmt
 
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
-                             CODE_INST(call, $1, $4); /* instruction */
-                             CODE_INST(spadd, $4);    /* pop arguments */
+                             CODE_INST(call, $1, $1->size_args); /* instruction */
+                             CODE_INST(spadd, $1->size_args);    /* pop arguments */
                            }
 
     | '{' create_scope stmtlist '}'  {
@@ -348,7 +356,7 @@ mark: /* nada */           { $$ = progp; }
 stmtlist: /* nada */       { $$ = progp; }
     | stmtlist '\n'
     | stmtlist stmt
-	| stmtlist lvar_decl_list ';'
+    | stmtlist lvar_decl_list ';'
     ;
 
 asig:
@@ -467,13 +475,14 @@ prim: '(' asig ')'          { $$ = $2; }
                               CODE_INST(bltin2, $1); }
     | function mark '(' arglist_opt ')' {
                               $$ = $2;
-                              CODE_INST(call, $1, $4); /* instruction */
-                              CODE_INST(spadd, $4);    /* eliminando argumentos */
+                              CODE_INST(call, $1, $1->size_args); /* instruction */
+                              CODE_INST(spadd, $1->size_args);    /* eliminando argumentos */
                             }
     ;
 
 function
-    : FUNCTION              { CODE_INST(constpush, 0.0); }
+    : FUNCTION              { CODE_INST(spadd, -$1->typref->size); } /* PUSH espacio para el
+                                                                      * valor a retornar */
     ;
 
 arglist_opt
@@ -531,23 +540,52 @@ block
     ;
 
 formal_arglist_opt
-    : formal_arglist        { if (indef)
-								  indef->size_args = $1;
-							  PT("*** formal_arg_list_opt == %d\n", $1);
+    : formal_arglist        {
+                              PT("*** formal_arg_list_opt == %d\n", $1);
+                              /* cambiando los offsets para que se refieran a las
+                               * posiciones de las expresiones calculadas antes de
+                               * entrar a la funcion (sumando a sus offsets la cantidad
+                               * indef->size_args */
+                              for (int i = 0; i < indef->argums_len; ++i) {
+                                    indef->argums[i]->offset += indef->size_args;
+                                    PT("+++ arg[%d] (%s), offset = %d\n",
+                                        i,
+                                        indef->argums[i]->name,
+                                        indef->argums[i]->offset);
+                              }
+                              if (indef->type == FUNCTION) {
+                                  PT("+++ RET_VAL offset = %d\n",
+                                            indef->size_args);
+                              }
+                              $$ = indef->argums_len;
                             }
-    | /* empty */           { if (indef) indef->size_args = $$ = 0; }
+    | /* empty */           { $$ = 0; }
     ;
 
 formal_arglist
-    : formal_arglist ',' TYPE UNDEF {
-                              Symbol *sym = install($4, LVAR, $3);
-                              sym->offset = $$;
-                              $$ -= $3->size;
+    : formal_arglist ',' TYPE lvar_valid_ident {
+                              Symbol *subr = indef;
+                              DYNARRAY_GROW(
+                                    subr->argums,
+                                    Symbol *,
+                                    1,
+                                    UQ_ARGUMS_INCRMNT);
+                              Symbol *sym = register_local_var($4, $3);
+                              subr->argums[subr->argums_len++] = sym;
+                              subr->size_args += $3->size;
+                              $$ = $1 + 1;
                             }
-    | TYPE UNDEF            {
-                              Symbol *sym = install($2, LVAR, $1);
-                              sym->offset = 0;
-                              $$ = - $1->size;
+    | TYPE lvar_valid_ident {
+                              Symbol *subr = indef;
+                              DYNARRAY_GROW(
+                                    subr->argums,
+                                    Symbol *,
+                                    1,
+                                    UQ_ARGUMS_INCRMNT);
+                              Symbol *sym = register_local_var($2, $1);
+                              subr->argums[subr->argums_len++] = sym;
+                              subr->size_args += $1->size;
+                              $$ = 1;
                             }
     ;
 

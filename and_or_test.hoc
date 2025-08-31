@@ -1,34 +1,38 @@
 #!hoc
 /* default associativity */
 func int default( \
-	    int a, int b, int c, int d,      \
+        int a, int b, int c, int d,      \
         int e, int f, int g, int h,      \
         int i, int j, int k, int l,      \
-        int m)                           \
+        int m)          {                \
     return a && b && c && d || e || f || \
            g || h && i && j || k || l || m;
+}
 
 /* left associativity */
 func int left_asoc(                          \
-        int n, int o, int p, int q,          \
-        int r, int s, int t, int u,          \
-        int v, int w, int x, int y,          \
-        int z)                               \
-    return (((((((((n&&o)&&p)&&q)||r)||s)||t)\
-           ||((u&&v)&&w))||x)||y)||z;
+        int a, int b, int c, int d,          \
+        int e, int f, int g, int h,          \
+        int i, int j, int k, int l,          \
+        int m)          {                    \
+    return (((((((((a&&b)&&c)&&d)||e)||f)||g)\
+           ||((h&&i)&&j))||k)||l)||m;
+}
 
 /* right associativity */
 func int right_asoc(                     \
-        int aa, int ab, int ac, int ad,      \
-        int ae, int af, int ag, int ah,      \
-        int ai, int aj, int ak, int al,      \
-        int am)                           \
-    return ((aa&&(ab&&(ac&&ad)))||(ae||(af||(ag \
-           ||((ah&&(ai&&aj))||(ak||(al||am)))))));
+        int a, int b, int c, int d,      \
+        int e, int f, int g, int h,      \
+        int i, int j, int k, int l,      \
+        int m)         {                 \
+    return (a&&(b&&(c&&d)))||(e||(f||(g \
+           ||((h&&(i&&j))||(k||(l||m))))));
+}
 
 /* main code */
-func int pepe() {
-    int ok, a0, nn = a0 = ok = 0;
+proc pepe() {
+    int ok = 0, n = 0;
+    int a0 = 0;
     while (a0 < 2) {
         int a1 = 0;
         while (a1 < 2) {
@@ -54,15 +58,19 @@ func int pepe() {
                                                 while (a11 < 2) {
                                                     int a12 = 0;
                                                     while (a12 < 2) {
-	int def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-	int left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-	int right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
-	n++;
-	/* def must be equal to left  and right */
-	if (def != left || def != right || left != right) \
-		print "Test #", nn, ": def=", def, ", left=", left, ", right=", right, "\n"; \
-	else ok++;
-	a12++;
+                                                        ++n;
+    int def   = default(   a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    int left  = left_asoc( a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+    int right = right_asoc(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+
+    /* def must be equal to left  and right */
+
+    if (def != left || def != right || left != right) { \
+        print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n"; \
+    } else {
+        ok++;
+    }
+                                                        a12++;
                                                     }
                                                     a11++;
                                                 }
@@ -88,12 +96,13 @@ func int pepe() {
         }
         a0++;
     }
-    print "passed tests = ", ok,     " (", 100 *     ok /nn, "%)\n";
-    print "failed tests = ", nn - ok, " (", 100 *(nn - ok)/nn, "%)\n";
-    print "total  tests = ", nn,      "\n";
+    print "passed tests = ", ok,     " (", 100 *     ok /n, "%)\n";
+    print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
+    print "total  tests = ", n,      "\n";
 }
+
 {
-	pepe();
     list;
+    pepe();
     symbs;
 }
