@@ -104,7 +104,7 @@ size_t size_lvars = 0;
 %token        ERROR
 %token <val>  NUMBER
 %token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
-%token <sym>  FUNCTION PROCEDURE MAIN_FUNCTION
+%token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS
 %token        OR AND GE LE EQ NE EXP
 %token        PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
@@ -226,6 +226,11 @@ stmt
                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
                              }
                              if (get_root_scope() == cs && (size_lvars > 0)) {
+                                 /* LCU: Mon Sep  1 05:46:49 -05 2025
+                                  * usar aqui la funcion patch_block() definida mas
+                                  * abajo (cambiar la referencia al simbolo por el
+                                  * valor de size_lvars, ya que el simbolo no esta
+                                  * siempre disponible) */
                                  Cell *saved_progp = progp;
                                  progp = $2;
                                  PT(">>> begin PATCHING code @ [%04lx]\n", progp - prog);
@@ -530,7 +535,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
 
 preamb: /* empty */         {
                               PT(">>> INSERTING UNPATCHED CODE @ [%04lx]\n", progp - prog);
-                              $$ = CODE_INST(spadd, 0);
+                              $$ = CODE_INST(noop);
                               PT("<<< END INSERTING UNPACHED CODE\n");
                             }
     ;
@@ -557,6 +562,12 @@ formal_arglist_opt
                                   PT("+++ RET_VAL offset = %d\n",
                                             indef->size_args);
                               }
+                              /* LCU: Mon Sep  1 04:35:04 -05 2025
+                               * TODO: reajustar el tama;o del scope actual a cero
+                               * (no se hace ajuste de la pila dentro de la funcion
+                               * para el espacio de estas variables locales)
+                               */
+                              get_current_scope()->size = 0;
                               $$ = indef->argums_len;
                             }
     | /* empty */           { $$ = 0; }
@@ -614,6 +625,14 @@ func_head
 void patch_block(Symbol *subr, Cell*patch_point)
 {
     /* PARCHEO DE CODIGO */
+    /* LCU: Mon Sep  1 05:39:12 -05 2025
+     * Deberiamos usar este codigo para parchear el bloque en los tres casos
+     * (function, procedure y global block)
+     * Para ello es necesario no usar el simbolo subr, porque no siempre hay
+     * uno disponible, y emplear el valor numerico del tama;o de las variables
+     * locales, disponible en cada caso de la variable global size_lvars.
+     * esta variable deberia ser reajustada a cero nada mas emplearse,
+     * y el campo correspondiente de Symbol deberia ser eliminado. */
     Cell *saved_progp = progp;
     progp             = patch_point;
     PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
