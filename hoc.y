@@ -32,7 +32,7 @@ void warning( const char *fmt, ...);
 void vwarning( const char *fmt, va_list args );
 void yyerror( char * msg );
 
-static void patch_block(Symbol *subr, Cell*patch_point);
+static void patch_block(Cell*patch_point);
 static void patch_returns(Symbol *subr, Cell *target);
 
 /*  Necersario para hacer setjmp y longjmp */
@@ -198,6 +198,9 @@ stmt
                              $$ = $2;
                              Cell *saved_progp = progp;
                              progp = $3;
+							 /* LCU: Mon Sep  1 15:26:34 -05 2025
+							  * este codigo esta fallando, no se por que esta
+                              * generando un parcheo incorrecto */
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(if_f_goto, $6);
                              PT("<<< end patching CODE @ [%04lx], "
@@ -225,33 +228,23 @@ stmt
                                  size_lvars = cs->base_offset + cs->size;
                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
                              }
-                             if (get_root_scope() == cs && (size_lvars > 0)) {
-                                 /* LCU: Mon Sep  1 05:46:49 -05 2025
-                                  * usar aqui la funcion patch_block() definida mas
-                                  * abajo (cambiar la referencia al simbolo por el
-                                  * valor de size_lvars, ya que el simbolo no esta
-                                  * siempre disponible) */
-                                 Cell *saved_progp = progp;
-                                 progp = $2;
-                                 PT(">>> begin PATCHING code @ [%04lx]\n", progp - prog);
-                                 CODE_INST(spadd, -size_lvars);
-                                 PT("<<< end   PATCHING code\n");
-                                 progp = saved_progp;
-                                 CODE_INST(spadd, size_lvars);
+                             if (get_root_scope() == cs) {
+                                 patch_block($2);
                              }
                              end_scope();
                            }
     ;
 
-create_scope :             { scope *sc = start_scope();
+create_scope
+    :  /* empty */         { scope *sc = start_scope();
                              if (get_root_scope() == sc) {
-                                 size_lvars = 0;
                                  PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                                  $$ = CODE_INST(noop);
                                  PT("<<< end   UNPATCHED code\n");
                              }
                            }
     ;
+
 
 
 /* DECLARACION DE VARIABLES GLOBALES */
@@ -325,19 +318,19 @@ lvar_definable_ident
     | LVAR
     ;
 
-do  :  /* empty */         { $$ = progp;
+do  :  /* empty */         {
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(if_f_goto, prog);
+                             $$ = CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
                            }
     ;
 
-else:  ELSE                { $$ = progp;
+else:  ELSE                {
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
-                                 CODE_INST(if_f_goto, prog);
+                             $$ = CODE_INST(Goto, prog);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
                            }
@@ -503,12 +496,16 @@ arglist
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
 
                               /* PARCHEO DE CODIGO */
-                              patch_block($1, $5);      /* parcheamos el spadd, 0 de preamb */
+                              scope *cs = get_root_scope();
+                              if (cs->base_offset + cs->size > size_lvars) {
+                                  size_lvars = cs->base_offset + cs->size;
+                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
+                              }
                               patch_returns($1, progp); /* parcheamos todos los RETURN del
                                                          * block */
+                              patch_block($5);          /* parcheamos el spadd, 0 de preamb */
 
                               /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(spadd, $1->size_lvars);
                               CODE_INST(ret);
                               end_scope();
                               end_define($1);
@@ -519,13 +516,16 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
     | func_head '(' formal_arglist_opt ')' preamb block {
 
                               /* PARCHEO DE CODIGO */
-                              patch_block($1, $5);
+                              scope *cs = get_root_scope();
+                              if (cs->base_offset + cs->size > size_lvars) {
+                                  size_lvars = cs->base_offset + cs->size;
+                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
+                              }
                               patch_returns($1, progp);
+                              patch_block($5);
 
                               /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(spadd, $1->size_lvars);
                               CODE_INST(ret);
-
                               end_scope();
                               end_define($1);
                               indef = NULL;
@@ -533,11 +533,11 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
                             }
     ;
 
-preamb: /* empty */         {
-                              PT(">>> INSERTING UNPATCHED CODE @ [%04lx]\n", progp - prog);
+preamb: /* empty */        {
+                              PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                               $$ = CODE_INST(noop);
-                              PT("<<< END INSERTING UNPACHED CODE\n");
-                            }
+                              PT("<<< end   UNPATCHED code\n");
+                           }
     ;
 
 block
@@ -562,11 +562,6 @@ formal_arglist_opt
                                   PT("+++ RET_VAL offset = %d\n",
                                             indef->size_args);
                               }
-                              /* LCU: Mon Sep  1 04:35:04 -05 2025
-                               * TODO: reajustar el tama;o del scope actual a cero
-                               * (no se hace ajuste de la pila dentro de la funcion
-                               * para el espacio de estas variables locales)
-                               */
                               get_current_scope()->size = 0;
                               $$ = indef->argums_len;
                             }
@@ -622,23 +617,19 @@ func_head
 
 %%
 
-void patch_block(Symbol *subr, Cell*patch_point)
+void patch_block(Cell*patch_point)
 {
-    /* PARCHEO DE CODIGO */
-    /* LCU: Mon Sep  1 05:39:12 -05 2025
-     * Deberiamos usar este codigo para parchear el bloque en los tres casos
-     * (function, procedure y global block)
-     * Para ello es necesario no usar el simbolo subr, porque no siempre hay
-     * uno disponible, y emplear el valor numerico del tama;o de las variables
-     * locales, disponible en cada caso de la variable global size_lvars.
-     * esta variable deberia ser reajustada a cero nada mas emplearse,
-     * y el campo correspondiente de Symbol deberia ser eliminado. */
-    Cell *saved_progp = progp;
-    progp             = patch_point;
-    PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
-    CODE_INST(spadd, -subr->size_lvars);
-    PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
-    progp = saved_progp;
+    if (size_lvars != 0) {
+		/* PARCHEO DE CODIGO */
+		Cell *saved_progp = progp;
+		progp             = patch_point;
+		PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
+		CODE_INST(spadd, -size_lvars);
+		PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
+		progp = saved_progp;
+		CODE_INST(spadd, size_lvars);
+		size_lvars = 0;
+	}
 } /* patch_block */
 
 void add_patch_return(Symbol *subr, Cell *patch_point)

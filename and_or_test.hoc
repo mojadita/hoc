@@ -68,7 +68,7 @@ proc pepe() {
     if (def != left || def != right || left != right) { \
         print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n"; \
     } else {
-        ok++;
+        ok = ok + 1;
     }
                                                         a12++;
                                                     }
@@ -101,7 +101,5 @@ proc pepe() {
     print "total  tests = ", n,      "\n";
 }
 
-{
-    symbs;
-    list;
-}
+symbs;
+list;
