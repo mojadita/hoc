@@ -184,7 +184,7 @@ stmt
                                  progp - prog, saved_progp - prog);
                              progp = saved_progp; }
 
-    | IF cond do stmt     { $$ = $2;
+    | IF cond do stmt      { $$ = $2;
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
@@ -198,9 +198,10 @@ stmt
                              $$ = $2;
                              Cell *saved_progp = progp;
                              progp = $3;
-							 /* LCU: Mon Sep  1 15:26:34 -05 2025
-							  * este codigo esta fallando, no se por que esta
+                             /* LCU: Mon Sep  1 15:26:34 -05 2025
+                              * este codigo esta fallando, no se por que esta
                               * generando un parcheo incorrecto */
+                             PT("*** $6 == %p\n", $6);
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(if_f_goto, $6);
                              PT("<<< end patching CODE @ [%04lx], "
@@ -236,7 +237,12 @@ stmt
     ;
 
 create_scope
-    :  /* empty */         { scope *sc = start_scope();
+    :  /* empty */         { /* LCU: Tue Sep  2 09:58:33 EEST 2025
+                              * Esta linea debajo no estaba, por tanto si el scope creado
+                              * no es el scope raiz, no se asigna nada a $$ y resulta en
+                              * el NULL observado en la traza mas arriba */
+                             $$ = progp;
+                             scope *sc = start_scope();
                              if (get_root_scope() == sc) {
                                  PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                                  $$ = CODE_INST(noop);
@@ -331,6 +337,7 @@ else:  ELSE                {
                              PT(">>> inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
                              $$ = CODE_INST(Goto, prog);
+                             PT("*** $$ == %p\n", $$);
                              PT("<<< end inserting unpatched CODE @ [%04lx]\n",
                                      progp - prog);
                            }
@@ -363,19 +370,19 @@ asig:
 
     | LVAR   '=' asig      { $$ = $3; CODE_INST(argassign, $1->offset); }
 
-    | VAR  PLS_EQ asig     { $$ = CODE_INST(addvar, $1); }
-    | VAR  MIN_EQ asig     { $$ = CODE_INST(subvar, $1); }
-    | VAR  MUL_EQ asig     { $$ = CODE_INST(mulvar, $1); }
-    | VAR  DIV_EQ asig     { $$ = CODE_INST(divvar, $1); }
-    | VAR  MOD_EQ asig     { $$ = CODE_INST(modvar, $1); }
-    | VAR  PWR_EQ asig     { $$ = CODE_INST(pwrvar, $1); }
+    | VAR  PLS_EQ asig     { $$ = $3; CODE_INST(addvar, $1); }
+    | VAR  MIN_EQ asig     { $$ = $3; CODE_INST(subvar, $1); }
+    | VAR  MUL_EQ asig     { $$ = $3; CODE_INST(mulvar, $1); }
+    | VAR  DIV_EQ asig     { $$ = $3; CODE_INST(divvar, $1); }
+    | VAR  MOD_EQ asig     { $$ = $3; CODE_INST(modvar, $1); }
+    | VAR  PWR_EQ asig     { $$ = $3; CODE_INST(pwrvar, $1); }
 
-    | LVAR PLS_EQ asig     { $$ = CODE_INST(addarg, $1->offset); }
-    | LVAR MIN_EQ asig     { $$ = CODE_INST(subarg, $1->offset); }
-    | LVAR MUL_EQ asig     { $$ = CODE_INST(mularg, $1->offset); }
-    | LVAR DIV_EQ asig     { $$ = CODE_INST(divarg, $1->offset); }
-    | LVAR MOD_EQ asig     { $$ = CODE_INST(modarg, $1->offset); }
-    | LVAR PWR_EQ asig     { $$ = CODE_INST(pwrarg, $1->offset); }
+    | LVAR PLS_EQ asig     { $$ = $3; CODE_INST(addarg, $1->offset); }
+    | LVAR MIN_EQ asig     { $$ = $3; CODE_INST(subarg, $1->offset); }
+    | LVAR MUL_EQ asig     { $$ = $3; CODE_INST(mularg, $1->offset); }
+    | LVAR DIV_EQ asig     { $$ = $3; CODE_INST(divarg, $1->offset); }
+    | LVAR MOD_EQ asig     { $$ = $3; CODE_INST(modarg, $1->offset); }
+    | LVAR PWR_EQ asig     { $$ = $3; CODE_INST(pwrarg, $1->offset); }
 
     | expr_or
     ;
@@ -417,7 +424,7 @@ and : AND                   {
                                       progp - prog);
                               $$ = CODE_INST(and_then, prog);
                               PT("<<< end   inserting unpatched CODE\n");
-                              }
+                            }
     ;
 
 expr_rel
@@ -456,7 +463,7 @@ prim: '(' asig ')'          { $$ = $2; }
     | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
     | VAR     PLS_PLS       { $$ = CODE_INST(evalinc, $1); }
     | VAR     MIN_MIN       { $$ = CODE_INST(evaldec, $1); }
-    | VAR                   { $$ = CODE_INST(eval, $1); }
+    | VAR                   { $$ = CODE_INST(eval,    $1); }
 
     | PLS_PLS LVAR          { $$ = CODE_INST(incarg,  $2->offset); }
     | MIN_MIN LVAR          { $$ = CODE_INST(decarg,  $2->offset); }
@@ -472,6 +479,9 @@ prim: '(' asig ')'          { $$ = $2; }
                             { $$ = $3;
                               CODE_INST(bltin2, $1); }
     | function mark '(' arglist_opt ')' {
+                              /* LCU: Tue Sep  2 00:41:28 -05 2025
+                               * comprobar que los argumentos concuerdan
+                               * con la lita de argumentos de la funcion */
                               $$ = $2;
                               CODE_INST(call, $1, $1->size_args); /* instruction */
                               CODE_INST(spadd, $1->size_args);    /* eliminando argumentos */
@@ -533,11 +543,11 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
                             }
     ;
 
-preamb: /* empty */        {
+preamb: /* empty */         {
                               PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                               $$ = CODE_INST(noop);
                               PT("<<< end   UNPATCHED code\n");
-                           }
+                            }
     ;
 
 block
@@ -620,16 +630,16 @@ func_head
 void patch_block(Cell*patch_point)
 {
     if (size_lvars != 0) {
-		/* PARCHEO DE CODIGO */
-		Cell *saved_progp = progp;
-		progp             = patch_point;
-		PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
-		CODE_INST(spadd, -size_lvars);
-		PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
-		progp = saved_progp;
-		CODE_INST(spadd, size_lvars);
-		size_lvars = 0;
-	}
+        /* PARCHEO DE CODIGO */
+        Cell *saved_progp = progp;
+        progp             = patch_point;
+        PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
+        CODE_INST(spadd, -size_lvars);
+        PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
+        progp = saved_progp;
+        CODE_INST(spadd, size_lvars);
+        size_lvars = 0;
+    }
 } /* patch_block */
 
 void add_patch_return(Symbol *subr, Cell *patch_point)
