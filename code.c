@@ -888,9 +888,6 @@ void list_prt(const instr *i, const Cell *pc)
 void if_f_goto(const instr *i) /* jump if false */
 {
     P_TAIL(": -> [%04x]", pc[0].desp);
-printf( "\nNOTA_MAXIMA: if_f_goto\n" );
-printf( "      pc[0].desp = [%04x]\n", pc[0].desp );
-printf( "      pc[0].num  = [%04lx]", pc[0].num );
     Datum d = pop();
     pc = d ? pc + i->n_cells : prog + pc[0].desp;
 }

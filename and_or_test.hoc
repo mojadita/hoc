@@ -100,6 +100,5 @@ proc pepe() {
     print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
     print "total  tests = ", n,      "\n";
 }
-
-symbs;
+pepe();
 list;

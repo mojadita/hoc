@@ -237,16 +237,13 @@ stmt
     ;
 
 create_scope
-    :  /* empty */         { /* LCU: Tue Sep  2 09:58:33 EEST 2025
-                              * Esta linea debajo no estaba, por tanto si el scope creado
-                              * no es el scope raiz, no se asigna nada a $$ y resulta en
-                              * el NULL observado en la traza mas arriba */
-                             $$ = progp;
-                             scope *sc = start_scope();
+    :  /* empty */         { scope *sc = start_scope();
                              if (get_root_scope() == sc) {
                                  PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
                                  $$ = CODE_INST(noop);
                                  PT("<<< end   UNPATCHED code\n");
+                             } else {
+                                 $$ = progp;
                              }
                            }
     ;
@@ -325,20 +322,19 @@ lvar_definable_ident
     ;
 
 do  :  /* empty */         {
-                             PT(">>> inserting unpatched CODE @ [%04lx]\n",
+                             PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                              $$ = CODE_INST(if_f_goto, prog);
-                             PT("<<< end inserting unpatched CODE @ [%04lx]\n",
+                             PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                            }
     ;
 
 else:  ELSE                {
-                             PT(">>> inserting unpatched CODE @ [%04lx]\n",
+                             PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                              $$ = CODE_INST(Goto, prog);
-                             PT("*** $$ == %p\n", $$);
-                             PT("<<< end inserting unpatched CODE @ [%04lx]\n",
+                             PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                            }
     ;
