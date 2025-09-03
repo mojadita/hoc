@@ -1,13 +1,13 @@
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE     = db
+DEBUG-TYPE    ?= db
 
-CFLAGS-nd      = -O3
-LDFLAGS-nd     =
-CFLAGS-db      = -O0 -g
-LDFLAGS-db     = -g
+CFLAGS-nd     ?= -O3
+LDFLAGS-nd    ?=
+CFLAGS-db     ?= -O0 -g
+LDFLAGS-db    ?= -g
 
-CFLAGS         = $(CFLAGS-$(DEBUG-TYPE))
-LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
+CFLAGS        ?= $(CFLAGS-$(DEBUG-TYPE))
+LDFLAGS       ?= $(LDFLAGS-$(DEBUG-TYPE))
 
 RM            ?= rm -f
 targets        = hoc hoc.1.gz ack

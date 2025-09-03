@@ -113,13 +113,13 @@ size_t size_lvars = 0;
 %token <str>  STRING UNDEF
 %token        LIST
 %token <sym>  TYPE
-%type  <cel>  stmt cond stmtlist asig
-%type  <cel>  expr_or expr_and expr_rel expr term fact prim mark
+%type  <cel>  stmt cond stmtlist expr
+%type  <cel>  expr_or expr_and expr_rel expr_arit term fact prim mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym>  proc_head func_head lvar_definable_ident function
 %type  <str>  lvar_valid_ident gvar_valid_ident
-%type  <vdl>  gvar_decl_list lvar_decl_list
+%type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
 
 %%
@@ -129,15 +129,14 @@ list: /* nothing */
     | list       '\n'
 
     | list defn  '\n'
-    | list gvar_decl_list ';' '\n' {
+    | list gvar_decl '\n' {
                          CODE_INST(STOP);
                          return 1;
                        }
 
-    | list stmt  '\n'  {
-                         CODE_INST(STOP);  /* para que execute() pare al final */
+    | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list asig  '\n'  { Symbol *prev = lookup("prev");
+    | list expr  '\n'  { Symbol *prev = lookup("prev");
                          CODE_INST(assign, prev);
                          CODE_INST(print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
@@ -151,14 +150,14 @@ list: /* nothing */
     ;
 
 stmt
-    : asig        ';'      { CODE_INST(drop); }
+    : expr        ';'      { CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
                              PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(Goto, 0);
                              PT("<<< end inserting unpatched code\n");
                              add_patch_return(indef, $$);
                            }
-    | RETURN asig ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION), "return <asig>;");
+    | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION), "return <expr>;");
                              $$ = $2;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
@@ -251,6 +250,10 @@ create_scope
 
 
 /* DECLARACION DE VARIABLES GLOBALES */
+gvar_decl
+    : gvar_decl_list ';'
+    ;
+
 gvar_decl_list
     : gvar_decl_list ',' gvar_init  { $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
@@ -274,7 +277,7 @@ gvar_decl_list
 
 gvar_init
     : gvar_valid_ident              { $$.name = $1; $$.start = NULL; }
-    | gvar_valid_ident '=' asig     { $$.name = $1; $$.start = $3; }
+    | gvar_valid_ident '=' expr     { $$.name = $1; $$.start = $3; }
     ;
 
 gvar_valid_ident
@@ -282,6 +285,10 @@ gvar_valid_ident
     ;
 
 /* DECLARACION DE VARIABLES LOCALES */
+
+lvar_decl :  lvar_decl_list ';'
+    ;
+
 lvar_decl_list
     : lvar_decl_list ',' lvar_init  { $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
@@ -308,7 +315,7 @@ lvar_decl_list
 
 lvar_init
     : lvar_valid_ident          { $$.name = $1; $$.start = NULL; }
-    | lvar_valid_ident '=' asig { $$.name = $1; $$.start = $3; }
+    | lvar_valid_ident '=' expr { $$.name = $1; $$.start = $3; }
     ;
 
 lvar_valid_ident
@@ -345,10 +352,10 @@ expr_seq
     ;
 
 item: STRING               { $$ = CODE_INST(prstr, $1); }
-    | asig                 { CODE_INST(prexpr); }
+    | expr                 { CODE_INST(prexpr); }
     ;
 
-cond: '(' asig ')'         { $$ = $2; }
+cond: '(' expr ')'         { $$ = $2; }
     ;
 
 mark: /* nada */           { $$ = progp; }
@@ -357,28 +364,28 @@ mark: /* nada */           { $$ = progp; }
 stmtlist: /* nada */       { $$ = progp; }
     | stmtlist '\n'
     | stmtlist stmt
-    | stmtlist lvar_decl_list ';'
+    | stmtlist lvar_decl
     ;
 
-asig:
-      UNDEF  '=' asig      { execerror("Variable %s no esta declarada", $1); }
-    | VAR    '=' asig      { $$ = $3; CODE_INST(assign, $1); }
+expr:
+      UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
+    | VAR    '=' expr      { $$ = $3; CODE_INST(assign, $1); }
 
-    | LVAR   '=' asig      { $$ = $3; CODE_INST(argassign, $1->offset); }
+    | LVAR   '=' expr      { $$ = $3; CODE_INST(argassign, $1->offset); }
 
-    | VAR  PLS_EQ asig     { $$ = $3; CODE_INST(addvar, $1); }
-    | VAR  MIN_EQ asig     { $$ = $3; CODE_INST(subvar, $1); }
-    | VAR  MUL_EQ asig     { $$ = $3; CODE_INST(mulvar, $1); }
-    | VAR  DIV_EQ asig     { $$ = $3; CODE_INST(divvar, $1); }
-    | VAR  MOD_EQ asig     { $$ = $3; CODE_INST(modvar, $1); }
-    | VAR  PWR_EQ asig     { $$ = $3; CODE_INST(pwrvar, $1); }
+    | VAR  PLS_EQ expr     { $$ = $3; CODE_INST(addvar, $1); }
+    | VAR  MIN_EQ expr     { $$ = $3; CODE_INST(subvar, $1); }
+    | VAR  MUL_EQ expr     { $$ = $3; CODE_INST(mulvar, $1); }
+    | VAR  DIV_EQ expr     { $$ = $3; CODE_INST(divvar, $1); }
+    | VAR  MOD_EQ expr     { $$ = $3; CODE_INST(modvar, $1); }
+    | VAR  PWR_EQ expr     { $$ = $3; CODE_INST(pwrvar, $1); }
 
-    | LVAR PLS_EQ asig     { $$ = $3; CODE_INST(addarg, $1->offset); }
-    | LVAR MIN_EQ asig     { $$ = $3; CODE_INST(subarg, $1->offset); }
-    | LVAR MUL_EQ asig     { $$ = $3; CODE_INST(mularg, $1->offset); }
-    | LVAR DIV_EQ asig     { $$ = $3; CODE_INST(divarg, $1->offset); }
-    | LVAR MOD_EQ asig     { $$ = $3; CODE_INST(modarg, $1->offset); }
-    | LVAR PWR_EQ asig     { $$ = $3; CODE_INST(pwrarg, $1->offset); }
+    | LVAR PLS_EQ expr     { $$ = $3; CODE_INST(addarg, $1->offset); }
+    | LVAR MIN_EQ expr     { $$ = $3; CODE_INST(subarg, $1->offset); }
+    | LVAR MUL_EQ expr     { $$ = $3; CODE_INST(mularg, $1->offset); }
+    | LVAR DIV_EQ expr     { $$ = $3; CODE_INST(divarg, $1->offset); }
+    | LVAR MOD_EQ expr     { $$ = $3; CODE_INST(modarg, $1->offset); }
+    | LVAR PWR_EQ expr     { $$ = $3; CODE_INST(pwrarg, $1->offset); }
 
     | expr_or
     ;
@@ -424,21 +431,21 @@ and : AND                   {
     ;
 
 expr_rel
-    : '!' expr_rel      { $$ = $2; CODE_INST(not); }
-    | expr '<' expr     { CODE_INST(lt); }
-    | expr '>' expr     { CODE_INST(gt); }
-    | expr EQ  expr     { CODE_INST(eq); }
-    | expr NE  expr     { CODE_INST(ne); }
-    | expr GE  expr     { CODE_INST(ge); }
-    | expr LE  expr     { CODE_INST(le); }
-    | expr
+    : '!' expr_rel                { $$ = $2; CODE_INST(not); }
+    | expr_arit '<' expr_arit     { CODE_INST(lt); }
+    | expr_arit '>' expr_arit     { CODE_INST(gt); }
+    | expr_arit EQ  expr_arit     { CODE_INST(eq); }
+    | expr_arit NE  expr_arit     { CODE_INST(ne); }
+    | expr_arit GE  expr_arit     { CODE_INST(ge); }
+    | expr_arit LE  expr_arit     { CODE_INST(le); }
+    | expr_arit
     ;
 
-expr: term
+expr_arit: term
     | '-' term              { $$ = $2; CODE_INST(neg);  }
     | '+' term              { $$ = $2; }
-    | expr '+' term         { CODE_INST(add);  }
-    | expr '-' term         { CODE_INST(sub);  }
+    | expr_arit '+' term    { CODE_INST(add);  }
+    | expr_arit '-' term    { CODE_INST(sub);  }
     ;
 
 term: fact
@@ -451,7 +458,7 @@ fact: prim EXP fact         { CODE_INST(pwr);  }
     | prim
     ;
 
-prim: '(' asig ')'          { $$ = $2; }
+prim: '(' expr ')'          { $$ = $2; }
     | NUMBER                { $$ = CODE_INST(constpush, $1); }
     | INTEGER               { $$ = CODE_INST(constpush, (double) $1); }
 
@@ -469,9 +476,9 @@ prim: '(' asig ')'          { $$ = $2; }
 
     | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
-    | BLTIN1 '(' asig ')'   { $$ = $3;
+    | BLTIN1 '(' expr ')'   { $$ = $3;
                               CODE_INST(bltin1, $1); }
-    | BLTIN2 '(' asig ',' asig ')'
+    | BLTIN2 '(' expr ',' expr ')'
                             { $$ = $3;
                               CODE_INST(bltin2, $1); }
     | function mark '(' arglist_opt ')' {
@@ -495,8 +502,8 @@ arglist_opt
     ;
 
 arglist
-    : arglist ',' asig      { $$ = $1 + 1; }
-    | asig                  { $$ = 1; }
+    : arglist ',' expr      { $$ = $1 + 1; }
+    | expr                  { $$ = 1; }
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
