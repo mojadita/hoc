@@ -21,8 +21,8 @@ proc ackerman(int a, int b) {
     print n, " calls to 'ack'\n";
 }
 
-symbs;
-list;
+# symbs;
+# list;
 ackerman(3, 10);
 /*
  * LCU: Sun Aug 31 11:48:52 -05 2025

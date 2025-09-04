@@ -33,6 +33,7 @@ void vwarning( const char *fmt, va_list args );
 void yyerror( char * msg );
 
 static void patch_block(Cell*patch_point);
+void add_patch_return(Symbol *subr, Cell *patch_point);
 static void patch_returns(Symbol *subr, Cell *target);
 
 /*  Necersario para hacer setjmp y longjmp */
