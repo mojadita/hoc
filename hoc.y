@@ -106,7 +106,7 @@ size_t size_lvars = 0;
 %token <val>  NUMBER
 %token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
 %token <sym>  FUNCTION PROCEDURE
-%token        PRINT WHILE IF ELSE SYMBS
+%token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL
 %token        OR AND GE LE EQ NE EXP
 %token        PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num>  FUNC PROC INTEGER
@@ -172,6 +172,7 @@ stmt
                            }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
+    | SYMBS_ALL      ';'   { $$ = CODE_INST(symbs_all, get_current_symbol()); }
     | LIST           ';'   { $$ = CODE_INST(list); }
     | WHILE cond do stmt   { $$ = $2;
                              CODE_INST(Goto, $2);

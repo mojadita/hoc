@@ -65,11 +65,12 @@ proc pepe() {
 
     /* def must be equal to left  and right */
 
-    if (def != left || def != right || left != right) { \
-        print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n"; \
+    if (def != left || def != right || left != right) {
+        print "Test #", n, ": def=", def, ", left=", left, ", right=", right, "\n";
     } else {
         ok = ok + 1;
     }
+	symbs;
                                                         a12++;
                                                     }
                                                     a11++;

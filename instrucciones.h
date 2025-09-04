@@ -40,6 +40,7 @@ INST(argassign,1, SUFF(void, arg, prog)) /* asigna el top de la pila a $n.  X ->
 INST(prstr,2,     SUFF(void, str, prog)) /* imprime una cadena */
 INST(prexpr,1)                      /* imprime una expresion */
 INST(symbs,1)                       /* imprime la tabla de simbolos (desaparecera) */
+INST(symbs_all,2, SUFF(void, symb, prog)) /* imprime toda la tabla de simbolos */
 INST(list,1)                        /* lista el codigo del programa */
 INST(if_f_goto,1, SUFF(void, addr, prog))/* salto si el top de la pila es cero */
 INST(Goto,1,      SUFF(void, addr, prog))/* salto incondicional */

@@ -36,6 +36,8 @@ Symbol *define(
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 
+Datum *getarg(int arg);               /* return a pointer to argument */
+
 Symbol *register_global_var(
         const char *name,
         Symbol *typref); /* registers a global variable */

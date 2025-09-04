@@ -14,9 +14,33 @@
 #include "config.h"
 #include "hoc.h"
 #include "colors.h"
-//#include "code.h"
 #include "instr.h"
 #include "scope.h"
+
+#ifndef   UQ_COL1_SYMBS /* { */
+#warning  UQ_COL1_SYMBS should be included in 'config.mk'
+#define   UQ_COL1_SYMBS         (-20)
+#endif /* UQ_COL1_SYMBS    } */
+
+#ifndef   UQ_COL2_SYMBS /* { */
+#warning  UQ_COL2_SYMBS should be included in 'config.mk'
+#define   UQ_COL2_SYMBS         (-20)
+#endif /* UQ_COL2_SYMBS    } */
+
+#ifndef   UQ_COL3_SYMBS /* { */
+#warning  UQ_COL3_SYMBS should be included in 'config.mk'
+#define   UQ_COL3_SYMBS         (-20)
+#endif /* UQ_COL3_SYMBS    } */
+
+#ifndef   UQ_COL4_SYMBS /* { */
+#warning  UQ_COL4_SYMBS should be included in 'config.mk'
+#define   UQ_COL4_SYMBS         (-20)
+#endif /* UQ_COL4_SYMBS    } */
+
+#ifndef   UQ_COL5_SYMBS /* { */
+#warning  UQ_COL5_SYMBS should be included in 'config.mk'
+#define   UQ_COL5_SYMBS         (-20)
+#endif /* UQ_COL5_SYMBS    } */
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -64,27 +88,27 @@ void list_symbols(void)
 {
     int col = 0;
 
-    for (   Symbol *p = get_current_symbol();
-            p != NULL;
-            p = p->next)
+    for (   Symbol *sym = get_current_symbol();
+            sym != NULL;
+            sym = sym->next)
     {
         /*
         printf("%s-%s\n",
-                p->help
-                    ? p->help
-                    : p->name,
-                lookup_type(p->type));
+                sym->help
+                    ? sym->help
+                    : sym->name,
+                lookup_type(sym->type));
         */
 
         /*   80 Col  para 4 columnas en cada fila  */
         char workspace[80], *s = workspace;
         size_t sz = sizeof workspace;
         int n = snprintf(s, sz, "%s-%s",
-            p->help ? p->help : p->name,
-            lookup_type(p->type));
+            sym->help ? sym->help : sym->name,
+            lookup_type(sym->type));
         s += n; sz -= n;
-        if (p->type == VAR) {
-            snprintf(s, sz, "(%.5lg)", p->defn->val);
+        if (sym->type == VAR) {
+            snprintf(s, sz, "(%.5lg)", sym->defn->val);
         }
         printf(GREEN "%-20s" ANSI_END, workspace);
         if (++col == 4) {
@@ -95,3 +119,68 @@ void list_symbols(void)
     if (col != 0)
         puts("");
 } /* list_symbols */
+
+int vprintf_ncols(int ncols, const char *fmt, va_list args)
+{
+	char workpad[160];
+
+	vsnprintf(workpad, sizeof workpad, fmt, args);
+	return printf("%*s", ncols, workpad);
+} /* vprintf_ncols */
+
+int printf_ncols(int ncols, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	int ret_val = vprintf_ncols(ncols, fmt, args);
+	va_end(args);
+	return ret_val;
+}
+
+void list_all_symbols(Symbol *from)
+{
+    for (   Symbol *sym = from;
+            sym != NULL;
+            sym = sym->next)
+    {
+        /*
+        printf("%s-%s\n",
+                sym->help
+                    ? sym->help
+                    : sym->name,
+                lookup_type(sym->type));
+        */
+
+        /*   1 fila para cada simbolo y 5 col para informacion del simbolo  */
+		printf_ncols(UQ_COL1_SYMBS, "%s/%s:  ", sym->name, lookup_type(sym->type));
+        switch (sym->type) {
+        case LVAR:
+			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+			printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+			printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
+			printf_ncols(UQ_COL5_SYMBS, "value %.5lg",     *getarg(sym->offset));
+			break;
+        case VAR:
+			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+			printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+			printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
+			printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
+			break;
+        case CONST:
+			printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->val);
+			break;
+        case BLTIN0: case BLTIN1: case BLTIN2:
+			printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
+			break;
+        case FUNCTION:
+			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+            printf_ncols(UQ_COL3_SYMBS, "argums %zd",       sym->argums_len);
+			break;
+		case PROCEDURE:
+            printf_ncols(UQ_COL2_SYMBS, "argums %zd",      sym->argums_len);
+			break;
+        }
+		puts("");
+    }
+} /* list_all_symbols */

@@ -48,8 +48,8 @@ scope *start_scope()
     DYNARRAY_GROW(scopes, scope, 1, UQ_SCOPES_INCRMNT);
     scope *scop   = scopes + scopes_len++;
     scope *parent = scopes_len > 1
-		? scop - 1
-		: NULL;
+        ? scop - 1
+        : NULL;
     scop->sentinel = current_symbol;
     if (parent) {
         scop->base_offset = parent->base_offset + parent->size;
@@ -72,7 +72,7 @@ Symbol *end_scope()
         assert(sym->type == LVAR);
     }
     current_symbol = scop->sentinel;
-	scopes_len--;
+    scopes_len--;
 
     return ret_val;
 } /* end_scope */
@@ -115,7 +115,7 @@ Symbol *lookup(const char *sym_name)
 Symbol *install(
         const char *sym_name,
         int         sym_type,
-        Symbol     *lvar_type)
+        Symbol     *typref)
 {
     sym_name = intern(sym_name);
     Symbol *ret_val = calloc(1, sizeof *ret_val);
@@ -123,6 +123,7 @@ Symbol *install(
 
     ret_val->name   = sym_name;
     ret_val->type   = sym_type;
+	ret_val->typref = typref;
 
     /* insertamos el simbolo en el scope */
     ret_val->next   = current_symbol;

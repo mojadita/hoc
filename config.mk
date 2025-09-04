@@ -57,3 +57,9 @@ UQ_SCOPES_INCRMNT               ?= 10
 UQ_RETURNS_TO_PATCH_INCRMNT     ?= 4
 UQ_INTERN_INCRMNT               ?= 10
 UQ_ARGUMS_INCRMNT               ?= 8
+
+UQ_COL1_SYMBS                   ?= 30
+UQ_COL2_SYMBS                   ?= -18
+UQ_COL3_SYMBS                   ?= -10
+UQ_COL4_SYMBS                   ?= -10
+UQ_COL5_SYMBS                   ?= -10

@@ -86,18 +86,17 @@ typedef struct Frame { /* proc/func call stack frame */
 Frame  frame[UQ_NFRAME];
 Frame *fp     = frame + UQ_NFRAME;      /* frame pointer */
 
-static Datum *getarg(int arg);    /* return a pointer to argument */
 
 void initcode(void)  /* initalize for code generation */
 {
     progp     = progbase;
     stackp    = stack + UQ_NSTACK;
     fp        = frame + UQ_NFRAME;
-	fp--;
-	fp->sym   = NULL;
-	fp->retpc = NULL;
-	fp->argn  = stackp;
-	fp->nargs = 0;
+    fp--;
+    fp->sym   = NULL;
+    fp->retpc = NULL;
+    fp->argn  = stackp;
+    fp->nargs = 0;
     returning = 0;
 } /* initcode */
 
@@ -105,19 +104,19 @@ Symbol *register_global_var(
         const char *name,
         Symbol     *typref)
 {
-	assert(get_current_scope() == NULL);
+    assert(get_current_scope() == NULL);
     if (progp >= varbase) {
         execerror("variables zone exhausted (progp >= varbase)\n");
     }
-	if (lookup(name)) {
-		execerror("Variable %s already defined\n", name);
-	}
+    if (lookup(name)) {
+        execerror("Variable %s already defined\n", name);
+    }
     Symbol *sym = install(name, VAR, typref);
     sym->defn = --varbase;
     PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
         sym->name,
         lookup_type(sym->type),
-		typref->name,
+        typref->name,
         sym->defn ? sym->defn - prog : -1);
     return sym;
 } /* register_global_var */
@@ -126,14 +125,14 @@ Symbol *register_local_var(
         const char *name,
         Symbol     *typref)
 {
-	scope *scop = get_current_scope();
-	assert(scop != NULL);
-	if (lookup_current_scope(name)) {
-		execerror("Variable %s already defined in current scope\n", name);
-	}
+    scope *scop = get_current_scope();
+    assert(scop != NULL);
+    if (lookup_current_scope(name)) {
+        execerror("Variable %s already defined in current scope\n", name);
+    }
     Symbol *sym = install(name, LVAR, typref);
-	scop->size += typref->size;
-	sym->offset = -(scop->base_offset + scop->size);
+    scop->size += typref->size;
+    sym->offset = -(scop->base_offset + scop->size);
 
     PRG("Symbol '%s', type=%s, typref=%s, offset=%d\n",
         sym->name,
@@ -774,7 +773,7 @@ void ret_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
-static Datum *getarg(int arg)    /* return a pointer to argument */
+Datum *getarg(int arg)    /* return a pointer to argument */
 {
     if (arg > fp->nargs) {
         execerror("Accessing arg $%d while only %d "
@@ -862,6 +861,19 @@ void symbs(const instr *i)
 }
 
 void symbs_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void symbs_all(const instr *i)
+{
+    Symbol *cs = pc[1].sym;
+    P_TAIL("\n");
+    list_all_symbols(cs);
+    UPDATE_PC();
+}
+
+void symbs_all_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
