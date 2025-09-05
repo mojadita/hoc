@@ -878,6 +878,19 @@ void symbs_all_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void brkpt(const instr *i)
+{
+    Symbol *cs = pc[1].sym;
+    P_TAIL("\n");
+    list_variables(cs);
+    UPDATE_PC();
+}
+
+void brkpt_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void list(const instr *i)
 {
     const Cell *ip = prog;

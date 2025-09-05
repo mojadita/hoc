@@ -57,5 +57,6 @@ struct Symbol_s {                         /* Symbol table entry */
 const char *lookup_type(int typ);
 void list_symbols(void);
 void list_all_symbols(Symbol *current_symbol);
+void list_variables(Symbol *current_symbol);
 
 #endif /* SYMBOL_H */

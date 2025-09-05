@@ -122,20 +122,20 @@ void list_symbols(void)
 
 int vprintf_ncols(int ncols, const char *fmt, va_list args)
 {
-	char workpad[160];
+    char workpad[160];
 
-	vsnprintf(workpad, sizeof workpad, fmt, args);
-	return printf("%*s", ncols, workpad);
+    vsnprintf(workpad, sizeof workpad, fmt, args);
+    return printf("%*s", ncols, workpad);
 } /* vprintf_ncols */
 
 int printf_ncols(int ncols, const char *fmt, ...)
 {
-	va_list args;
+    va_list args;
 
-	va_start(args, fmt);
-	int ret_val = vprintf_ncols(ncols, fmt, args);
-	va_end(args);
-	return ret_val;
+    va_start(args, fmt);
+    int ret_val = vprintf_ncols(ncols, fmt, args);
+    va_end(args);
+    return ret_val;
 }
 
 void list_all_symbols(Symbol *from)
@@ -153,34 +153,67 @@ void list_all_symbols(Symbol *from)
         */
 
         /*   1 fila para cada simbolo y 5 col para informacion del simbolo  */
-		printf_ncols(UQ_COL1_SYMBS, "%s/%s:  ", sym->name, lookup_type(sym->type));
+        //printf_ncols(UQ_COL1_SYMBS, "%s/%s:  ", sym->name, lookup_type(sym->type));
+        printf_ncols(45,
+                     BRIGHT "%s" RED "/" CYAN "%s:  " ANSI_END,
+                     sym->name, lookup_type(sym->type));
         switch (sym->type) {
         case LVAR:
-			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-			printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
-			printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
-			printf_ncols(UQ_COL5_SYMBS, "value %.5lg",     *getarg(sym->offset));
-			break;
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+            printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
+            printf_ncols(UQ_COL5_SYMBS, "value %.5lg",     *getarg(sym->offset));
+            break;
         case VAR:
-			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-			printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
-			printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
-			printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
-			break;
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+            printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
+            printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
+            break;
         case CONST:
-			printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->val);
-			break;
+            printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->val);
+            break;
         case BLTIN0: case BLTIN1: case BLTIN2:
-			printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
-			break;
+            printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
+            break;
         case FUNCTION:
-			printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
             printf_ncols(UQ_COL3_SYMBS, "argums %zd",       sym->argums_len);
-			break;
-		case PROCEDURE:
+            break;
+        case PROCEDURE:
             printf_ncols(UQ_COL2_SYMBS, "argums %zd",      sym->argums_len);
-			break;
+            break;
         }
-		puts("");
+        puts("");
     }
 } /* list_all_symbols */
+
+void list_variables(Symbol *from)
+{
+    for (   Symbol *sym = from;
+            sym != NULL;
+            sym = sym->next)
+    {
+        /*
+        printf("%s-%s\n",
+                sym->help
+                    ? sym->help
+                    : sym->name,
+                lookup_type(sym->type));
+        */
+
+        /*   1 fila para cada simbolo e informacion del simbolo  */
+        switch (sym->type) {
+        case LVAR:
+            printf( "%s { %s %s, sz %zu, offset %d, value %.5lg }\n",
+                   sym->name, lookup_type(sym->type), sym->typref->name,
+                   sym->typref->size, sym->offset, *getarg(sym->offset) );
+            break;
+        case VAR:
+            printf( "%s { %s %s, sz %zu, pos [%04lx], value %.5lg }\n",
+                   sym->name, lookup_type(sym->type), sym->typref->name,
+                   sym->typref->size, sym->defn - prog, sym->defn->val );
+            break;
+        }
+    }
+} /* list_variables */

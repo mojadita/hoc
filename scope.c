@@ -123,7 +123,7 @@ Symbol *install(
 
     ret_val->name   = sym_name;
     ret_val->type   = sym_type;
-	ret_val->typref = typref;
+    ret_val->typref = typref;
 
     /* insertamos el simbolo en el scope */
     ret_val->next   = current_symbol;
