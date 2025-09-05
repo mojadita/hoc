@@ -42,6 +42,11 @@
 #define   UQ_COL5_SYMBS         (-20)
 #endif /* UQ_COL5_SYMBS    } */
 
+#ifndef   UQ_BRKPT_WIDTH /* { */
+#warning  UQ_BRKPT_WIDTH should be included in 'config.mk'
+#define   UQ_BRKPT_WIDTH        (15)
+#endif /* UQ_BRKPT_WIDTH    } */
+
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
  * en la estructura Symbol (.next)
@@ -190,6 +195,7 @@ void list_all_symbols(Symbol *from)
 
 void list_variables(Symbol *from)
 {
+    char *sep = "*";
     for (   Symbol *sym = from;
             sym != NULL;
             sym = sym->next)
@@ -205,15 +211,19 @@ void list_variables(Symbol *from)
         /*   1 fila para cada simbolo e informacion del simbolo  */
         switch (sym->type) {
         case LVAR:
-            printf( "%s { %s %s, sz %zu, offset %d, value %.5lg }\n",
-                   sym->name, lookup_type(sym->type), sym->typref->name,
-                   sym->typref->size, sym->offset, *getarg(sym->offset) );
+            fputs(sep, stdout);
+            printf_ncols( UQ_BRKPT_WIDTH,
+                    "%s<%+d>->%.5lg",
+                    sym->name, sym->offset, *getarg(sym->offset) );
             break;
         case VAR:
-            printf( "%s { %s %s, sz %zu, pos [%04lx], value %.5lg }\n",
-                   sym->name, lookup_type(sym->type), sym->typref->name,
-                   sym->typref->size, sym->defn - prog, sym->defn->val );
+            fputs(sep, stdout);
+            printf_ncols( UQ_BRKPT_WIDTH,
+                    "%s[%04lx]->%.5lg",
+                    sym->name, sym->defn - prog, sym->defn->val );
             break;
         }
+        sep = ", ";
     }
+    puts("");
 } /* list_variables */

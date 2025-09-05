@@ -63,3 +63,4 @@ UQ_COL2_SYMBS                   ?= -18
 UQ_COL3_SYMBS                   ?= -10
 UQ_COL4_SYMBS                   ?= -10
 UQ_COL5_SYMBS                   ?= -10
+UQ_BRKPT_WIDTH                  ?= 18
