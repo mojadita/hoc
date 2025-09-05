@@ -3,17 +3,11 @@
  */
 
 func double square_root(double x, double eps) {
-    double a = x;
-    double b = 1.0;
+    double a = x, b = 1.0;
     while (abs(a - b) > eps) {
-        a = (a + b) / 2.0;
-        b = x / a;
+        a = (a + b) / 2.0; /* arithmetic average */
+        b = x / a;         /* geometric average (approx) */
+		brkpt;
     }
     return b;
-}
-{
-    double x = 2.0, eps = 1.0E-12, r = square_root(x, eps);
-    print "square_root(", x, ", ", eps, ") = ", r, "\n";
-    list;
-    symbs;
 }

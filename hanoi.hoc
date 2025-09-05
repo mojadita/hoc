@@ -1,18 +1,18 @@
 int n=0;
-proc hanoi(int fuente, int destino, int reserva, int altura) {
+proc hanoi(int src, int dst, int rsrv, int alt) {
+    brkpt;
     /* si quiero mover una torre de n discos del pincho $1 al pincho $2,
      * lo que tengo que hacer es mover una torre de (n-1) discos
      * de la torre $1 a la torre $3, despues mover una torre de 1 disco
      * de la torre $1 a la torre $2, y por ultim mover una torre de (n-1)
      * discos de la torre $3 a la torre $2. */
-    if (altura == 1) {
-        # print ++n, ": ", fuente, " -> ", destino, "\n";
+    if (alt == 1) {
+        print ++n, ": ", src, " -> ", dst, "\n";
         return;
     }
-    hanoi(fuente,  reserva, destino, altura - 1);
-    hanoi(fuente,  destino, reserva,          1);
-    hanoi(reserva, destino, fuente,  altura - 1);
-	symbs_all;
+    hanoi(src,  rsrv, dst, alt - 1);
+    hanoi(src,  dst, rsrv,       1);
+    hanoi(rsrv, dst, src,  alt - 1);
 }
 hanoi(1, 3, 2, 4);
 # list;

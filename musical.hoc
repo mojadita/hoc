@@ -1,0 +1,15 @@
+int n = 0;
+{
+    int factor  = pow(2, 1/12);
+    int frecuencia  = 440 / pow(factor, 9) / 8;
+    int escala  = 0;
+    while (escala++ < 7) {
+        int nota = 1;
+        while (nota <= 12) {
+            n++;
+            brkpt;
+            frecuencia *= factor;
+            nota++;
+        }
+    }
+}

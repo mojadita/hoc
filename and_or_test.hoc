@@ -70,7 +70,7 @@ proc pepe() {
     } else {
         ok = ok + 1;
     }
-	symbs;
+    symbs;
                                                         a12++;
                                                     }
                                                     a11++;

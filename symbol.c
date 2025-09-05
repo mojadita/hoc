@@ -42,10 +42,15 @@
 #define   UQ_COL5_SYMBS         (-20)
 #endif /* UQ_COL5_SYMBS    } */
 
-#ifndef   UQ_BRKPT_WIDTH /* { */
-#warning  UQ_BRKPT_WIDTH should be included in 'config.mk'
-#define   UQ_BRKPT_WIDTH        (15)
-#endif /* UQ_BRKPT_WIDTH    } */
+#ifndef   UQ_BRKPT_WIDTH1 /* { */
+#warning  UQ_BRKPT_WIDTH1 should be included in 'config.mk'
+#define   UQ_BRKPT_WIDTH1        (-17)
+#endif /* UQ_BRKPT_WIDTH1    } */
+
+#ifndef   UQ_BRKPT_WIDTH2 /* { */
+#warning  UQ_BRKPT_WIDTH2 should be included in 'config.mk'
+#define   UQ_BRKPT_WIDTH2        (-17)
+#endif /* UQ_BRKPT_WIDTH2    } */
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -195,7 +200,7 @@ void list_all_symbols(Symbol *from)
 
 void list_variables(Symbol *from)
 {
-    char *sep = "*";
+    char *sep = "[";
     for (   Symbol *sym = from;
             sym != NULL;
             sym = sym->next)
@@ -212,18 +217,24 @@ void list_variables(Symbol *from)
         switch (sym->type) {
         case LVAR:
             fputs(sep, stdout);
-            printf_ncols( UQ_BRKPT_WIDTH,
-                    "%s<%+d>->%.5lg",
-                    sym->name, sym->offset, *getarg(sym->offset) );
+            printf_ncols( UQ_BRKPT_WIDTH1,
+                    GREEN "%s" ANSI_END "<%+d>",
+					sym->name, sym->offset);
+            printf_ncols( UQ_BRKPT_WIDTH2,
+                    CYAN  " %-1.7lg" ANSI_END,
+					*getarg(sym->offset) );
             break;
         case VAR:
             fputs(sep, stdout);
-            printf_ncols( UQ_BRKPT_WIDTH,
-                    "%s[%04lx]->%.5lg",
-                    sym->name, sym->defn - prog, sym->defn->val );
+            printf_ncols( UQ_BRKPT_WIDTH1,
+                    GREEN "%s" ANSI_END "{%04lx}",
+                    sym->name, sym->defn - prog);
+            printf_ncols( UQ_BRKPT_WIDTH2,
+                    CYAN " %-1.7lg" ANSI_END,
+                    sym->defn->val );
             break;
         }
-        sep = ", ";
+        sep = "][";
     }
-    puts("");
+    fputs("]\n", stdout);
 } /* list_variables */
