@@ -205,24 +205,16 @@ void list_variables(Symbol *from)
             sym != NULL;
             sym = sym->next)
     {
-        /*
-        printf("%s-%s\n",
-                sym->help
-                    ? sym->help
-                    : sym->name,
-                lookup_type(sym->type));
-        */
-
         /*   1 fila para cada simbolo e informacion del simbolo  */
         switch (sym->type) {
         case LVAR:
             fputs(sep, stdout);
             printf_ncols( UQ_BRKPT_WIDTH1,
                     GREEN "%s" ANSI_END "<%+d>",
-					sym->name, sym->offset);
+                    sym->name, sym->offset);
             printf_ncols( UQ_BRKPT_WIDTH2,
                     CYAN  " %-1.7lg" ANSI_END,
-					*getarg(sym->offset) );
+                    getarg(sym->offset)->val );
             break;
         case VAR:
             fputs(sep, stdout);

@@ -1,0 +1,9 @@
+{
+  int n = 0, limit = 1000;
+  while (n < limit) {
+    if (n) print ", ";
+    print n++;
+  }
+  print "\n";
+  list;
+}

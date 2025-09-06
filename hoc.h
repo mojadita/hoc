@@ -15,8 +15,6 @@
 
 #define OUTPUT_FMT   "%32.8g"
 
-typedef double Datum;
-
 #include "cell.h"
 #include "symbol.h"
 #include "instr.h"
@@ -49,8 +47,6 @@ extern jmp_buf begin;
 extern int lineno;
 extern int col_no;
 extern char *progname;
-
-extern Datum pop(void);
 
 extern Cell prog[];
 

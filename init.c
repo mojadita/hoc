@@ -24,12 +24,12 @@ static struct constant { /* constants */
     char *name;
     double cval;
 } consts[] = {
-    "DEG",     180.0/M_PI,
-    "E",       M_E,
-    "PHI",     1.61803398874989484820,
-    "PI",      M_PI,
-    "version", UQ_VERSION,
-    NULL,      0.0,
+    { "DEG",     180.0/M_PI, },
+    { "E",       M_E, },
+    { "PHI",     1.61803398874989484820, },
+    { "PI",      M_PI, },
+    { "version", UQ_VERSION, },
+    { NULL,      0.0, },
 };
 
 static struct builtin { /* built-ins-1 */
@@ -38,39 +38,39 @@ static struct builtin { /* built-ins-1 */
     int  type;
     const char *help;
 } builtins[] = {
-    "abs",   fabs,      BLTIN1, "abs(x)",
-    "acos",  acos,      BLTIN1, "acos(x)",
-    "asin",  asin,      BLTIN1, "asin(x)",
-    "atan",  atan,      BLTIN1, "atan(x)",
-    "atan2", atan2,     BLTIN2, "atan2(y,x)",
-    "cos",   cos,       BLTIN1, "cos(x)",
-    "exp",   exp,       BLTIN1, "exp(x)",
-    "intg",  integer,   BLTIN1, "intg(x)",
-    "inv",   inverso,   BLTIN1, "inv(x)",
-    "log",   log,       BLTIN1, "log(x)",
-    "log10", log10,     BLTIN1, "log10(x)",
-    "ops",   opuesto,   BLTIN1, "ops(x)",
-    "pow",   Pow,       BLTIN2, "pow(x,y)",
-    "rand",  Rand,      BLTIN0, "rand()",
-    "read",  rd,        BLTIN0, "read()",
-    "sin",   sin,       BLTIN1, "sin(x)",
-    "sqrt",  Sqrt,      BLTIN1, "sqrt(x)",
-    "tan",   tan,       BLTIN1, "tan(x)",
-    "time",  now,       BLTIN0, "time()",
-    NULL,    NULL,
+    { "abs",   fabs,      BLTIN1, "abs(x)", },
+    { "acos",  acos,      BLTIN1, "acos(x)", },
+    { "asin",  asin,      BLTIN1, "asin(x)", },
+    { "atan",  atan,      BLTIN1, "atan(x)", },
+    { "atan2", atan2,     BLTIN2, "atan2(y,x)", },
+    { "cos",   cos,       BLTIN1, "cos(x)", },
+    { "exp",   exp,       BLTIN1, "exp(x)", },
+    { "intg",  integer,   BLTIN1, "intg(x)", },
+    { "inv",   inverso,   BLTIN1, "inv(x)", },
+    { "log",   log,       BLTIN1, "log(x)", },
+    { "log10", log10,     BLTIN1, "log10(x)", },
+    { "ops",   opuesto,   BLTIN1, "ops(x)", },
+    { "pow",   Pow,       BLTIN2, "pow(x,y)", },
+    { "rand",  Rand,      BLTIN0, "rand()", },
+    { "read",  rd,        BLTIN0, "read()", },
+    { "sin",   sin,       BLTIN1, "sin(x)", },
+    { "sqrt",  Sqrt,      BLTIN1, "sqrt(x)", },
+    { "tan",   tan,       BLTIN1, "tan(x)", },
+    { "time",  now,       BLTIN0, "time()", },
+    { NULL,    NULL, },
 };
 
 static struct predefined_types { /* predefined types */
     char *name;
     int   size;
 } builtin_types [] = {
-    "char",   1,
-    "int",    1,
-    "long",   1,
-    "float",  1,
-    "double", 1,
-    "string", 1,
-    NULL,     0,
+    { "char",   1, },
+    { "int",    1, },
+    { "long",   1, },
+    { "float",  1, },
+    { "double", 1, },
+    { "string", 1, },
+    { NULL,     0, },
 };
 
 void init(void)  /* install constants and built-ins in table */

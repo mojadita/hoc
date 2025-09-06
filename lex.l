@@ -199,8 +199,6 @@ static char *deescape(char *in);
 \"([^\"\n]|\\.)*\n {
             /* CADENA DE CARACTERES NO TERMINADA --> ERROR */
             add_token(ERROR, lineno, col_no, yyleng, yytext);
-            int saved_lineno = lineno++,
-                saved_col_no = col_no;
             col_no           = 1;
             return ERROR;
         }

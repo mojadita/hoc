@@ -31,12 +31,12 @@ docdir                   ?= $(datarootdir)/doc/$(PACKAGE)
 vardir                   ?= $(exec_prefix)/var
 logdir                   ?= $(vardir)/log
 
-UQ_HOC_DEBUG             ?=  0
-UQ_HOC_TRACE_PATCHING    ?=  0
+UQ_HOC_DEBUG             ?=  1
+UQ_HOC_TRACE_PATCHING    ?=  1
 UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
-UQ_CODE_DEBUG_EXEC       ?=  0
-UQ_CODE_DEBUG_PROG       ?=  0
+UQ_CODE_DEBUG_EXEC       ?=  1
+UQ_CODE_DEBUG_PROG       ?=  1
 
 UQ_USE_COLORS            ?=  1
 UQ_USE_LOCUS             ?=  0
@@ -45,9 +45,7 @@ UQ_USE_INF               ?=  1
 UQ_USE_WRN               ?=  1
 UQ_USE_ERR               ?=  1
 UQ_USE_CRT               ?=  1
-UQ_NSTACK                ?= 200000
-UQ_NPROG                 ?= 2000
-UQ_NFRAME                ?= 100000
+UQ_NPROG                 ?= 0x100000
 UQ_TAB_SIZE              ?= 4
 
 UQ_LAST_TOKENS_SZ               ?= 64
@@ -66,3 +64,4 @@ UQ_COL5_SYMBS                   ?= -10
 
 UQ_BRKPT_WIDTH1                 ?= -17
 UQ_BRKPT_WIDTH2                 ?= -17
+UQ_SIZE_FP_RETADDR              ?= 2

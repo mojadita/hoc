@@ -19,8 +19,8 @@ extern Cell *progbase;                /* pointer to first program instruction */
 extern Cell *varbase;
 
 void  initcode(void);                 /* initalize for code generation */
-void  push(Datum           d);        /* push d onto stack */
-Datum pop(void);                      /* pops Datum and rturn top element from stack */
+void  push(Cell            d);        /* push d onto stack */
+Cell  pop(void);                      /* pops Cell and rturn top element from stack */
 Cell *code_inst(instr_code f, ...);   /* encodes one instruction of operand */
 Cell *code_sym(Symbol     *s);        /* encodes one symbol in a Cell */
 Cell *code_val(double      val);      /* encodes a double value in a Cell */
@@ -36,7 +36,7 @@ Symbol *define(
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 
-Datum *getarg(int arg);               /* return a pointer to argument */
+Cell *getarg(int arg);               /* return a pointer to argument */
 
 Symbol *register_global_var(
         const char *name,

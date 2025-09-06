@@ -1,5 +1,5 @@
 int n=0;
-proc hanoi(int src, int dst, int rsrv, int alt) {
+proc hanoi(int src, int dst, int rsv, int alt) {
     brkpt;
     /* si quiero mover una torre de n discos del pincho $1 al pincho $2,
      * lo que tengo que hacer es mover una torre de (n-1) discos
@@ -10,9 +10,9 @@ proc hanoi(int src, int dst, int rsrv, int alt) {
         print ++n, ": ", src, " -> ", dst, "\n";
         return;
     }
-    hanoi(src,  rsrv, dst, alt - 1);
-    hanoi(src,  dst, rsrv,       1);
-    hanoi(rsrv, dst, src,  alt - 1);
+    hanoi(src,  rsv, dst, alt - 1);
+    hanoi(src,  dst, rsv,       1);
+    hanoi(rsv, dst, src,  alt - 1);
 }
 hanoi(1, 3, 2, 4);
 # list;

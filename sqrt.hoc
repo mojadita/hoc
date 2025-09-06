@@ -7,7 +7,7 @@ func double square_root(double x, double eps) {
     while (abs(a - b) > eps) {
         a = (a + b) / 2.0; /* arithmetic average */
         b = x / a;         /* geometric average (approx) */
-		brkpt;
+        brkpt;
     }
     return b;
 }

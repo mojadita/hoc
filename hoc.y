@@ -61,8 +61,13 @@ jmp_buf begin;
 
 #ifndef   UQ_ARGUMS_INCRMNT /* { */
 #warning  UQ_ARGUMS_INCRMNT deberia ser configurado en config.mk
-#define   UQ_ARGUMS_INCRMNT  8
+#define   UQ_ARGUMS_INCRMNT      (8)
 #endif /* UQ_ARGUMS_INCRMNT    } */
+
+#ifndef   UQ_SIZE_FP_RETADDR /* { */
+#warning  UQ_SIZE_FP_RETADDR deberia ser configurado en config.mk
+#define   UQ_SIZE_FP_RETADDR     (2)
+#endif /* UQ_SIZE_FP_RETADDR    } */
 
 #if       UQ_HOC_DEBUG /* {{ */
 # define P(_fmt, ...)                     \
@@ -162,13 +167,13 @@ stmt
                              $$ = $2;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
-                             CODE_INST(argassign, indef->size_args);
+                             CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR);
                              CODE_INST(drop);
 
                              PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
                              Cell *p = CODE_INST(Goto, prog);
-                             PT("<<< end inserting unpatched code\n");
                              add_patch_return(indef, p);
+                             PT("<<< end inserting unpatched code\n");
                            }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -200,9 +205,6 @@ stmt
                              $$ = $2;
                              Cell *saved_progp = progp;
                              progp = $3;
-                             /* LCU: Mon Sep  1 15:26:34 -05 2025
-                              * este codigo esta fallando, no se por que esta
-                              * generando un parcheo incorrecto */
                              PT("*** $6 == %p\n", $6);
                              PT(">>> patching CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(if_f_goto, $6);
@@ -220,7 +222,7 @@ stmt
 
     | PROCEDURE mark '(' arglist_opt ')' ';' {
                              $$ = $2;
-                             CODE_INST(call, $1, $1->size_args); /* instruction */
+                             CODE_INST(call, $1); /* instruction */
                              CODE_INST(spadd, $1->size_args);    /* pop arguments */
                            }
 
@@ -485,12 +487,9 @@ prim: '(' expr ')'          { $$ = $2; }
                             { $$ = $3;
                               CODE_INST(bltin2, $1); }
     | function mark '(' arglist_opt ')' {
-                              /* LCU: Tue Sep  2 00:41:28 -05 2025
-                               * comprobar que los argumentos concuerdan
-                               * con la lita de argumentos de la funcion */
                               $$ = $2;
-                              CODE_INST(call, $1, $1->size_args); /* instruction */
-                              CODE_INST(spadd, $1->size_args);    /* eliminando argumentos */
+                              CODE_INST(call, $1);             /* instruction */
+                              CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
                             }
     ;
 
@@ -505,8 +504,14 @@ arglist_opt
     ;
 
 arglist
-    : arglist ',' expr      { $$ = $1 + 1; }
-    | expr                  { $$ = 1; }
+    : arglist ',' expr      { /* LCU: Tue Sep  2 00:41:28 -05 2025
+                               * comprobar que los argumentos concuerdan
+                               * con la lita de argumentos de la funcion */
+                              $$ = $1 + 1; }
+    | expr                  { /* LCU: Tue Sep  2 00:41:28 -05 2025
+                               * comprobar que los argumentos concuerdan
+                               * con la lita de argumentos de la funcion */
+                              $$ = 1; }
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
@@ -522,6 +527,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
                               patch_block($5);          /* parcheamos el spadd, 0 de preamb */
 
                               /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+                              CODE_INST(pop_fp);
                               CODE_INST(ret);
                               end_scope();
                               end_define($1);
@@ -541,6 +547,7 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
                               patch_block($5);
 
                               /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+                              CODE_INST(pop_fp);
                               CODE_INST(ret);
                               end_scope();
                               end_define($1);
@@ -550,7 +557,13 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
     ;
 
 preamb: /* empty */         {
+                              CODE_INST(push_fp);
+                              CODE_INST(move_sp_to_fp);
                               PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
+                              /* LCU: Mon Sep  8 13:17:49 EEST 2025
+                               * we need to return this pointer (not
+                               * a pointer to the beginning of the code)
+                               * because we need to patch it. */
                               $$ = CODE_INST(noop);
                               PT("<<< end   UNPATCHED code\n");
                             }
@@ -568,7 +581,8 @@ formal_arglist_opt
                                * entrar a la funcion (sumando a sus offsets la cantidad
                                * indef->size_args */
                               for (int i = 0; i < indef->argums_len; ++i) {
-                                    indef->argums[i]->offset += indef->size_args;
+                                    indef->argums[i]->offset += indef->size_args
+                                                              + UQ_SIZE_FP_RETADDR;
                                     PT("+++ arg[%d] (%s), offset = %d\n",
                                         i,
                                         indef->argums[i]->name,
@@ -576,7 +590,8 @@ formal_arglist_opt
                               }
                               if (indef->type == FUNCTION) {
                                   PT("+++ RET_VAL offset = %d\n",
-                                            indef->size_args);
+                                            indef->size_args
+                                            + UQ_SIZE_FP_RETADDR);
                               }
                               get_current_scope()->size = 0;
                               $$ = indef->argums_len;

@@ -110,9 +110,7 @@ void do_version(int cod)
     P(UQ_USE_WRN);
     P(UQ_USE_ERR);
     P(UQ_USE_CRT);
-    P(UQ_NSTACK);
     P(UQ_NPROG);
-    P(UQ_NFRAME);
 
     P(UQ_LAST_TOKENS_SZ);
     P(UQ_DEFAULT_LOGLEVEL);
