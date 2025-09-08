@@ -70,7 +70,7 @@ proc pepe() {
     } else {
         ok = ok + 1;
     }
-    symbs;
+    #symbs;
                                                         a12++;
                                                     }
                                                     a11++;
@@ -101,5 +101,5 @@ proc pepe() {
     print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
     print "total  tests = ", n,      "\n";
 }
-list;
+#list;
 pepe();

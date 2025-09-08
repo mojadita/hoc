@@ -357,7 +357,7 @@ expr_seq
     ;
 
 item: STRING               { $$ = CODE_INST(prstr, $1); }
-    | expr                 { CODE_INST(prexpr); }
+    | expr                 { $$ = CODE_INST(prexpr); }
     ;
 
 cond: '(' expr ')'         { $$ = $2; }

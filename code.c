@@ -181,7 +181,6 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 
 void execute(Cell *p) /* run the machine */
 {
-    initcode();
     EXEC(BRIGHT YELLOW " BEGIN [%04lx], fp=[%04lx], "
             "sp=[%04lx], varbase=[%04lx], stacksize=%d" ANSI_END "\n",
             (p - prog), fp - prog, sp - prog, varbase - prog, stacksize());
@@ -192,7 +191,7 @@ void execute(Cell *p) /* run the machine */
         const instr *ins = instruction_set + pc->inst;
         EXEC("[%04lx]: %s", pc - prog, ins->name);
         ins->exec(ins);
-        P_TAIL(", fp=[%04lx], sp=[%04lx], stacksize=%d\n",
+        P_TAIL(", fp=[%04lx], sp=[%04lx], ss=%d\n",
                 fp - prog, sp - prog, stacksize());
     }
     EXEC(" " BRIGHT YELLOW "END [%04lx], fp=[%04lx], "
@@ -729,7 +728,7 @@ void ret(const instr *i) /* return from proc */
 {
     Cell dest = pop();
 
-    P_TAIL(": -> [%04lx]\n", dest.cel - prog);
+    P_TAIL(": -> [%04lx]", dest.cel - prog);
 
     pc = dest.cel;
 }
@@ -800,7 +799,7 @@ void prstr_prt(const instr *i, const Cell *pc)
 
 void str_prog(const instr *i, Cell *pc, va_list args)
 {
-    progp->str = va_arg(args, const char *);
+    progp[1].str = va_arg(args, const char *);
 
     PRG(" \"%s\"", progp->str);
 }
