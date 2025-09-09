@@ -59,6 +59,11 @@ static void process(FILE *in);
 
 int main(int argc, char *argv[]) /* hoc1 */
 {
+    fprintf( stderr,
+        "Welcome to '" BRIGHT "%s" ANSI_END " v%.1f' Calculator, "
+        "Compiler and Executable language.\n",
+        argv[0], UQ_VERSION );
+
     progname = argv[0];
     setbuf(stdout, NULL);
     int opt;
