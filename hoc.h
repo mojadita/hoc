@@ -8,10 +8,15 @@
 #ifndef HOC_H
 #define HOC_H
 
+#include "config.h"
 #include <setjmp.h>
 #include <stdio.h>
 
+#if UQ_USE_LOCUS /* {{ */
 #define F(_fmt) "%s:%d: %s: "_fmt, __FILE__, __LINE__, __func__
+#else /* UQ_USE_LOCUS }{*/
+#define F(_fmt) _fmt
+#endif /* UQ_USE_LOCUS  }}*/
 
 #define OUTPUT_FMT   "%32.8g"
 

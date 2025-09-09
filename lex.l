@@ -41,9 +41,9 @@
 #if UQ_LEX_DEBUG  /*   {{ */
 
 # define P_TAIL(  _fmt, ...) \
-         printf(_fmt, ##__VA_ARGS__)
-# define P(     _fmt, ...) \
-         printf(_fmt, ##__VA_ARGS__)
+         printf(  _fmt,    ##__VA_ARGS__)
+# define P(       _fmt, ...) \
+         printf(F(_fmt), ##__VA_ARGS__)
 
 #else /* UQ_LEX_DEBUG  }{ */
 
@@ -53,10 +53,10 @@
 #endif /* UQ_LEX_DEBUG }} */
 
 #if       UQ_LEX_COMMENTS /* {{ */
-# define C_TAIL(_fmt, ...)  \
-         printf(_fmt, ##__VA_ARGS__)
-# define C(     _fmt, ...)  \
-         printf(_fmt, ##__VA_ARGS__)
+# define C_TAIL(  _fmt, ...)  \
+         printf(  _fmt, ##__VA_ARGS__)
+# define C(       _fmt, ...)  \
+         printf(  _fmt, ##__VA_ARGS__)
 #else  /* UQ_LEX_COMMENTS    }{ */
 # define C_TAIL(_fmt, ...)
 # define C(     _fmt, ...)

@@ -35,8 +35,8 @@ INST(or,1)                          /* operador Y || X (sin cortocircuito) */
 INST(or_else,1,   SUFF(void, addr, prog))/* operador Y || X (con cortocircuito) */
 INST(call,2,      SUFF(void, symb, prog))/* llama a una subrutina con los parametros de la pila */
 INST(ret,1)                         /* retorna de un procedimiento definido por el usuario */
-INST(argeval,1,   SUFF(void, arg, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argassign,1, SUFF(void, arg, prog)) /* asigna el top de la pila a $n.  X -> $n */
+INST(argeval,2,   SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
+INST(argassign,2, SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(prstr,2,     SUFF(void, str, prog)) /* imprime una cadena */
 INST(prexpr,1)                      /* imprime una expresion */
 INST(symbs,1)                       /* imprime la tabla de simbolos (desaparecera) */
@@ -56,16 +56,16 @@ INST(mulvar,2,    SUFF(void, symb, prog))/* multiplica de la pila a variable */
 INST(divvar,2,    SUFF(void, symb, prog))/* divide de la pila a variable */
 INST(modvar,2,    SUFF(void, symb, prog))/* modulo de la pila a variable */
 INST(pwrvar,2,    SUFF(void, symb, prog))/* potencia de la pila a variable */
-INST(arginc,2,    SUFF(void, arg,  prog))/* postincremento de argumento */
-INST(incarg,2,    SUFF(void, arg,  prog))/* preincremento de argumento */
-INST(decarg,2,    SUFF(void, arg,  prog))/* predecremento de argumento */
-INST(argdec,2,    SUFF(void, arg,  prog))/* postdecremento de argumento */
-INST(addarg,2,    SUFF(void, arg,  prog))/* añade de la pila a argumento */
-INST(subarg,2,    SUFF(void, arg,  prog))/* substrae de la pila a argumento */
-INST(mularg,2,    SUFF(void, arg,  prog))/* multiplica de la pila a argumento */
-INST(divarg,2,    SUFF(void, arg,  prog))/* divide de la pila a argumento */
-INST(modarg,2,    SUFF(void, arg,  prog))/* modulo de la pila a argumento */
-INST(pwrarg,2,    SUFF(void, arg,  prog))/* potencia de la pila a argumento */
+INST(arginc,2,    SUFF(void, arg_str,  prog))/* postincremento de argumento */
+INST(incarg,2,    SUFF(void, arg_str,  prog))/* preincremento de argumento */
+INST(decarg,2,    SUFF(void, arg_str,  prog))/* predecremento de argumento */
+INST(argdec,2,    SUFF(void, arg_str,  prog))/* postdecremento de argumento */
+INST(addarg,2,    SUFF(void, arg_str,  prog))/* añade de la pila a argumento */
+INST(subarg,2,    SUFF(void, arg_str,  prog))/* substrae de la pila a argumento */
+INST(mularg,2,    SUFF(void, arg_str,  prog))/* multiplica de la pila a argumento */
+INST(divarg,2,    SUFF(void, arg_str,  prog))/* divide de la pila a argumento */
+INST(modarg,2,    SUFF(void, arg_str,  prog))/* modulo de la pila a argumento */
+INST(pwrarg,2,    SUFF(void, arg_str,  prog))/* potencia de la pila a argumento */
 INST(spadd,1,     SUFF(void, arg,  prog))/* a;ade/substrae del stack pointer */
 INST(push_fp, 1)                         /* mete el frame pointer en la pila */
 INST(move_sp_to_fp, 1)                   /* asigna el fp con el valor del sp. */

@@ -17,7 +17,7 @@ union Cell {
     struct {
         instr_code inst: 8;
         int        args: 8;
-        int        desp: 16;
+        unsigned   desp: 16;
     };
     Symbol      *sym;
     double       val;

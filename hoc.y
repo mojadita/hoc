@@ -70,10 +70,8 @@ jmp_buf begin;
 #endif /* UQ_SIZE_FP_RETADDR    } */
 
 #if       UQ_HOC_DEBUG /* {{ */
-# define P(_fmt, ...)                     \
-    printf("%s:%d:%s "_fmt,               \
-            __FILE__, __LINE__, __func__, \
-            ##__VA_ARGS__)
+# define P(_fmt, ...)             \
+    printf(F(_fmt), ##__VA_ARGS__)
 #else /*  UQ_HOC_DEBUG    }{ */
 # define P(_fmt, ...)
 #endif /* UQ_HOC_DEBUG    }} */
@@ -167,7 +165,7 @@ stmt
                              $$ = $2;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
-                             CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR);
+                             CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR, "{RET_VAL} ");
                              CODE_INST(drop);
 
                              PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
@@ -302,7 +300,7 @@ lvar_decl_list
                                       Symbol *sym = register_local_var(
                                             $3.name, $$.typref);
                                       if ($3.start) {
-                                          CODE_INST(argassign, sym->offset);
+                                          CODE_INST(argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -312,7 +310,7 @@ lvar_decl_list
                                       Symbol *sym = register_local_var(
                                             $2.name, $$.typref);
                                       if ($2.start) {
-                                          CODE_INST(argassign, sym->offset);
+                                          CODE_INST(argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -376,7 +374,7 @@ expr:
       UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
     | VAR    '=' expr      { $$ = $3; CODE_INST(assign, $1); }
 
-    | LVAR   '=' expr      { $$ = $3; CODE_INST(argassign, $1->offset); }
+    | LVAR   '=' expr      { $$ = $3; CODE_INST(argassign, $1->offset, $1->name); }
 
     | VAR  PLS_EQ expr     { $$ = $3; CODE_INST(addvar, $1); }
     | VAR  MIN_EQ expr     { $$ = $3; CODE_INST(subvar, $1); }
@@ -385,12 +383,12 @@ expr:
     | VAR  MOD_EQ expr     { $$ = $3; CODE_INST(modvar, $1); }
     | VAR  PWR_EQ expr     { $$ = $3; CODE_INST(pwrvar, $1); }
 
-    | LVAR PLS_EQ expr     { $$ = $3; CODE_INST(addarg, $1->offset); }
-    | LVAR MIN_EQ expr     { $$ = $3; CODE_INST(subarg, $1->offset); }
-    | LVAR MUL_EQ expr     { $$ = $3; CODE_INST(mularg, $1->offset); }
-    | LVAR DIV_EQ expr     { $$ = $3; CODE_INST(divarg, $1->offset); }
-    | LVAR MOD_EQ expr     { $$ = $3; CODE_INST(modarg, $1->offset); }
-    | LVAR PWR_EQ expr     { $$ = $3; CODE_INST(pwrarg, $1->offset); }
+    | LVAR PLS_EQ expr     { $$ = $3; CODE_INST(addarg, $1->offset, $1->name); }
+    | LVAR MIN_EQ expr     { $$ = $3; CODE_INST(subarg, $1->offset, $1->name); }
+    | LVAR MUL_EQ expr     { $$ = $3; CODE_INST(mularg, $1->offset, $1->name); }
+    | LVAR DIV_EQ expr     { $$ = $3; CODE_INST(divarg, $1->offset, $1->name); }
+    | LVAR MOD_EQ expr     { $$ = $3; CODE_INST(modarg, $1->offset, $1->name); }
+    | LVAR PWR_EQ expr     { $$ = $3; CODE_INST(pwrarg, $1->offset, $1->name); }
 
     | expr_or
     ;
@@ -473,11 +471,11 @@ prim: '(' expr ')'          { $$ = $2; }
     | VAR     MIN_MIN       { $$ = CODE_INST(evaldec, $1); }
     | VAR                   { $$ = CODE_INST(eval,    $1); }
 
-    | PLS_PLS LVAR          { $$ = CODE_INST(incarg,  $2->offset); }
-    | MIN_MIN LVAR          { $$ = CODE_INST(decarg,  $2->offset); }
-    | LVAR    PLS_PLS       { $$ = CODE_INST(arginc,  $1->offset); }
-    | LVAR    MIN_MIN       { $$ = CODE_INST(argdec,  $1->offset); }
-    | LVAR                  { $$ = CODE_INST(argeval, $1->offset); }
+    | PLS_PLS LVAR          { $$ = CODE_INST(incarg,  $2->offset, $2->name); }
+    | MIN_MIN LVAR          { $$ = CODE_INST(decarg,  $2->offset, $2->name); }
+    | LVAR    PLS_PLS       { $$ = CODE_INST(arginc,  $1->offset, $1->name); }
+    | LVAR    MIN_MIN       { $$ = CODE_INST(argdec,  $1->offset, $1->name); }
+    | LVAR                  { $$ = CODE_INST(argeval, $1->offset, $1->name); }
 
     | CONST                 { $$ = CODE_INST(constpush, $1->val); }
     | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }

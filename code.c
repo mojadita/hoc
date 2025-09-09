@@ -27,11 +27,15 @@
 #define  UQ_CODE_DEBUG_PROG 1
 #endif
 
+#ifndef   UQ_DEBUG_STACK /* { */
+#warning  UQ_DEBUG_STACK deberia ser incluido en config.mk
+#define   UQ_DEBUG_STACK    0
+#endif /* UQ_DEBUG_STACK    } */
+
 #if      UQ_CODE_DEBUG_EXEC /* {{ */
-#define  EXEC(_fmt, ...)                     \
-    printf("%s:%d:"_fmt, __FILE__, __LINE__, \
-        ##__VA_ARGS__)
-#define  P_TAIL(_fmt, ...)      \
+#define  EXEC(_fmt, ...)            \
+    printf(F(_fmt), ##__VA_ARGS__)
+#define  P_TAIL(_fmt, ...)          \
     printf(_fmt, ##__VA_ARGS__)
 #else /*  UQ_CODE_DEBUG_EXEC   }{ */
 #define EXEC(_fmt, ...)
@@ -46,7 +50,7 @@
         ##__VA_ARGS__)
 
 #if UQ_CODE_DEBUG_PROG
-#define PRG(_fmt, ...) printf(_fmt, ##__VA_ARGS__)
+#define PRG(_fmt, ...) printf(F(_fmt), ##__VA_ARGS__)
 #else
 #define PRG(_fmt, ...)
 #endif
@@ -99,7 +103,8 @@ Symbol *register_local_var(
     scope *scop = get_current_scope();
     assert(scop != NULL);
     if (lookup_current_scope(name)) {
-        execerror("Variable %s already defined in current scope\n", name);
+        execerror("Variable " GREEN "%s" ANSI_END
+            " already defined in current scope\n", name);
     }
     Symbol *sym = install(name, LVAR, typref);
     scop->size += typref->size;
@@ -181,7 +186,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 
 void execute(Cell *p) /* run the machine */
 {
-    EXEC(BRIGHT YELLOW " BEGIN [%04lx], fp=[%04lx], "
+    EXEC(BRIGHT YELLOW "BEGIN [%04lx], fp=[%04lx], "
             "sp=[%04lx], varbase=[%04lx], stacksize=%d" ANSI_END "\n",
             (p - prog), fp - prog, sp - prog, varbase - prog, stacksize());
     for (   pc = p;
@@ -191,10 +196,13 @@ void execute(Cell *p) /* run the machine */
         const instr *ins = instruction_set + pc->inst;
         EXEC("[%04lx]: %s", pc - prog, ins->name);
         ins->exec(ins);
-        P_TAIL(", fp=[%04lx], sp=[%04lx], ss=%d\n",
+#if       UQ_DEBUG_STACK /* { */
+        P_TAIL(", fp=[%04lx], sp=[%04lx], ss=%d",
                 fp - prog, sp - prog, stacksize());
+#endif /* UQ_DEBUG_STACK    } */
+        P_TAIL("\n");
     }
-    EXEC(" " BRIGHT YELLOW "END [%04lx], fp=[%04lx], "
+    EXEC(BRIGHT YELLOW "END [%04lx], fp=[%04lx], "
             "sp=[%04lx], stacksize=%d" ANSI_END "\n",
             (pc - prog), fp - prog, sp - prog, stacksize());
 }
@@ -375,8 +383,8 @@ void eval(const instr *i) /* evaluate variable on stack */
 {
     Symbol *sym = pc[1].sym;
 
-    P_TAIL(": %s[%04lx] -> %lg",
-        sym->name, sym->defn - prog, sym->defn->val);
+    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> %lg",
+        sym->name, pc[0].desp, sym->defn->val);
     push(*sym->defn);
 
     UPDATE_PC();
@@ -384,14 +392,17 @@ void eval(const instr *i) /* evaluate variable on stack */
 
 void eval_prt(const instr *i, const Cell *pc)
 {
-    PR("%s[%04lx]\n", pc[1].sym->name, pc[1].sym->defn - prog);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void symb_prog(const instr *i, Cell *pc, va_list args)
 {
-    progp[1].sym = va_arg(args, Symbol *);
+    Symbol *sym = va_arg(args, Symbol *);
 
-    PRG(" %s", progp[1].sym->name);
+    pc[0].desp  = sym->defn - prog;
+    pc[1].sym   = sym;
+
+    PRG(" "GREEN"%s"ANSI_END"[%04x]", sym->name, pc[0].desp);
 }
 
 void assign(const instr *i) /* assign top value to next value */
@@ -399,9 +410,7 @@ void assign(const instr *i) /* assign top value to next value */
     Symbol *sym = pc[1].sym;
     Cell    d   = top();
 
-    P_TAIL(": %.8g -> %s[%04lx]",
-            d.val, sym->name,
-            sym->defn - prog);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"[%04x]", d.val, sym->name, pc[0].desp);
     *sym->defn = d;
 
     UPDATE_PC();
@@ -409,7 +418,7 @@ void assign(const instr *i) /* assign top value to next value */
 
 void assign_prt(const instr *i, const Cell *pc)
 {
-    PR("%s[%04lx]\n", pc[1].sym->name, pc[1].sym->defn - prog);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void print(const instr *i) /* pop top value from stack, print it */
@@ -706,22 +715,22 @@ void call(const instr *i)   /* call a function */
 {
     Symbol *sym = pc[1].sym;
 
-    P_TAIL(": '%s' -> dest=[%04lx], ret_addr=[%04lx]",
-        sym->name, sym->defn - prog, pc + i->n_cells - prog);
+    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> ret_addr=[%04lx]",
+        sym->name, pc[0].desp, pc + i->n_cells - prog);
 
     Cell ret_addr = { .cel = pc + i->n_cells };
 
     push(ret_addr);
 
-    pc = sym->defn;
+    pc = prog + pc[0].desp;
 } /* call */
 
 void call_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s', args=%ld -> @[%04lx]\n",
+    PR(GREEN"%s"ANSI_END"[%04x], args=%ld -> \n",
         pc[1].sym->name,
-        pc[1].sym->argums_len,
-        pc[1].sym->defn - prog);
+        pc[0].desp,
+        pc[1].sym->argums_len);
 }
 
 void ret(const instr *i) /* return from proc */
@@ -745,8 +754,15 @@ Cell *getarg(int offset)    /* return a pointer to argument */
 
 void arg_prog(const instr *i, Cell *pc, va_list args)
 {
-    pc->args = va_arg(args, int);
-    PRG(" <%+d>", pc->args);
+    pc[0].args = va_arg(args, int);
+    PRG(" %+d", pc[0].args);
+}
+
+void arg_str_prog(const instr *i, Cell *pc, va_list args)
+{
+    pc[0].args = va_arg(args, int);
+    pc[1].str  = va_arg(args, char *);
+    PRG(" "GREEN"%s"ANSI_END"<%+d>", pc[1].str, pc[0].args);
 }
 
 void argeval(const instr *i) /* push argument onto stack */
@@ -754,7 +770,7 @@ void argeval(const instr *i) /* push argument onto stack */
     int arg = pc[0].args;
     Cell  d = *getarg(arg);
 
-    P_TAIL(": <%+d> -> %.8g", arg, d.val);
+    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %.8g", pc[1].str, arg, d.val);
     push(d);
 
     UPDATE_PC();
@@ -762,7 +778,7 @@ void argeval(const instr *i) /* push argument onto stack */
 
 void argeval_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void argassign(const instr *i) /* store top of stack in argument */
@@ -771,7 +787,7 @@ void argassign(const instr *i) /* store top of stack in argument */
     Cell  d   = top();
     Cell *ref = getarg(arg);
 
-    P_TAIL(": %.8g -> <%+d>", d.val, arg);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d>", d.val, pc[1].str, arg);
     ref->val = d.val;
 
     UPDATE_PC();
@@ -779,7 +795,7 @@ void argassign(const instr *i) /* store top of stack in argument */
 
 void argassign_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void prstr(const instr *i) /* print string */
@@ -917,14 +933,15 @@ void inceval(const instr *i) /* 1. incremento, 2. evaluo la variable */
 
     ++sym->defn->val;
     push(*sym->defn);
-    P_TAIL(": ++%s -> %.8lg", sym->name, sym->defn->val);
+    P_TAIL(": ++"GREEN"%s"ANSI_END"[%04x] -> %.8lg",
+            sym->name, pc[0].desp, sym->defn->val);
 
     UPDATE_PC();
 }
 
 void inceval_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void evalinc(const instr *i) /* 1. copio valor,
@@ -935,14 +952,15 @@ void evalinc(const instr *i) /* 1. copio valor,
 
     push(*sym->defn);
     ++sym->defn->val;
-    P_TAIL(": %s++ -> %.8lg", sym->name, sym->defn->val);
+    P_TAIL(": "GREEN"%s"ANSI_END"++[%04x] -> %.8lg",
+            sym->name, pc[0].desp, sym->defn->val);
 
     UPDATE_PC();
 }
 
 void evalinc_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void incarg(const instr *i) /* assign top value to next value */
@@ -952,15 +970,15 @@ void incarg(const instr *i) /* assign top value to next value */
     Cell *ref = getarg(arg);
     ++ref->val;
     push(*ref);
-    P_TAIL(": %.8g -> <%+d> -> %.8g",
-           ref->val, arg, ref->val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %.8g",
+           ref->val, pc[1].str, arg, ref->val);
 
     UPDATE_PC();
 }
 
 void incarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void arginc(const instr *i) /* evaluo e incremento */
@@ -972,14 +990,14 @@ void arginc(const instr *i) /* evaluo e incremento */
     push(*ref);
     ++ref->val;
 
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void arginc_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void deceval(const instr *i) /* assign top value to next value */
@@ -988,14 +1006,14 @@ void deceval(const instr *i) /* assign top value to next value */
 
     --sym->defn->val;
     push(*sym->defn);
-    P_TAIL(": %s -> %.8lg", sym->name, top().val);
+    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> %.8lg", sym->name, pc[0].desp, top().val);
 
     UPDATE_PC();
 }
 
 void deceval_prt(const instr *i, const Cell *pc)
 {
-    PR("%s\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void evaldec(const instr *i) /* assign top value to next value */
@@ -1003,7 +1021,7 @@ void evaldec(const instr *i) /* assign top value to next value */
     Symbol *sym = pc[1].sym;
 
     push(*sym->defn);
-    P_TAIL(": %s -> %.8lg", sym->name, top().val);
+    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> %.8lg", sym->name, pc[0].desp, top().val);
     --sym->defn->val;
 
     UPDATE_PC();
@@ -1011,7 +1029,7 @@ void evaldec(const instr *i) /* assign top value to next value */
 
 void evaldec_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void decarg(const instr *i) /* assign top value to next value */
@@ -1023,14 +1041,14 @@ void decarg(const instr *i) /* assign top value to next value */
     --ref->val;
     push(*ref);
 
-    P_TAIL(": %.8g -> <%+d> -> %.8g", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %.8g", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void decarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void argdec(const instr *i) /* assign top value to next value */
@@ -1040,14 +1058,14 @@ void argdec(const instr *i) /* assign top value to next value */
 
     push(*ref);
     --ref->val;
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void argdec_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void addvar(const instr *i) /* assign top value to next value */
@@ -1057,13 +1075,13 @@ void addvar(const instr *i) /* assign top value to next value */
     sym->defn->val += pop().val;
     push(*sym->defn);
 
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
     UPDATE_PC();
 }
 
 void addvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void addarg(const instr *i) /* assign top value to next value */
@@ -1075,14 +1093,14 @@ void addarg(const instr *i) /* assign top value to next value */
     ref->val += pop().val;
     push(*ref);
 
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void addarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void subvar(const instr *i) /* assign top value to next value */
@@ -1091,14 +1109,14 @@ void subvar(const instr *i) /* assign top value to next value */
 
     sym->defn->val -= pop().val;
     push(*sym->defn);
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
 
     UPDATE_PC();
 }
 
 void subvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void subarg(const instr *i) /* assign top value to next value */
@@ -1109,14 +1127,14 @@ void subarg(const instr *i) /* assign top value to next value */
     ref->val -= pop().val;
     push(*ref);
 
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void subarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void mulvar(const instr *i) /* assign top value to next value */
@@ -1126,13 +1144,13 @@ void mulvar(const instr *i) /* assign top value to next value */
     sym->defn->val *= pop().val;
     push(*sym->defn);
 
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
     UPDATE_PC();
 }
 
 void mulvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void mularg(const instr *i) /* assign top value to next value */
@@ -1143,14 +1161,14 @@ void mularg(const instr *i) /* assign top value to next value */
     ref->val *= pop().val;
     push(*ref);
 
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void mularg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void divvar(const instr *i) /* assign top value to next value */
@@ -1159,14 +1177,14 @@ void divvar(const instr *i) /* assign top value to next value */
 
     sym->defn->val /= pop().val;
     push(*sym->defn);
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
 
     UPDATE_PC();
 }
 
 void divvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void divarg(const instr *i) /* assign top value to next value */
@@ -1177,14 +1195,14 @@ void divarg(const instr *i) /* assign top value to next value */
 
     ref->val /= pop().val;
     push(*ref);
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void divarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void pwrvar(const instr *i) /* assign top value to next value */
@@ -1193,14 +1211,14 @@ void pwrvar(const instr *i) /* assign top value to next value */
 
     sym->defn->val  = pow(sym->defn->val, pop().val);
     push(*sym->defn);
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
 
     UPDATE_PC();
 }
 
 void pwrvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void pwrarg(const instr *i) /* assign top value to next value */
@@ -1211,14 +1229,14 @@ void pwrarg(const instr *i) /* assign top value to next value */
 
     ref->val = pow(ref->val, pop().val);
     push(*ref);
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void pwrarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void modvar(const instr *i) /* assign top value to next value */
@@ -1227,14 +1245,14 @@ void modvar(const instr *i) /* assign top value to next value */
 
     sym->defn->val = fmod(sym->defn->val, pop().val);
     push(*sym->defn);
-    P_TAIL(": %.8lg -> %s", sym->defn->val, sym->name);
+    P_TAIL(": %.8lg -> "GREEN"%s"ANSI_END"[%04x]", sym->defn->val, sym->name, pc[0].desp);
 
     UPDATE_PC();
 }
 
 void modvar_prt(const instr *i, const Cell *pc)
 {
-    PR("'%s'\n", pc[1].sym->name);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
 }
 
 void modarg(const instr *i) /* assign top value to next value */
@@ -1245,14 +1263,14 @@ void modarg(const instr *i) /* assign top value to next value */
 
     ref->val = fmod(ref->val, pop().val);
     push(*ref);
-    P_TAIL(": %.8g -> <%+d> -> %lg", ref->val, arg, top().val);
+    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d> -> %lg", ref->val, pc[1].str, arg, top().val);
 
     UPDATE_PC();
 }
 
 void modarg_prt(const instr *i, const Cell *pc)
 {
-    PR("<%+d>\n", pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
 }
 
 void spadd(const instr *i) /* pop n elementos de la pila */
@@ -1280,7 +1298,7 @@ void push_fp(const instr *i)
 
 void push_fp_prt(const instr *i, const Cell *pc)
 {
-    PR(" fp\n");
+    PR("\n");
 }
 
 void pop_fp(const instr *i)

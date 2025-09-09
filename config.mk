@@ -37,6 +37,7 @@ UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
 UQ_CODE_DEBUG_EXEC       ?=  0
 UQ_CODE_DEBUG_PROG       ?=  0
+UQ_DEBUG_STACK           ?=  0
 
 UQ_USE_COLORS            ?=  1
 UQ_USE_LOCUS             ?=  0
@@ -45,18 +46,18 @@ UQ_USE_INF               ?=  1
 UQ_USE_WRN               ?=  1
 UQ_USE_ERR               ?=  1
 UQ_USE_CRT               ?=  1
-UQ_NPROG                 ?= 0x100000
-UQ_TAB_SIZE              ?= 4
 
-UQ_LAST_TOKENS_SZ               ?= 64
-UQ_DEFAULT_LOGLEVEL             ?= 0
-UQ_MAX_SYMBOLS_PER_DECLARATION  ?= 32
-UQ_SCOPES_INCRMNT               ?= 10
-UQ_RETURNS_TO_PATCH_INCRMNT     ?= 4
-UQ_INTERN_INCRMNT               ?= 10
-UQ_ARGUMS_INCRMNT               ?= 8
+UQ_NPROG                        ?= 0x10000
+UQ_TAB_SIZE                     ?=   4
+UQ_LAST_TOKENS_SZ               ?=  64
+UQ_DEFAULT_LOGLEVEL             ?=   0
+UQ_MAX_SYMBOLS_PER_DECLARATION  ?=  32
+UQ_SCOPES_INCRMNT               ?=  10
+UQ_RETURNS_TO_PATCH_INCRMNT     ?=   4
+UQ_INTERN_INCRMNT               ?=  10
+UQ_ARGUMS_INCRMNT               ?=   8
 
-UQ_COL1_SYMBS                   ?= 30
+UQ_COL1_SYMBS                   ?=  30
 UQ_COL2_SYMBS                   ?= -18
 UQ_COL3_SYMBS                   ?= -10
 UQ_COL4_SYMBS                   ?= -10
@@ -64,4 +65,4 @@ UQ_COL5_SYMBS                   ?= -10
 
 UQ_BRKPT_WIDTH1                 ?= -17
 UQ_BRKPT_WIDTH2                 ?= -17
-UQ_SIZE_FP_RETADDR              ?= 2
+UQ_SIZE_FP_RETADDR              ?=   2
