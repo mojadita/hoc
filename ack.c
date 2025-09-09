@@ -23,12 +23,14 @@ char line[256];
 int main()
 {
     unsigned long a = 0, b = 0;
+
     while (fgets(line, sizeof line, stdin)) {
-        sscanf(line, "%ld%ld", &a, &b);
-        n_calls = 0;
-        printf("ack(%lu, %lu) -> %lu\n"
-                "n_calls = %lu\n",
-                a, b, ack(a, b),
-                n_calls);
+        sscanf(line, "%lu%lu", &a, &b);
+
+        n_calls = 0UL;
+        printf("ack(%lu, %lu) -> %lu\n",
+               a, b, ack(a, b));
+        printf("n_calls = %lu\n",
+               n_calls);
     }
 }

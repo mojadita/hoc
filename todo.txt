@@ -55,19 +55,33 @@
   a la variable.  Para el resto, el dato a operar se toma de la
   pila.
 
-* implementar  variables locales y parametros  con identificadores
+* Tue Sep  9 11:59:30 AM EEST 2025
+  implementar  variables locales y parametros  con identificadores
   como nombres, en lugar de usar la notacion $<n>.
   func int ack(a, b; c, d)
   a = ack(3, 3)
   
-* implementar las variables en memoria.
+* Tue Sep  9 11:59:40 AM EEST 2025
+  implementar las variables en memoria.
+  
+* Tue Sep  9 12:00:01 PM EEST 2025
+  implementar la pila en memoria.
+  
+* Tue Sep  9 12:00:24 PM EEST 2025
+  implementar los contextos de las funciones en memoria.
 
-* usar tipos. Implementar los tipos 'int' y 'double'.  Obligar a
-  declarar las variables?
-  
-* implementar la pila en memoria.
-  
-* implementar los contextos de las funciones en memoria.
+* Tue Sep  9 12:00:55 PM EEST 2025
+  Obligar a declarar las variables?
+
+* Convertir las instrucciones <argeval>, <argassign>, <arginc>, <incarg>,
+  <decarg>, <argdec>, <addarg>, <subarg>, <mularg>, <divarg>, <modarg> y
+  <pwrarg> para que soporten una segunda celda con el simbolo de la variable
+  (local o global) que sera utilizada para permitir imprimirla en la ejecucion
+  de instrucciones (no solo el offset que se esta imprimiendo ahora)
+  Es importante notar que actualmente solo las funciones <argeval> y
+  <argassign> estan definidas con una sola celda.
+
+* usar tipos. Implementar los tipos 'int' y 'double'.
   
 * traducir a ensamblador 'de verdad'.
   
