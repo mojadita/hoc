@@ -1,6 +1,6 @@
 int n=0;
 proc hanoi(int src, int dst, int rsv, int alt) {
-    brkpt;
+#    brkpt;
     /* si quiero mover una torre de n discos del pincho $1 al pincho $2,
      * lo que tengo que hacer es mover una torre de (n-1) discos
      * de la torre $1 a la torre $3, despues mover una torre de 1 disco

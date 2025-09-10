@@ -66,7 +66,7 @@ void do_version(int cod)
 
     printf("%s, %s: (C) %s %s.  All rights reserved\n\n",
             PROGRAM_NAME, VERSION, COPYRIGHT_YEARS,
-            AUTHOR_CORP);
+            AUTHOR_NAME);
 
     PS(PROGRAM_NAME);
     PS(BUILD_DATE);
@@ -111,9 +111,25 @@ void do_version(int cod)
     P(UQ_USE_ERR);
     P(UQ_USE_CRT);
     P(UQ_NPROG);
+    P(UQ_TAB_SIZE);
 
     P(UQ_LAST_TOKENS_SZ);
     P(UQ_DEFAULT_LOGLEVEL);
+    P(UQ_MAX_SYMBOLS_PER_DECLARATION);
+    P(UQ_SCOPES_INCRMNT);
+    P(UQ_RETURNS_TO_PATCH_INCRMNT);
+    P(UQ_INTERN_INCRMNT);
+    P(UQ_ARGUMS_INCRMNT);
+
+    P(UQ_COL1_SYMBS);
+    P(UQ_COL2_SYMBS);
+    P(UQ_COL3_SYMBS);
+    P(UQ_COL4_SYMBS);
+    P(UQ_COL5_SYMBS);
+
+    P(UQ_BRKPT_WIDTH1);
+    P(UQ_BRKPT_WIDTH2);
+    P(UQ_SIZE_FP_RETADDR);
 
     exit(cod);
 #undef PS
