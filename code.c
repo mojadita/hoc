@@ -71,9 +71,14 @@ Cell *varbase  = prog + UQ_NPROG; /* pointer to last global allocated */
 void initcode(void)  /* initalize for code generation */
 {
     progp = progbase;
+} /* initcode */
+
+void initexec(void) /* initialize for execution */
+{
     fp    =
     sp    = varbase;
-} /* initcode */
+} /* initexec */
+
 
 Symbol *register_global_var(
         const char *name,
@@ -875,7 +880,7 @@ void list(const instr *i)
     P_TAIL("\n");
     while (ip->inst != INST_STOP) {
         const instr *i = instruction_set + ip->inst;
-        if (ip == progp) {
+        if (ip == progbase) {
             printf("START:\n");
         }
         i->print(i, ip); /* LCU: Thu Apr 10 14:52:23 -05 2025

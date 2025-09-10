@@ -101,13 +101,13 @@ static void process(FILE *in)
     for (initcode(); parse(); initcode()) {
         /* EDW: Mon Sep  8 11:35:06 -05 2025
          *
-         * La funcion initcode() debe ponerse aqui, porque de ser llamada
-         * antes ejecutar parse() y antes de ejecutar execute().
-         * La razon de que initcode() deba ejecutarse entre parse() y execute()
-         * es que la definicion de variables globales cambia el valor de varbase,
-         * y por tanto cambia tambien los valores iniciales que deben tomar los
-         * punteros sp y fp. */
-        initcode();
+         * La funcion initexec() debe ponerse aqui, porque de ser llamada
+         * antes ejecutar antes de ejecutar execute().
+         * initexec() inicializa sp y fp para ejecutar el codigo.
+         * initcode() inicializa progp para preparar la memoria
+         * para generar codigo.
+         */
+        initexec();
         execute(progbase);
         EXEC("Stack size after execution: %d\n", stacksize());
     }

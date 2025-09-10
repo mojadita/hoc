@@ -19,6 +19,7 @@ extern Cell *progbase;                /* pointer to first program instruction */
 extern Cell *varbase;
 
 void  initcode(void);                 /* initalize for code generation */
+void  initexec(void);                 /* initalize for code execution */
 void  push(Cell            d);        /* push d onto stack */
 Cell  pop(void);                      /* pops Cell and rturn top element from stack */
 Cell *code_inst(instr_code f, ...);   /* encodes one instruction of operand */
