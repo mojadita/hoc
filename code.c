@@ -727,7 +727,7 @@ void call(const instr *i)   /* call a function */
 
 void call_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x], args=%ld -> \n",
+    PR(GREEN"%s"ANSI_END"[%04x], args=%ld\n",
         pc[1].sym->name,
         pc[0].desp,
         pc[1].sym->argums_len);
@@ -873,12 +873,17 @@ void list(const instr *i)
     const Cell *ip = prog;
 
     P_TAIL("\n");
-    while (ip < progp) {
+    while (ip->inst != INST_STOP) {
         const instr *i = instruction_set + ip->inst;
+		if (ip == progp) {
+			printf("START:\n");
+		}
         i->print(i, ip); /* LCU: Thu Apr 10 14:52:23 -05 2025
                           * Aqui es donde Edward desaparecio en el rio Orinoco. */
         ip += i->n_cells;
     }
+	const instr *stop = instruction_set + INST_STOP;
+	stop->print(stop, ip); /* STOP :) */
     UPDATE_PC();
 }
 

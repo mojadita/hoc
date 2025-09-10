@@ -1,0 +1,23 @@
+/* narcissistic.hoc -- Calculates if a number is narcissistic.
+ * Author: Luis Colorado <luis.colorado@spindrive.fi>
+ * Date: Wed Sep 10 08:08:30 AM EEST 2025
+ * Copyright: (c) 2025 SpinDrive Oy, FI.  All rights reserved.
+ */
+
+/* A narcissistic number is one number that is equal as
+ * the sum of its digits raised to the number of non-zero
+ * digits it has. */
+func int narcissistic(long num, int n) \
+{
+    int renum = num, \
+        sum   = 0,   \
+        digit;
+
+    while (renum != 0 && sum <= num) {
+        digit  = renum % 10;
+		renum -= digit;
+        renum /= 10;
+        sum   += digit ^^ n;
+    }
+    return sum == num;
+} /* narcissistic */

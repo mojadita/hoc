@@ -73,7 +73,8 @@
 * Tue Sep  9 12:00:55 PM EEST 2025
   Obligar a declarar las variables?
 
-* Convertir las instrucciones <argeval>, <argassign>, <arginc>, <incarg>,
+* Wed Sep 10 09:21:20 AM EEST 2025
+  Convertir las instrucciones <argeval>, <argassign>, <arginc>, <incarg>,
   <decarg>, <argdec>, <addarg>, <subarg>, <mularg>, <divarg>, <modarg> y
   <pwrarg> para que soporten una segunda celda con el simbolo de la variable
   (local o global) que sera utilizada para permitir imprimirla en la ejecucion
@@ -81,12 +82,29 @@
   Es importante notar que actualmente solo las funciones <argeval> y
   <argassign> estan definidas con una sola celda.
 
-* usar tipos. Implementar los tipos 'int' y 'double'.
+* Crear infraestructura para chequear que el numero y tipos de argumentos
+  concuerdan con el numero y tipos de las expresiones que se montan en la
+  pila para llamar a una funcion.  Esto sera necesario despues para
+  a;adir instrucciones de conversion de tipos si estos no concuerdan con
+  los tipos de los valores esperados por la funcion.
+
+* usar tipos. Implementar los tipos 'int' y 'double', etc.
+  Esto requiere, ademas de mantener el puntero a la celda de memoria donde
+  comienza (o hay que parchear codigo) que se retorna en el tipo <cel>, a;adir
+  un campo que haga referencia al tipo devuelto por una expresion, para asi
+  insertar codigo de conversion de tipos o emitir los errores correspondientes.
+  La informacion de tipos es estatica (no cambia durante la ejecucion de un
+  programa) y puede ser calculada durante el analisis.
   
-* traducir a ensamblador 'de verdad'.
+* traducir a ensamblador 'de verdad'.  Aun esta por definir como se realizara
+  esta tarea.... parece que la opcion mas apropiada pueda ser la de llamar
+  en cada instruccion a una funcion que emita las instrucciones correspondientes
+  para la arquitectura propuesta, y permitir asi que esta sea modular.
   
 * implementar funciones anidadas, como en  pascal. Esto es comun en
   lenguajes tipo pascal,  modula 2, ada o en parte  en java (cuando
-  se emplean lambdas)
+  se emplean lambdas)  Esta operacion requiere entender bien que son los 
+  DISPLAYS, como extensiones del puntero de frame para permitir acceder a las
+  variables y datos anidados en el exterior de una llamada a funcion.
   
 * soportar tipos de datos estructurados y arrays???
