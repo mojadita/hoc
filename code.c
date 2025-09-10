@@ -875,15 +875,15 @@ void list(const instr *i)
     P_TAIL("\n");
     while (ip->inst != INST_STOP) {
         const instr *i = instruction_set + ip->inst;
-		if (ip == progp) {
-			printf("START:\n");
-		}
+        if (ip == progp) {
+            printf("START:\n");
+        }
         i->print(i, ip); /* LCU: Thu Apr 10 14:52:23 -05 2025
                           * Aqui es donde Edward desaparecio en el rio Orinoco. */
         ip += i->n_cells;
     }
-	const instr *stop = instruction_set + INST_STOP;
-	stop->print(stop, ip); /* STOP :) */
+    const instr *stop = instruction_set + INST_STOP;
+    stop->print(stop, ip); /* STOP :) */
     UPDATE_PC();
 }
 
