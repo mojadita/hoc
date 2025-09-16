@@ -18,6 +18,7 @@
 
 #include "hoc.h"
 #include "code.h"
+#include "init.h"
 
 #ifndef   UQ_CODE_DEBUG_EXEC /* { */
 #warning  UQ_CODE_DEBUG_EXEC deberia ser configurado en config.mk

@@ -36,11 +36,16 @@ typedef struct var_init_s {
                           * en memoria (variables globales) */
 } var_init;
 
+typedef struct expr_s {
+    Cell       *cel;
+    Symbol     *typ;
+} Expr;
+
 #include "hoc.tab.h"
 
 /* inicializa la tabla de simbolos con las funciones builtin y las
  * variables predefinidas. */
-void init(void);  /* install constants and built-ins in table */
+
 void execerror(const char *fmt, ...);
 
 int yyparse(void);

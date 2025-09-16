@@ -60,16 +60,26 @@ static struct builtin { /* built-ins-1 */
     { NULL,    NULL, },
 };
 
+Symbol *Char,
+       *Boolean,
+       *Integer,
+       *Long,
+       *Float,
+       *Double,
+       *String;
+
 static struct predefined_types { /* predefined types */
     char *name;
     int   size;
+    Symbol **sym;
 } builtin_types [] = {
-    { "char",   1, },
-    { "int",    1, },
-    { "long",   1, },
-    { "float",  1, },
-    { "double", 1, },
-    { "string", 1, },
+    { "char",   1, &Char, },
+    { "bool",   1, &Boolean, },
+    { "int",    1, &Integer, },
+    { "long",   1, &Long, },
+    { "float",  1, &Float, },
+    { "double", 1, &Double, },
+    { "string", 1, &String, },
     { NULL,     0, },
 };
 
@@ -82,7 +92,8 @@ void init(void)  /* install constants and built-ins in table */
             p++)
     {
         Symbol *s = install(p->name, TYPE, NULL);
-        s->size = p->size;
+        s->size   = p->size;
+        *p->sym   = s;
     }
 
     Symbol *D = lookup("double");

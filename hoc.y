@@ -7,6 +7,7 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD.
  */
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -20,8 +21,9 @@
 #include "hoc.h"
 #include "lex.h"
 #include "error.h"
-#include "math.h"   /*  Modulo personalizado con nuevas funciones */
+#include "math.h"   /* Modulo personalizado con nuevas funciones */
 #include "instr.h"
+#include "init.h"   /* por los punteros a los tipos fundamentales */
 #include "code.h"
 
 #include "symbol.h"
@@ -101,8 +103,9 @@ size_t size_lvars = 0;
     Cell         *cel;  /* referencia a Cell */
     int           num;  /* valor entero, para $<num> */
     const char   *str;  /* cadena de caracteres */
-    var_decl_list vdl; /* global var declaration list */
-    var_init      vi;  /* global var name & initializer */
+    var_decl_list vdl;  /* global var declaration list */
+    var_init      vi;   /* global var name & initializer */
+    Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
 }
 
 %token        ERROR
@@ -118,7 +121,8 @@ size_t size_lvars = 0;
 %token        LIST
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist expr
-%type  <cel>  expr_or expr_and expr_rel expr_arit term fact prim mark
+%type  <expr> expr expr_or expr_and expr_rel expr_arit term fact prim
+%type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym>  proc_head func_head lvar_definable_ident function
@@ -154,7 +158,8 @@ list: /* nothing */
     ;
 
 stmt
-    : expr        ';'      { CODE_INST(drop); }
+    : expr        ';'      { $$ = $1.cel;
+                             CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
                              PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(Goto, 0);
@@ -162,7 +167,7 @@ stmt
                              add_patch_return(indef, $$);
                            }
     | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION), "return <expr>;");
-                             $$ = $2;
+                             $$ = $2.cel;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
                              CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR, "{RET_VAL} ");
@@ -280,7 +285,7 @@ gvar_decl_list
 
 gvar_init
     : gvar_valid_ident              { $$.name = $1; $$.start = NULL; }
-    | gvar_valid_ident '=' expr     { $$.name = $1; $$.start = $3; }
+    | gvar_valid_ident '=' expr     { $$.name = $1; $$.start = $3.cel; }
     ;
 
 gvar_valid_ident
@@ -318,7 +323,7 @@ lvar_decl_list
 
 lvar_init
     : lvar_valid_ident          { $$.name = $1; $$.start = NULL; }
-    | lvar_valid_ident '=' expr { $$.name = $1; $$.start = $3; }
+    | lvar_valid_ident '=' expr { $$.name = $1; $$.start = $3.cel; }
     ;
 
 lvar_valid_ident
@@ -358,7 +363,7 @@ item: STRING               { $$ = CODE_INST(prstr, $1); }
     | expr                 { $$ = CODE_INST(prexpr); }
     ;
 
-cond: '(' expr ')'         { $$ = $2; }
+cond: '(' expr ')'         { $$ = $2.cel; }
     ;
 
 mark: /* nada */           { $$ = progp; }
@@ -434,61 +439,100 @@ and : AND                   {
     ;
 
 expr_rel
-    : '!' expr_rel                { $$ = $2; CODE_INST(not); }
-    | expr_arit '<' expr_arit     { CODE_INST(lt); }
-    | expr_arit '>' expr_arit     { CODE_INST(gt); }
-    | expr_arit EQ  expr_arit     { CODE_INST(eq); }
-    | expr_arit NE  expr_arit     { CODE_INST(ne); }
-    | expr_arit GE  expr_arit     { CODE_INST(ge); }
-    | expr_arit LE  expr_arit     { CODE_INST(le); }
+    : '!' expr_rel                { $$.typ = Boolean; CODE_INST(not); }
+    | expr_arit '<' expr_arit     { $$.typ = Boolean; CODE_INST(lt); }
+    | expr_arit '>' expr_arit     { $$.typ = Boolean; CODE_INST(gt); }
+    | expr_arit EQ  expr_arit     { $$.typ = Boolean; CODE_INST(eq); }
+    | expr_arit NE  expr_arit     { $$.typ = Boolean; CODE_INST(ne); }
+    | expr_arit GE  expr_arit     { $$.typ = Boolean; CODE_INST(ge); }
+    | expr_arit LE  expr_arit     { $$.typ = Boolean; CODE_INST(le); }
     | expr_arit
     ;
 
 expr_arit: term
     | '-' term              { $$ = $2; CODE_INST(neg);  }
     | '+' term              { $$ = $2; }
-    | expr_arit '+' term    { CODE_INST(add);  }
-    | expr_arit '-' term    { CODE_INST(sub);  }
+    | expr_arit '+' term    {
+                              /* LCU: Mon Sep 15 12:31:40 -05 2025
+                               * NOTA 1:
+                               * determinar el tipo a partir de los tipos de
+                               * $1 y $3. En caso de qeu los tipos sean distintos,
+                               * generar codigo para converti el tipo de $3 si $3 debe
+                               * convertirse al tipo de $1 y parchear op_add si el que
+                               * debe convertirse es $1 al tipo de $3 */
+                              CODE_INST(add);  }
+    | expr_arit '-' term    {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver NOTA 1, arriba. */
+                              CODE_INST(sub);  }
     ;
 
 term: fact
-    | term '*' fact         { CODE_INST(mul);  }
-    | term '/' fact         { CODE_INST(divi); }
-    | term '%' fact         { CODE_INST(mod);  }
+    | term '*' fact         {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver NOTA 1, arriba. */
+                              CODE_INST(mul);  }
+    | term '/' fact         {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver NOTA 1, arriba. */
+                              CODE_INST(divi); }
+    | term '%' fact         {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver NOTA 1, arriba. */
+                              CODE_INST(mod);  }
     ;
 
-fact: prim EXP fact         { CODE_INST(pwr);  }
+fact: prim EXP fact         {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver NOTA 1, arriba. */
+                              CODE_INST(pwr);  }
     | prim
     ;
 
 prim: '(' expr ')'          { $$ = $2; }
-    | NUMBER                { $$ = CODE_INST(constpush, $1); }
-    | INTEGER               { $$ = CODE_INST(constpush, (double) $1); }
+    | NUMBER                { $$.cel = CODE_INST(constpush, $1);
+                              $$.typ = Double; }
+    | INTEGER               { $$.cel = CODE_INST(constpush, (double) $1);
+                              $$.typ = Integer; }
 
-    | PLS_PLS VAR           { $$ = CODE_INST(inceval, $2); }
-    | MIN_MIN VAR           { $$ = CODE_INST(deceval, $2); }
-    | VAR     PLS_PLS       { $$ = CODE_INST(evalinc, $1); }
-    | VAR     MIN_MIN       { $$ = CODE_INST(evaldec, $1); }
-    | VAR                   { $$ = CODE_INST(eval,    $1); }
+    | PLS_PLS VAR           { $$.cel = CODE_INST(inceval, $2);
+                              $$.typ = $2->typref; }
+    | MIN_MIN VAR           { $$.cel = CODE_INST(deceval, $2);
+                              $$.typ = $2->typref; }
+    | VAR     PLS_PLS       { $$.cel = CODE_INST(evalinc, $1);
+                              $$.typ = $1->typref; }
+    | VAR     MIN_MIN       { $$.cel = CODE_INST(evaldec, $1);
+                              $$.typ = $1->typref; }
+    | VAR                   { $$.cel = CODE_INST(eval,    $1);
+                              $$.typ = $1->typref; }
 
-    | PLS_PLS LVAR          { $$ = CODE_INST(incarg,  $2->offset, $2->name); }
-    | MIN_MIN LVAR          { $$ = CODE_INST(decarg,  $2->offset, $2->name); }
-    | LVAR    PLS_PLS       { $$ = CODE_INST(arginc,  $1->offset, $1->name); }
-    | LVAR    MIN_MIN       { $$ = CODE_INST(argdec,  $1->offset, $1->name); }
-    | LVAR                  { $$ = CODE_INST(argeval, $1->offset, $1->name); }
+    | PLS_PLS LVAR          { $$.cel = CODE_INST(incarg,  $2->offset, $2->name);
+                              $$.typ = $2->typref; }
+    | MIN_MIN LVAR          { $$.cel = CODE_INST(decarg,  $2->offset, $2->name);
+                              $$.typ = $2->typref; }
+    | LVAR    PLS_PLS       { $$.cel = CODE_INST(arginc,  $1->offset, $1->name);
+                              $$.typ = $1->typref; }
+    | LVAR    MIN_MIN       { $$.cel = CODE_INST(argdec,  $1->offset, $1->name);
+                              $$.typ = $1->typref; }
+    | LVAR                  { $$.cel = CODE_INST(argeval, $1->offset, $1->name);
+                              $$.typ = $1->typref; }
 
-    | CONST                 { $$ = CODE_INST(constpush, $1->val); }
-    | BLTIN0 '(' ')'        { $$ = CODE_INST(bltin0, $1); }
-    | BLTIN1 '(' expr ')'   { $$ = $3;
+    | CONST                 { $$.cel = CODE_INST(constpush, $1->val);
+                              $$.typ = $1->typref; }
+    | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
+                              $$.typ = $1->typref; }
+    | BLTIN1 '(' expr ')'   { $$.cel = $3.cel;
+                              $$.typ = $1->typref;
                               CODE_INST(bltin1, $1); }
     | BLTIN2 '(' expr ',' expr ')'
-                            { $$ = $3;
+                            { $$.cel = $3.cel;
+                              $$.typ = $1->typref;
                               CODE_INST(bltin2, $1); }
     | function mark '(' arglist_opt ')' {
-                              $$ = $2;
+                              $$.cel = $2;
+                              $$.typ = $1->typref;
                               CODE_INST(call, $1);             /* instruction */
-                              CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
-                            }
+                              CODE_INST(spadd, $1->size_args); } /* eliminando argumentos */
     ;
 
 function
