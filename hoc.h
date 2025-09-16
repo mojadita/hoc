@@ -41,6 +41,11 @@ typedef struct expr_s {
     Symbol     *typ;
 } Expr;
 
+typedef struct OpRel_s {
+	Cell       *cel;
+	int         op;
+} OpRel;
+
 #include "hoc.tab.h"
 
 /* inicializa la tabla de simbolos con las funciones builtin y las

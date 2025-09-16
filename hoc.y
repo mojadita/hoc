@@ -37,6 +37,8 @@ void yyerror( char * msg );
 static void patch_block(Cell*patch_point);
 void add_patch_return(Symbol *subr, Cell *patch_point);
 static void patch_returns(Symbol *subr, Cell *target);
+static OpRel code_unpatched_op(int op);
+static Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -106,6 +108,7 @@ size_t size_lvars = 0;
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
     Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
+    OpRel         opr;  /* tipo del operador relacional. */
 }
 
 %token        ERROR
@@ -120,7 +123,7 @@ size_t size_lvars = 0;
 %token <str>  STRING UNDEF
 %token        LIST
 %token <sym>  TYPE
-%type  <cel>  stmt cond stmtlist expr
+%type  <cel>  stmt cond stmtlist
 %type  <expr> expr expr_or expr_and expr_rel expr_arit term fact prim
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
@@ -129,6 +132,7 @@ size_t size_lvars = 0;
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
+%type  <opr>  op_rel op_sum op_mul op_exp
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -439,61 +443,94 @@ and : AND                   {
     ;
 
 expr_rel
-    : '!' expr_rel                { $$.typ = Boolean; CODE_INST(not); }
-    | expr_arit '<' expr_arit     { $$.typ = Boolean; CODE_INST(lt); }
-    | expr_arit '>' expr_arit     { $$.typ = Boolean; CODE_INST(gt); }
-    | expr_arit EQ  expr_arit     { $$.typ = Boolean; CODE_INST(eq); }
-    | expr_arit NE  expr_arit     { $$.typ = Boolean; CODE_INST(ne); }
-    | expr_arit GE  expr_arit     { $$.typ = Boolean; CODE_INST(ge); }
-    | expr_arit LE  expr_arit     { $$.typ = Boolean; CODE_INST(le); }
+    : '!' expr_rel          { $$.typ = Boolean; CODE_INST(not); }
+    | expr_arit op_rel expr_arit  {
+                              $$.typ = Boolean;
+                              $$.cel = $1.cel;
+                              $$.typ = check_op_bin(&$1, &$2, &$3);
+							  switch ($2.op) {
+								  case '<':  CODE_INST(lt); break;
+								  case '>':  CODE_INST(gt); break;
+								  case  EQ:  CODE_INST(eq); break;
+								  case  NE:  CODE_INST(ne); break;
+								  case  GE:  CODE_INST(ge); break;
+								  case  LE:  CODE_INST(le); break;
+							  } /* switch */
+                            }
     | expr_arit
+    ;
+
+op_rel
+    : '<'                   { $$ = code_unpatched_op('<'); }
+    | '>'                   { $$ = code_unpatched_op('>'); }
+    | EQ                    { $$ = code_unpatched_op(EQ); }
+    | NE                    { $$ = code_unpatched_op(NE); }
+    | GE                    { $$ = code_unpatched_op(GE); }
+    | LE                    { $$ = code_unpatched_op(LE); }
     ;
 
 expr_arit: term
     | '-' term              { $$ = $2; CODE_INST(neg);  }
     | '+' term              { $$ = $2; }
-    | expr_arit '+' term    {
-                              /* LCU: Mon Sep 15 12:31:40 -05 2025
+    | expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
                                * NOTA 1:
                                * determinar el tipo a partir de los tipos de
                                * $1 y $3. En caso de qeu los tipos sean distintos,
                                * generar codigo para converti el tipo de $3 si $3 debe
                                * convertirse al tipo de $1 y parchear op_add si el que
                                * debe convertirse es $1 al tipo de $3 */
-                              CODE_INST(add);  }
-    | expr_arit '-' term    {
-                              /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver NOTA 1, arriba. */
-                              CODE_INST(sub);  }
+                              $$.typ = check_op_bin(&$1, &$2, &$3);
+                              switch($2.op) {
+                              case '+': CODE_INST(add); break;
+                              case '-': CODE_INST(sub); break;
+                              }
+                            }
+    ;
+
+op_sum
+    : '+'                   { $$ = code_unpatched_op('+'); }
+    | '-'                   { $$ = code_unpatched_op('-'); }
     ;
 
 term: fact
-    | term '*' fact         {
+    | term op_mul fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
                                * ver NOTA 1, arriba. */
-                              CODE_INST(mul);  }
-    | term '/' fact         {
-                              /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver NOTA 1, arriba. */
-                              CODE_INST(divi); }
-    | term '%' fact         {
-                              /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver NOTA 1, arriba. */
-                              CODE_INST(mod);  }
+                              $$.typ = check_op_bin(&$1, &$2, &$3);
+                              switch($2.op) {
+                              case '*': CODE_INST(mul); break;
+                              case '/': CODE_INST(divi); break;
+                              case '%': CODE_INST(mod); break;
+                              }
+                            }
     ;
 
-fact: prim EXP fact         {
+op_mul
+    : '*'                   { $$ = code_unpatched_op('*'); }
+    | '/'                   { $$ = code_unpatched_op('/'); }
+    | '%'                   { $$ = code_unpatched_op('%'); }
+    ;
+
+fact: prim op_exp fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
                                * ver NOTA 1, arriba. */
-                              CODE_INST(pwr);  }
+                              $$.typ = check_op_bin(&$1, &$2, &$3);
+                              CODE_INST(pwr);
+                            }
     | prim
+    ;
+
+op_exp
+    : EXP                   { $$ = code_unpatched_op(EXP); }
     ;
 
 prim: '(' expr ')'          { $$ = $2; }
     | NUMBER                { $$.cel = CODE_INST(constpush, $1);
-                              $$.typ = Double; }
+                              $$.typ = Double;
+                            }
     | INTEGER               { $$.cel = CODE_INST(constpush, (double) $1);
-                              $$.typ = Integer; }
+                              $$.typ = Integer;
+                            }
 
     | PLS_PLS VAR           { $$.cel = CODE_INST(inceval, $2);
                               $$.typ = $2->typref; }
@@ -531,7 +568,7 @@ prim: '(' expr ')'          { $$ = $2; }
     | function mark '(' arglist_opt ')' {
                               $$.cel = $2;
                               $$.typ = $1->typref;
-                              CODE_INST(call, $1);             /* instruction */
+                              CODE_INST(call, $1);               /* instruction */
                               CODE_INST(spadd, $1->size_args); } /* eliminando argumentos */
     ;
 
@@ -689,6 +726,25 @@ func_head
     ;
 
 %%
+
+OpRel code_unpatched_op(int op)
+{
+    PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
+          progp - prog);
+    OpRel ret_val = {
+        .op = op,
+        .cel = CODE_INST(noop),
+    };
+    PT("<<< end   inserting UNPATCHED CODE\n");
+    return ret_val;
+} /* code_unpatched_op */
+
+Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
+{
+	printf("exp1.typ = %s, op = <%d>, exp2.typ = %s\n",
+		exp1->typ->name, op->op, exp2->typ->name);
+    return exp1->typ;
+}
 
 void patch_block(Cell*patch_point)
 {
