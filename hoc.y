@@ -150,6 +150,7 @@ list: /* nothing */
     | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
     | list expr  '\n'  { Symbol *prev = lookup("prev");
+                         code_conv_val($2.typ, prev->typref);
                          CODE_INST(assign, prev);
                          CODE_INST(print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
@@ -397,10 +398,9 @@ stmtlist: /* nada */       { $$ = progp; }
 
 expr:
       UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
-    | VAR    '=' expr      { $$ = $3;
-                             if ($1->typref != $3.typ) {
-                                code_conv_val($3.typ, $1->typref);
-                             }
+    | VAR    '=' expr      { $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+                             code_conv_val($3.typ, $1->typref);
                              CODE_INST(assign, $1);
                            }
 
