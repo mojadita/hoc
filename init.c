@@ -60,6 +60,7 @@ static struct builtin { /* built-ins-1 */
     { NULL,    NULL, },
 };
 
+
 Symbol *Char,
        *Boolean,
        *Integer,
@@ -70,16 +71,17 @@ Symbol *Char,
 
 static struct predefined_types { /* predefined types */
     char *name;
-    int   size;
+    int   size,
+          align;
     Symbol **sym;
 } builtin_types [] = {
-    { "char",   1, &Char, },
-    { "bool",   1, &Boolean, },
-    { "int",    1, &Integer, },
-    { "long",   1, &Long, },
-    { "float",  1, &Float, },
-    { "double", 1, &Double, },
-    { "string", 1, &String, },
+    { "char",   1, 1, &Char, },
+    { "bool",   1, 1, &Boolean, },
+    { "int",    1, 1, &Integer, },
+    { "long",   1, 1, &Long, },
+    { "float",  1, 1, &Float, },
+    { "double", 1, 1, &Double, },
+    { "string", 1, 1, &String, },
     { NULL,     0, },
 };
 

@@ -35,10 +35,11 @@ void vwarning( const char *fmt, va_list args );
 void yyerror( char * msg );
 
 static void patch_block(Cell*patch_point);
-void add_patch_return(Symbol *subr, Cell *patch_point);
+static void add_patch_return(Symbol *subr, Cell *patch_point);
 static void patch_returns(Symbol *subr, Cell *target);
 static OpRel code_unpatched_op(int op);
 static Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2);
+static void code_conv_val(Symbol *t_src, Symbol *t_dst);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -174,6 +175,7 @@ stmt
                              $$ = $2.cel;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
+                             code_conv_val($2.typ, indef->typref);
                              CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR, "{RET_VAL} ");
                              CODE_INST(drop);
 
@@ -273,6 +275,7 @@ gvar_decl_list
                                       }
                                       Symbol *s = register_global_var($3.name, $$.typref);
                                       if ($3.start) {
+                                          code_conv_val($3.typref, $1.typref);
                                           CODE_INST(assign, s);
                                           CODE_INST(drop);
                                       }
@@ -281,6 +284,7 @@ gvar_decl_list
                                       $$.start  = $2.start ? $2.start : NULL;
                                       Symbol *s = register_global_var($2.name, $$.typref);
                                       if ($2.start) {
+                                          code_conv_val($2.typref, $1);
                                           CODE_INST(assign, s);
                                           CODE_INST(drop);
                                       }
@@ -288,8 +292,12 @@ gvar_decl_list
     ;
 
 gvar_init
-    : gvar_valid_ident              { $$.name = $1; $$.start = NULL; }
-    | gvar_valid_ident '=' expr     { $$.name = $1; $$.start = $3.cel; }
+    : gvar_valid_ident              { $$.name   = $1;
+                                      $$.start  = NULL;
+                                      $$.typref = NULL; }
+    | gvar_valid_ident '=' expr     { $$.name   = $1;
+                                      $$.start  = $3.cel;
+                                      $$.typref = $3.typ; }
     ;
 
 gvar_valid_ident
@@ -309,6 +317,7 @@ lvar_decl_list
                                       Symbol *sym = register_local_var(
                                             $3.name, $$.typref);
                                       if ($3.start) {
+                                          code_conv_val($3.typref, $1.typref);
                                           CODE_INST(argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
@@ -319,6 +328,9 @@ lvar_decl_list
                                       Symbol *sym = register_local_var(
                                             $2.name, $$.typref);
                                       if ($2.start) {
+                                          code_conv_val($2.typref, $1);
+                                          /* LCU: Fri Sep 19 09:51:07 -05 2025
+                                           * TODO: voy por aqui. */
                                           CODE_INST(argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
@@ -326,8 +338,12 @@ lvar_decl_list
     ;
 
 lvar_init
-    : lvar_valid_ident          { $$.name = $1; $$.start = NULL; }
-    | lvar_valid_ident '=' expr { $$.name = $1; $$.start = $3.cel; }
+    : lvar_valid_ident          { $$.name   = $1;
+                                  $$.start  = NULL;
+                                  $$.typref = NULL; }
+    | lvar_valid_ident '=' expr { $$.name   = $1;
+                                  $$.start  = $3.cel;
+                                  $$.typref = $3.typ; }
     ;
 
 lvar_valid_ident
@@ -381,7 +397,13 @@ stmtlist: /* nada */       { $$ = progp; }
 
 expr:
       UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
-    | VAR    '=' expr      { $$ = $3; CODE_INST(assign, $1); }
+    | VAR    '=' expr      { $$ = $3;
+                             if ($1->typref != $3.typ) {
+                                code_conv_val($3.typ, $1->typref);
+                             }
+                             CODE_INST(assign, $1);
+                           }
+
 
     | LVAR   '=' expr      { $$ = $3; CODE_INST(argassign, $1->offset, $1->name); }
 
@@ -448,14 +470,14 @@ expr_rel
                               $$.typ = Boolean;
                               $$.cel = $1.cel;
                               $$.typ = check_op_bin(&$1, &$2, &$3);
-							  switch ($2.op) {
-								  case '<':  CODE_INST(lt); break;
-								  case '>':  CODE_INST(gt); break;
-								  case  EQ:  CODE_INST(eq); break;
-								  case  NE:  CODE_INST(ne); break;
-								  case  GE:  CODE_INST(ge); break;
-								  case  LE:  CODE_INST(le); break;
-							  } /* switch */
+                              switch ($2.op) {
+                                  case '<':  CODE_INST(lt); break;
+                                  case '>':  CODE_INST(gt); break;
+                                  case  EQ:  CODE_INST(eq); break;
+                                  case  NE:  CODE_INST(ne); break;
+                                  case  GE:  CODE_INST(ge); break;
+                                  case  LE:  CODE_INST(le); break;
+                              } /* switch */
                             }
     | expr_arit
     ;
@@ -727,6 +749,40 @@ func_head
 
 %%
 
+void
+code_conv_val(
+        Symbol *t_src,
+        Symbol *t_dst)
+{
+    if (t_src != t_dst) {
+        if          (t_src == Integer) {
+            if      (t_dst == Long)    CODE_INST(i2l);
+            else if (t_dst == Float)   CODE_INST(i2f);
+            else if (t_dst == Double)  CODE_INST(i2d);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Long) {
+            if      (t_dst == Integer) CODE_INST(l2i);
+            else if (t_dst == Float)   CODE_INST(l2f);
+            else if (t_dst == Double)  CODE_INST(l2d);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Float) {
+            if      (t_dst == Integer) CODE_INST(f2i);
+            else if (t_dst == Long)    CODE_INST(f2l);
+            else if (t_dst == Double)  CODE_INST(f2d);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Double) {
+            if      (t_dst == Integer) CODE_INST(d2i);
+            else if (t_dst == Long)    CODE_INST(d2l);
+            else if (t_dst == Float)   CODE_INST(d2f);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        }
+    }
+}
+
 OpRel code_unpatched_op(int op)
 {
     PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
@@ -741,8 +797,8 @@ OpRel code_unpatched_op(int op)
 
 Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
 {
-	printf("exp1.typ = %s, op = <%d>, exp2.typ = %s\n",
-		exp1->typ->name, op->op, exp2->typ->name);
+    printf("exp1.typ = %s, op = <%d>, exp2.typ = %s\n",
+        exp1->typ->name, op->op, exp2->typ->name);
     return exp1->typ;
 }
 

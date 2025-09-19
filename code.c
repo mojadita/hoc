@@ -1288,6 +1288,7 @@ void spadd(const instr *i) /* pop n elementos de la pila */
     int n = pc[0].args;
     P_TAIL(": %+d", n);
     sp += n;
+
     UPDATE_PC();
 }
 
@@ -1336,6 +1337,128 @@ void move_sp_to_fp(const instr *i)
 }
 
 void move_sp_to_fp_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void d2f(const instr *i) /* cast double to float */
+{
+    UPDATE_PC();
+}
+
+void d2f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void d2i(const instr *i) /* cast double to int */
+{
+    UPDATE_PC();
+}
+
+void d2i_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void d2l(const instr *i) /* cast double to long */
+{
+    UPDATE_PC();
+}
+
+void d2l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void f2d(const instr *i) /* cast float to double */
+{
+    UPDATE_PC();
+}
+
+void f2d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void f2i(const instr *i) /* cast float to int */
+{
+    UPDATE_PC();
+}
+
+void f2i_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void f2l(const instr *i) /* cast float to long */
+{
+    UPDATE_PC();
+}
+
+void f2l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+
+void i2d(const instr *i) /* cast int to double */
+{
+    UPDATE_PC();
+}
+
+void i2d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void i2f(const instr *i) /* cast int to float */
+{
+    UPDATE_PC();
+}
+
+void i2f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void i2l(const instr *i) /* cast int to long */
+{
+    UPDATE_PC();
+}
+
+void i2l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+
+void l2d(const instr *i) /* cast long to double */
+{
+    UPDATE_PC();
+}
+
+void l2d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void l2f(const instr *i) /* cast long to float */
+{
+    UPDATE_PC();
+}
+
+void l2f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void l2i(const instr *i) /* cast long to int */
+{
+    UPDATE_PC();
+}
+
+void l2i_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }

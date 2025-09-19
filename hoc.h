@@ -34,6 +34,8 @@ typedef struct var_init_s {
     const char *name;
     Cell       *start;   /* posicion absoluta de la variable
                           * en memoria (variables globales) */
+    Symbol     *typref;  /* tipo de la expression que calcula
+                          * el codigo de inicializacion */
 } var_init;
 
 typedef struct expr_s {
@@ -42,8 +44,8 @@ typedef struct expr_s {
 } Expr;
 
 typedef struct OpRel_s {
-	Cell       *cel;
-	int         op;
+    Cell       *cel;
+    int         op;
 } OpRel;
 
 #include "hoc.tab.h"

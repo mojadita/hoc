@@ -70,3 +70,15 @@ INST(spadd,1,     SUFF(void, arg,  prog))/* a;ade/substrae del stack pointer */
 INST(push_fp, 1)                         /* mete el frame pointer en la pila */
 INST(move_sp_to_fp, 1)                   /* asigna el fp con el valor del sp. */
 INST(pop_fp, 1)                          /* saca el fp del top de la pila */
+INST(d2f,1)                              /* convertir double hasta float */
+INST(d2i,1)                              /* convertir double hasta int */
+INST(d2l,1)                              /* convertir double hasta long */
+INST(f2d,1)                              /* convertir float hasta double */
+INST(f2i,1)                              /* convertir float hasta int */
+INST(f2l,1)                              /* convertir float hasta long */
+INST(i2d,1)                              /* convertir int hasta double */
+INST(i2f,1)                              /* convertir int hasta float */
+INST(i2l,1)                              /* convertir int hasta long */
+INST(l2d,1)                              /* convertir long hasta double */
+INST(l2f,1)                              /* convertir long hasta float */
+INST(l2i,1)                              /* convertir long hasta int */
