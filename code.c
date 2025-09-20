@@ -822,7 +822,7 @@ void str_prog(const instr *i, Cell *pc, va_list args)
 {
     progp[1].str = va_arg(args, const char *);
 
-    PRG(" \"%s\"", progp->str);
+    PRG(" \"%s\"", progp[1].str);
 }
 
 void prexpr(const instr *i)  /* print numeric value */

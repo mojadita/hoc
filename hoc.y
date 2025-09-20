@@ -90,6 +90,10 @@ jmp_buf begin;
 #define CODE_INST(I, ...) code_inst(INST_##I, ##__VA_ARGS__)
 
 Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
+Symbol *sub_call; /* en una llamada a funcion/procedimiento, almacena el simbolo a
+                   * llamar para tener acceso a la lista de argumentos del proc/func
+                   * y poder chequear al vuelo los tipos de estos y las expresiones
+                   * que se le pasan. */
 
 size_t size_lvars = 0;
 
@@ -128,8 +132,8 @@ size_t size_lvars = 0;
 %type  <expr> expr expr_or expr_and expr_rel expr_arit term fact prim
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
-%type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident function
+%type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist op_assign
+%type  <sym>  proc_head func_head lvar_definable_ident function procedure
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
@@ -138,7 +142,7 @@ size_t size_lvars = 0;
 %%
 /*  Area de definicion de reglas gramaticales */
 
-list: /* nothing */
+list: /* empty */
     | list       '\n'
 
     | list defn  '\n'
@@ -230,10 +234,11 @@ stmt
                              progp = saved_progp;
                            }
 
-    | PROCEDURE mark '(' arglist_opt ')' ';' {
+    | procedure mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              CODE_INST(call, $1); /* instruction */
                              CODE_INST(spadd, $1->size_args);    /* pop arguments */
+                             sub_call = NULL;
                            }
 
     | '{' create_scope stmtlist '}'  {
@@ -249,6 +254,9 @@ stmt
                              end_scope();
                            }
     ;
+
+procedure
+    : PROCEDURE            { sub_call = $1; }
 
 create_scope
     :  /* empty */         { scope *sc = start_scope();
@@ -330,8 +338,6 @@ lvar_decl_list
                                             $2.name, $$.typref);
                                       if ($2.start) {
                                           code_conv_val($2.typref, $1);
-                                          /* LCU: Fri Sep 19 09:51:07 -05 2025
-                                           * TODO: voy por aqui. */
                                           CODE_INST(argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
@@ -384,71 +390,110 @@ item: STRING               { $$ = CODE_INST(prstr, $1); }
     | expr                 { $$ = CODE_INST(prexpr); }
     ;
 
-cond: '(' expr ')'         { $$ = $2.cel; }
+cond: '(' expr ')'         { $$ = $2.cel;
+                             code_conv_val($2.typ, Integer);
+                           }
     ;
 
-mark: /* nada */           { $$ = progp; }
+mark: /* empty */          { $$ = progp; }
     ;
 
-stmtlist: /* nada */       { $$ = progp; }
-    | stmtlist '\n'
+stmtlist
+    : stmtlist '\n'
     | stmtlist stmt
     | stmtlist lvar_decl
+    | /* empty */          { $$ = progp; }
     ;
 
-expr:
-      UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
-    | VAR    '=' expr      { $$.cel = $3.cel;
+expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
+    | VAR   op_assign expr { $$.cel = $3.cel;
                              $$.typ = $1->typref;
                              code_conv_val($3.typ, $1->typref);
-                             CODE_INST(assign, $1);
+                             switch ($2) {
+                             case '=':     CODE_INST(assign, $1); break;
+                             case PLS_EQ:  CODE_INST(addvar, $1); break;
+                             case MIN_EQ:  CODE_INST(subvar, $1); break;
+                             case MUL_EQ:  CODE_INST(mulvar, $1); break;
+                             case DIV_EQ:  CODE_INST(divvar, $1); break;
+                             case MOD_EQ:  CODE_INST(modvar, $1); break;
+                             case PWR_EQ:  CODE_INST(pwrvar, $1); break;
+                             } /* switch */
                            }
-
-
-    | LVAR   '=' expr      { $$ = $3; CODE_INST(argassign, $1->offset, $1->name); }
-
-    | VAR  PLS_EQ expr     { $$ = $3; CODE_INST(addvar, $1); }
-    | VAR  MIN_EQ expr     { $$ = $3; CODE_INST(subvar, $1); }
-    | VAR  MUL_EQ expr     { $$ = $3; CODE_INST(mulvar, $1); }
-    | VAR  DIV_EQ expr     { $$ = $3; CODE_INST(divvar, $1); }
-    | VAR  MOD_EQ expr     { $$ = $3; CODE_INST(modvar, $1); }
-    | VAR  PWR_EQ expr     { $$ = $3; CODE_INST(pwrvar, $1); }
-
-    | LVAR PLS_EQ expr     { $$ = $3; CODE_INST(addarg, $1->offset, $1->name); }
-    | LVAR MIN_EQ expr     { $$ = $3; CODE_INST(subarg, $1->offset, $1->name); }
-    | LVAR MUL_EQ expr     { $$ = $3; CODE_INST(mularg, $1->offset, $1->name); }
-    | LVAR DIV_EQ expr     { $$ = $3; CODE_INST(divarg, $1->offset, $1->name); }
-    | LVAR MOD_EQ expr     { $$ = $3; CODE_INST(modarg, $1->offset, $1->name); }
-    | LVAR PWR_EQ expr     { $$ = $3; CODE_INST(pwrarg, $1->offset, $1->name); }
-
+    | LVAR op_assign expr  { $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+                             code_conv_val($3.typ, $1->typref);
+                             switch ($2) {
+                             case '=':
+                                 CODE_INST(argassign, $1->offset, $1->name);
+                                 break;
+                             case PLS_EQ:
+                                 CODE_INST(addarg, $1->offset, $1->name);
+                                 break;
+                             case MIN_EQ:
+                                 CODE_INST(subarg, $1->offset, $1->name);
+                                 break;
+                             case MUL_EQ:
+                                 CODE_INST(mularg, $1->offset, $1->name);
+                                 break;
+                             case DIV_EQ:
+                                 CODE_INST(divarg, $1->offset, $1->name);
+                                 break;
+                             case MOD_EQ:
+                                 CODE_INST(modarg, $1->offset, $1->name);
+                                 break;
+                             case PWR_EQ:
+                                 CODE_INST(pwrarg, $1->offset, $1->name);
+                                 break;
+                             } /* switch */
+                           }
     | expr_or
     ;
 
+op_assign
+    : '='       { $$ = '='; }
+    | PLS_EQ    { $$ = PLS_EQ; }
+    | MIN_EQ    { $$ = MIN_EQ; }
+    | MUL_EQ    { $$ = MUL_EQ; }
+    | DIV_EQ    { $$ = DIV_EQ; }
+    | MOD_EQ    { $$ = MOD_EQ; }
+    | PWR_EQ    { $$ = PWR_EQ; }
+    ;
+
 expr_or
-    : expr_and or expr_or  { Cell *saved_progp = progp;
+    : expr_and or expr_or  { $$.cel = $1.cel;
+                             $$.typ = Integer;
+                             code_conv_val($3.typ, Integer);
+                             Cell *saved_progp = progp;
                              progp = $2;
                              PT(">>> begin patching CODE @ [%04lx]\n",
                                    progp - prog);
+                                 code_conv_val($1.typ, Integer);
                                  CODE_INST(or_else, saved_progp);
                              PT("<<< end   patching CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
-                             progp = saved_progp; }
+                             progp = saved_progp;
+                           }
     | expr_and
     ;
 
 or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                  progp - prog);
-                             $$ = CODE_INST(or_else, prog);
+                             $$ = CODE_INST(noop); /* para la instruccion de conversion */
+                                  CODE_INST(noop); /* para la instruccion or_else */
                              PT("<<< end   inserting unpatched CODE\n"); }
     ;
 
 expr_and
-    : expr_rel and expr_and { Cell *saved_progp = progp;
+    : expr_rel and expr_and { $$.cel = $1.cel;
+                              $$.typ = Integer;
+                              code_conv_val($3.typ, Integer);
+                              Cell *saved_progp = progp;
                               progp = $2;
                               PT(">>> begin patching CODE @ [%04lx]\n",
                                       progp - prog);
-                              CODE_INST(and_then, saved_progp);
+                                  code_conv_val($1.typ, Integer);
+                                  CODE_INST(and_then, saved_progp);
                               PT("<<< end   patching CODE @ [%04lx], "
                                       "continuing @ [%04lx]\n",
                                       progp - prog, saved_progp - prog);
@@ -459,17 +504,21 @@ expr_and
 and : AND                   {
                               PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
                                       progp - prog);
-                              $$ = CODE_INST(and_then, prog);
+                              $$ = CODE_INST(noop);
+                                   CODE_INST(noop);
                               PT("<<< end   inserting unpatched CODE\n");
                             }
     ;
 
 expr_rel
-    : '!' expr_rel          { $$.typ = Boolean; CODE_INST(not); }
+    : '!' expr_rel          { $$.cel = $2.cel;
+                              $$.typ = Integer;
+                              code_conv_val($2.typ, Integer);
+                              CODE_INST(not); }
     | expr_arit op_rel expr_arit  {
-                              $$.typ = Boolean;
+                              $$.typ = Integer;
                               $$.cel = $1.cel;
-                              $$.typ = check_op_bin(&$1, &$2, &$3);
+                              check_op_bin(&$1, &$2, &$3);
                               switch ($2.op) {
                                   case '<':  CODE_INST(lt); break;
                                   case '>':  CODE_INST(gt); break;
@@ -491,22 +540,25 @@ op_rel
     | LE                    { $$ = code_unpatched_op(LE); }
     ;
 
-expr_arit: term
+expr_arit
+    : '+' term              { $$ = $2; }
     | '-' term              { $$ = $2; CODE_INST(neg);  }
-    | '+' term              { $$ = $2; }
     | expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
                                * NOTA 1:
-                               * determinar el tipo a partir de los tipos de
-                               * $1 y $3. En caso de qeu los tipos sean distintos,
-                               * generar codigo para converti el tipo de $3 si $3 debe
-                               * convertirse al tipo de $1 y parchear op_add si el que
-                               * debe convertirse es $1 al tipo de $3 */
+                               * determinar el tipo de la expr_arit, a partir de los
+                               * tipos de $1 y $3. En caso de que los tipos sean
+                               * distintos, generar codigo para converti el tipo de
+                               * $3 si $3 debe convertirse al tipo de $1 y parchear
+                               * op_add si el que debe convertirse es $1 al tipo
+                               * de $3 */
+                              $$.cel = $1.cel;
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.op) {
                               case '+': CODE_INST(add); break;
                               case '-': CODE_INST(sub); break;
                               }
                             }
+    | term
     ;
 
 op_sum
@@ -514,17 +566,17 @@ op_sum
     | '-'                   { $$ = code_unpatched_op('-'); }
     ;
 
-term: fact
-    | term op_mul fact      {
-                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+term
+    : term op_mul fact      { /* LCU: Mon Sep 15 12:36:54 -05 2025
                                * ver NOTA 1, arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.op) {
-                              case '*': CODE_INST(mul); break;
+                              case '*': CODE_INST(mul);  break;
                               case '/': CODE_INST(divi); break;
-                              case '%': CODE_INST(mod); break;
+                              case '%': CODE_INST(mod);  break;
                               }
                             }
+    | fact
     ;
 
 op_mul
@@ -591,11 +643,13 @@ prim: '(' expr ')'          { $$ = $2; }
                               $$.cel = $2;
                               $$.typ = $1->typref;
                               CODE_INST(call, $1);               /* instruction */
-                              CODE_INST(spadd, $1->size_args); } /* eliminando argumentos */
+                              CODE_INST(spadd, $1->size_args);
+                              sub_call = NULL; } /* eliminando argumentos */
     ;
 
 function
-    : FUNCTION              { CODE_INST(spadd, -$1->typref->size); } /* PUSH espacio para el
+    : FUNCTION              { sub_call = $1;
+                              CODE_INST(spadd, -$1->typref->size); } /* PUSH espacio para el
                                                                       * valor a retornar */
     ;
 
@@ -605,14 +659,21 @@ arglist_opt
     ;
 
 arglist
-    : arglist ',' expr      { /* LCU: Tue Sep  2 00:41:28 -05 2025
-                               * comprobar que los argumentos concuerdan
-                               * con la lita de argumentos de la funcion */
-                              $$ = $1 + 1; }
-    | expr                  { /* LCU: Tue Sep  2 00:41:28 -05 2025
-                               * comprobar que los argumentos concuerdan
-                               * con la lita de argumentos de la funcion */
-                              $$ = 1; }
+    : arglist ',' expr      { $$ = $1 + 1;
+                              if ($$ > sub_call->argums_len) {
+                                  execerror("%s accepts only %d parameters\n",
+                                            sub_call->name,
+                                            sub_call->argums_len);
+                              }
+                              code_conv_val($3.typ, sub_call->argums[$1]->typref);
+                            }
+    | expr                  { $$ = 1;
+                              if (sub_call->argums_len == 0) {
+                                  execerror("%s accepts no parameters",
+                                            sub_call->name);
+                              }
+                              code_conv_val($1.typ, sub_call->argums[0]->typref);
+                            }
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
@@ -664,7 +725,7 @@ preamb: /* empty */         {
                               /* LCU: Mon Sep  8 13:17:49 EEST 2025
                                * we need to return this pointer (not
                                * a pointer to the beginning of the code)
-                               * because we need to patch it. */
+                               * because it is what we need to patch. */
                               $$ = CODE_INST(noop);
                               PT("<<< end   UNPATCHED code\n");
                             }
