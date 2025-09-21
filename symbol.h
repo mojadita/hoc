@@ -9,6 +9,7 @@
 
 typedef struct Symbol_s Symbol;
 
+#include "instr.h"
 #include "cell.h"
 #include "scope.h"
 
@@ -44,7 +45,11 @@ struct Symbol_s {                         /* Symbol table entry */
             int        offset;            /* variables locales y argumentos (LVAR),
                                            * offset respecto al frame pointer (fp). */
         };
-        size_t     size;                  /* si el tipo es TYPE */
+        struct {
+            size_t     size;              /* si el tipo es TYPE */
+            instr_code constpush;         /* codigo de la instruccion que requiere para
+                                           * insertar un constpush */
+        };
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los
         * nombres de los campos de la union pueden usarse directamente desde

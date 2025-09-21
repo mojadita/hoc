@@ -628,7 +628,7 @@ prim: '(' expr ')'          { $$ = $2; }
     | LVAR                  { $$.cel = CODE_INST(argeval, $1->offset, $1->name);
                               $$.typ = $1->typref; }
 
-    | CONST                 { $$.cel = CODE_INST(constpush, $1->val);
+    | CONST                 { $$.cel = code_inst($1->typref->constpush, $1->val);
                               $$.typ = $1->typref; }
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }

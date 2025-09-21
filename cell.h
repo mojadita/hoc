@@ -19,11 +19,15 @@ union Cell {
         int        args: 8;
         unsigned   desp: 16;
     };
-    Symbol      *sym;
+    char         chr;
+    short        sht;
+    int          inum;
+    long         num;
+    float        flt;
     double       val;
     Cell        *cel;
+    Symbol      *sym;
     const char  *str;
-    long         num;
 };
 
 #endif /* CELL_H */
