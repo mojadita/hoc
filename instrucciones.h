@@ -6,151 +6,157 @@
  * License: BSD
  */
 
-INST(STOP,1)                       /* para la maquina, termina la ejecucion. */
-INST(drop,1)                       /* elimina un valor de la pila */
-INST(constpush,2,   SUFF(void, datum, prog))  /* introduce un valor constante en la pila */
+INST(STOP,1)                                   /* para la maquina, termina la ejecucion. */
+INST(drop,1)                                   /* elimina un valor de la pila */
+INST(constpush,2,   SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
 INST(constpush_d,2, SUFF(void, datum_d, prog))
 INST(constpush_l,2, SUFF(void, datum_l, prog))
-INST(add,1)                        /* suma los dos valores top de la pila */
+INST(add,1)                                    /* suma los dos valores top de la pila */
 INST(add_d,1)
 INST(add_l,1)
-INST(sub,1)                        /* resta los dos valores top de la pila Y - X */
+INST(sub,1)                                    /* resta los dos valores top de la pila Y - X */
 INST(sub_d,1)
 INST(sub_l,1)
-INST(mul,1)                        /* multiplica los dos valores top de la pila Y * X */
+INST(mul,1)                                    /* multiplica los dos valores top de la pila Y * X */
 INST(mul_d,1)
 INST(mul_l,1)
-INST(divi,1)                       /* divide los dos valores top de la pila Y / X */
+INST(divi,1)                                   /* divide los dos valores top de la pila Y / X */
 INST(divi_d,1)
 INST(divi_l,1)
-INST(mod,1)                        /* calcula Y % X */
+INST(mod,1)                                    /* calcula Y % X */
 INST(mod_d,1)
 INST(mod_l,1)
-INST(neg,1)                        /* calcula -X */
+INST(neg,1)                                    /* calcula -X */
 INST(neg_d,1)
 INST(neg_l,1)
-INST(pwr,1)                        /* calcula Y ^^ X */
+INST(pwr,1)                                    /* calcula Y ^^ X */
 INST(pwr_d,1)
 INST(pwr_l,1)
-INST(eval,2,      SUFF(void, symb, prog))/* evalua una variable */
-INST(assign,2,    SUFF(void, symb, prog))/* asigna X a una variable */
-INST(assign_c,2,  SUFF(void, symb, prog))
-INST(assign_d,2,  SUFF(void, symb, prog))
-INST(assign_f,2,  SUFF(void, symb, prog))
-INST(assign_i,2,  SUFF(void, symb, prog))
-INST(assign_l,2,  SUFF(void, symb, prog))
-INST(assign_s,2,  SUFF(void, symb, prog))
-INST(print,1)                      /* imprime X */
-INST(bltin0,2,    SUFF(void, symb, prog))/* llama a una funcion bltin0 (una sin parametros) */
-INST(bltin1,2,    SUFF(void, symb, prog))/* llama a una funcion bltin1 (de un parametro) */
-INST(bltin2,2,    SUFF(void, symb, prog))/* llama a una funcion bltin2 (de dos parametros) */
-INST(ge,1)                          /* operador Y >= X */
-INST(ge_d,1)                        /* operador Y >= X */
+INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_c,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_d,2,      SUFF(void, symb, prog))
+INST(eval_f,2,      SUFF(void, symb, prog))
+INST(eval_i,2,      SUFF(void, symb, prog))
+INST(eval_l,2,      SUFF(void, symb, prog))
+INST(eval_s,2,      SUFF(void, symb, prog))
+INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_c,2,    SUFF(void, symb, prog))
+INST(assign_d,2,    SUFF(void, symb, prog))
+INST(assign_f,2,    SUFF(void, symb, prog))
+INST(assign_i,2,    SUFF(void, symb, prog))
+INST(assign_l,2,    SUFF(void, symb, prog))
+INST(assign_s,2,    SUFF(void, symb, prog))
+INST(print,1)                                  /* imprime X */
+INST(bltin0,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin0 (una sin parametros) */
+INST(bltin1,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin1 (de un parametro) */
+INST(bltin2,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin2 (de dos parametros) */
+INST(ge,1)                                     /* operador Y >= X */
+INST(ge_d,1)                                   /* operador Y >= X */
 INST(ge_l,1)
-INST(le,1)                          /* operador Y <= X */
-INST(le_d,1)                        /* operador Y <= X */
+INST(le,1)                                     /* operador Y <= X */
+INST(le_d,1)                                   /* operador Y <= X */
 INST(le_l,1)
-INST(gt,1)                          /* operador Y > X */
-INST(gt_d,1)                        /* operador Y > X */
+INST(gt,1)                                     /* operador Y > X */
+INST(gt_d,1)                                   /* operador Y > X */
 INST(gt_l,1)
-INST(lt,1)                          /* operador Y < X */
-INST(lt_d,1)                        /* operador Y < X */
+INST(lt,1)                                     /* operador Y < X */
+INST(lt_d,1)                                   /* operador Y < X */
 INST(lt_l,1)
-INST(eq,1)                          /* operador Y == X */
-INST(eq_d,1)                        /* operador Y == X */
+INST(eq,1)                                     /* operador Y == X */
+INST(eq_d,1)                                   /* operador Y == X */
 INST(eq_l,1)
-INST(ne,1)                          /* operador Y != X */
-INST(ne_d,1)                        /* operador Y != X */
+INST(ne,1)                                     /* operador Y != X */
+INST(ne_d,1)                                   /* operador Y != X */
 INST(ne_l,1)
-INST(not,1)                         /* operador ! */
-INST(and_then,1,    SUFF(void, addr, prog))/* operador Y && X (con cortocircuito) */
-INST(or_else,1,     SUFF(void, addr, prog))/* operador Y || X (con cortocircuito) */
-INST(call,2,        SUFF(void, symb, prog))/* llama a una subrutina con los parametros de la pila */
-INST(ret,1)                         /* retorna de un procedimiento definido por el usuario */
+INST(not,1)                                    /* operador ! */
+INST(and_then,1,    SUFF(void, addr, prog))    /* operador Y && X (con cortocircuito) */
+INST(or_else,1,     SUFF(void, addr, prog))    /* operador Y || X (con cortocircuito) */
+INST(call,2,        SUFF(void, symb, prog))    /* llama a una subrutina con los parametros de la pila */
+INST(ret,1)                                    /* retorna de un procedimiento definido por el usuario */
 INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_c,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_d,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_f,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_i,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_l,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
+INST(argeval_c,2,   SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
+INST(argeval_d,2,   SUFF(void, arg_str, prog))
+INST(argeval_f,2,   SUFF(void, arg_str, prog))
+INST(argeval_i,2,   SUFF(void, arg_str, prog))
+INST(argeval_l,2,   SUFF(void, arg_str, prog))
 INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(argassign_c,2, SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(argassign_d,2, SUFF(void, arg_str, prog))
 INST(argassign_f,2, SUFF(void, arg_str, prog))
 INST(argassign_i,2, SUFF(void, arg_str, prog))
 INST(argassign_l,2, SUFF(void, arg_str, prog))
-INST(prstr,2,       SUFF(void, str, prog)) /* imprime una cadena */
-INST(prexpr,1)                      /* imprime una expresion */
-INST(prexpr_i,1)                    /* imprime una expresion */
-INST(prexpr_d,1)                    /* imprime una expresion */
-INST(symbs,1)                       /* imprime la tabla de simbolos (desaparecera) */
-INST(symbs_all,2,   SUFF(void, symb, prog)) /* imprime toda la tabla de simbolos */
-INST(brkpt,2,       SUFF(void, symb, prog)) /* imprime las variables existentes en el contexto actual */
-INST(list,1)                        /* lista el codigo del programa */
-INST(if_f_goto,1,   SUFF(void, addr, prog))/* salto si el top de la pila es cero */
-INST(Goto,1,        SUFF(void, addr, prog))/* salto incondicional */
-INST(noop,1)                        /* no operacion, nada */
-INST(inceval,2,     SUFF(void, symb, prog))/* incremento de variable+eval */
-INST(inceval_c,2,   SUFF(void, symb, prog))/* incremento de variable+eval */
+INST(prstr,2,       SUFF(void, str, prog))     /* imprime una cadena */
+INST(prexpr,1)                                 /* imprime una expresion */
+INST(prexpr_i,1)                               /* imprime una expresion */
+INST(prexpr_d,1)
+INST(symbs,1)                                  /* imprime la tabla de simbolos (desaparecera) */
+INST(symbs_all,2,   SUFF(void, symb, prog))    /* imprime toda la tabla de simbolos */
+INST(brkpt,2,       SUFF(void, symb, prog))    /* imprime las variables existentes en el contexto actual */
+INST(list,1)                                   /* lista el codigo del programa */
+INST(if_f_goto,1,   SUFF(void, addr, prog))    /* salto si el top de la pila es cero */
+INST(Goto,1,        SUFF(void, addr, prog))    /* salto incondicional */
+INST(noop,1)                                   /* no operacion, nada */
+INST(inceval,2,     SUFF(void, symb, prog))    /* incremento de variable+eval */
+INST(inceval_c,2,   SUFF(void, symb, prog))    /* incremento de variable+eval */
 INST(inceval_d,2,   SUFF(void, symb, prog))
 INST(inceval_f,2,   SUFF(void, symb, prog))
 INST(inceval_i,2,   SUFF(void, symb, prog))
 INST(inceval_l,2,   SUFF(void, symb, prog))
-INST(evalinc,2,     SUFF(void, symb, prog))/* eval+incremento de variable */
-INST(evalinc_c,2,   SUFF(void, symb, prog))/* eval+incremento de variable */
+INST(evalinc,2,     SUFF(void, symb, prog))    /* eval+incremento de variable */
+INST(evalinc_c,2,   SUFF(void, symb, prog))    /* eval+incremento de variable */
 INST(evalinc_d,2,   SUFF(void, symb, prog))
 INST(evalinc_f,2,   SUFF(void, symb, prog))
 INST(evalinc_i,2,   SUFF(void, symb, prog))
 INST(evalinc_l,2,   SUFF(void, symb, prog))
-INST(deceval,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(deceval_c,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(deceval_d,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(deceval_f,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(deceval_i,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(deceval_l,2,     SUFF(void, symb, prog))/* decremento+eval de variable */
-INST(evaldec,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(evaldec_c,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(evaldec_d,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(evaldec_f,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(evaldec_i,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(evaldec_l,2,     SUFF(void, symb, prog))/* eval+decremento de variable */
-INST(addvar,2,      SUFF(void, symb, prog))/* añade de la pila a variable */
-INST(addvar_c,2,    SUFF(void, symb, prog))/* añade de la pila a variable */
+INST(deceval,2,     SUFF(void, symb, prog))    /* decremento+eval de variable */
+INST(deceval_c,2,   SUFF(void, symb, prog))    /* decremento+eval de variable */
+INST(deceval_d,2,   SUFF(void, symb, prog))
+INST(deceval_f,2,   SUFF(void, symb, prog))
+INST(deceval_i,2,   SUFF(void, symb, prog))
+INST(deceval_l,2,   SUFF(void, symb, prog))
+INST(evaldec,2,     SUFF(void, symb, prog))    /* eval+decremento de variable */
+INST(evaldec_c,2,   SUFF(void, symb, prog))    /* eval+decremento de variable */
+INST(evaldec_d,2,   SUFF(void, symb, prog))
+INST(evaldec_f,2,   SUFF(void, symb, prog))
+INST(evaldec_i,2,   SUFF(void, symb, prog))
+INST(evaldec_l,2,   SUFF(void, symb, prog))
+INST(addvar,2,      SUFF(void, symb, prog))    /* añade de la pila a variable */
+INST(addvar_c,2,    SUFF(void, symb, prog))    /* añade de la pila a variable */
 INST(addvar_d,2,    SUFF(void, symb, prog))
 INST(addvar_f,2,    SUFF(void, symb, prog))
 INST(addvar_i,2,    SUFF(void, symb, prog))
 INST(addvar_l,2,    SUFF(void, symb, prog))
 INST(addvar_s,2,    SUFF(void, symb, prog))
-INST(subvar,2,      SUFF(void, symb, prog))/* substrae de la pila a variable */
-INST(subvar_c,2,    SUFF(void, symb, prog))/* substrae de la pila a variable */
+INST(subvar,2,      SUFF(void, symb, prog))    /* substrae de la pila a variable */
+INST(subvar_c,2,    SUFF(void, symb, prog))    /* substrae de la pila a variable */
 INST(subvar_d,2,    SUFF(void, symb, prog))
 INST(subvar_f,2,    SUFF(void, symb, prog))
 INST(subvar_i,2,    SUFF(void, symb, prog))
 INST(subvar_l,2,    SUFF(void, symb, prog))
 INST(subvar_s,2,    SUFF(void, symb, prog))
-INST(mulvar,2,      SUFF(void, symb, prog))/* multiplica de la pila a variable */
-INST(mulvar_c,2,    SUFF(void, symb, prog))/* multiplica de la pila a variable */
+INST(mulvar,2,      SUFF(void, symb, prog))    /* multiplica de la pila a variable */
+INST(mulvar_c,2,    SUFF(void, symb, prog))    /* multiplica de la pila a variable */
 INST(mulvar_d,2,    SUFF(void, symb, prog))
 INST(mulvar_f,2,    SUFF(void, symb, prog))
 INST(mulvar_i,2,    SUFF(void, symb, prog))
 INST(mulvar_l,2,    SUFF(void, symb, prog))
 INST(mulvar_s,2,    SUFF(void, symb, prog))
-INST(divvar,2,      SUFF(void, symb, prog))/* divide de la pila a variable */
-INST(divvar_c,2,    SUFF(void, symb, prog))/* divide de la pila a variable */
+INST(divvar,2,      SUFF(void, symb, prog))    /* divide de la pila a variable */
+INST(divvar_c,2,    SUFF(void, symb, prog))    /* divide de la pila a variable */
 INST(divvar_d,2,    SUFF(void, symb, prog))
 INST(divvar_f,2,    SUFF(void, symb, prog))
 INST(divvar_i,2,    SUFF(void, symb, prog))
 INST(divvar_l,2,    SUFF(void, symb, prog))
 INST(divvar_s,2,    SUFF(void, symb, prog))
-INST(modvar,2,      SUFF(void, symb, prog))/* modulo de la pila a variable */
-INST(modvar_c,2,    SUFF(void, symb, prog))/* modulo de la pila a variable */
+INST(modvar,2,      SUFF(void, symb, prog))    /* modulo de la pila a variable */
+INST(modvar_c,2,    SUFF(void, symb, prog))    /* modulo de la pila a variable */
 INST(modvar_d,2,    SUFF(void, symb, prog))
 INST(modvar_f,2,    SUFF(void, symb, prog))
 INST(modvar_i,2,    SUFF(void, symb, prog))
 INST(modvar_l,2,    SUFF(void, symb, prog))
 INST(modvar_s,2,    SUFF(void, symb, prog))
-INST(pwrvar,2,      SUFF(void, symb, prog))/* potencia de la pila a variable */
-INST(pwrvar_c,2,    SUFF(void, symb, prog))/* potencia de la pila a variable */
+INST(pwrvar,2,      SUFF(void, symb, prog))    /* potencia de la pila a variable */
+INST(pwrvar_c,2,    SUFF(void, symb, prog))    /* potencia de la pila a variable */
 INST(pwrvar_d,2,    SUFF(void, symb, prog))
 INST(pwrvar_f,2,    SUFF(void, symb, prog))
 INST(pwrvar_i,2,    SUFF(void, symb, prog))
@@ -171,20 +177,20 @@ INST(incarg_i,2,    SUFF(void, arg_str,  prog))
 INST(incarg_l,2,    SUFF(void, arg_str,  prog))
 INST(incarg_s,2,    SUFF(void, arg_str,  prog))
 INST(decarg,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_c,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_d,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_f,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_i,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_l,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(decarg_s,2,      SUFF(void, arg_str,  prog))/* predecremento de argumento */
-INST(argdec,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_c,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_d,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_f,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_i,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_l,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(argdec_s,2,      SUFF(void, arg_str,  prog))/* postdecremento de argumento */
-INST(addarg,2,      SUFF(void, arg_str,  prog))/* añade de la pila a argumento */
+INST(decarg_c,2,    SUFF(void, arg_str,  prog))/* predecremento de argumento */
+INST(decarg_d,2,    SUFF(void, arg_str,  prog))
+INST(decarg_f,2,    SUFF(void, arg_str,  prog))
+INST(decarg_i,2,    SUFF(void, arg_str,  prog))
+INST(decarg_l,2,    SUFF(void, arg_str,  prog))
+INST(decarg_s,2,    SUFF(void, arg_str,  prog))
+INST(argdec,2,      SUFF(void, arg_str,  prog))
+INST(argdec_c,2,    SUFF(void, arg_str,  prog))/* postdecremento de argumento */
+INST(argdec_d,2,    SUFF(void, arg_str,  prog))
+INST(argdec_f,2,    SUFF(void, arg_str,  prog))
+INST(argdec_i,2,    SUFF(void, arg_str,  prog))
+INST(argdec_l,2,    SUFF(void, arg_str,  prog))
+INST(argdec_s,2,    SUFF(void, arg_str,  prog))
+INST(addarg,2,      SUFF(void, arg_str,  prog))
 INST(addarg_c,2,    SUFF(void, arg_str,  prog))/* añade de la pila a argumento */
 INST(addarg_d,2,    SUFF(void, arg_str,  prog))
 INST(addarg_f,2,    SUFF(void, arg_str,  prog))

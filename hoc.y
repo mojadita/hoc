@@ -649,8 +649,8 @@ prim: '(' expr ')'          { $$ = $2; }
 
 function
     : FUNCTION              { sub_call = $1;
-                              CODE_INST(spadd, -$1->typref->size); } /* PUSH espacio para el
-                                                                      * valor a retornar */
+                              CODE_INST(spadd, -$1->typref->size); /* PUSH espacio para el */
+                            }                                      /* valor a retornar */
     ;
 
 arglist_opt

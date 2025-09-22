@@ -7,6 +7,7 @@
  * License: BSD.
  */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,4 +99,24 @@ double now(void)
 double integer(double x)
 {
     return (int) x;
+}
+
+long fast_pwr_i(long x, unsigned e)
+{
+    unsigned mask;
+    assert(x != 0.0 || e != 0);
+
+    for (mask = 1; mask <= e; mask <<= 1)
+        continue;
+    mask >>= 1;
+
+    double ret_val = 1.0;
+    while (mask) {
+        ret_val *= ret_val;
+        if (mask & e) {
+            ret_val *= x;
+        }
+        mask >>= 1;
+    }
+    return ret_val;
 }

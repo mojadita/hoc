@@ -32,10 +32,10 @@ vardir                   ?= $(exec_prefix)/var
 logdir                   ?= $(vardir)/log
 
 UQ_HOC_DEBUG             ?=  1
-UQ_HOC_TRACE_PATCHING    ?=  1
+UQ_HOC_TRACE_PATCHING    ?=  0
 UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
-UQ_CODE_DEBUG_EXEC       ?=  1
+UQ_CODE_DEBUG_EXEC       ?=  0
 UQ_CODE_DEBUG_PROG       ?=  1
 UQ_DEBUG_STACK           ?=  0
 

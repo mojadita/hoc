@@ -15,7 +15,7 @@ func int narcissistic(long num, int n) \
 
     while (renum != 0 && sum <= num) {
         digit  = renum % 10;
-		renum -= digit;
+        renum -= digit;
         renum /= 10;
         sum   += digit ^^ n;
     }
