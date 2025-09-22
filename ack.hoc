@@ -9,7 +9,7 @@
 
 int n = 0;
 
-func int ack(int x, int y) {
+func int ack(int x, double y) {
     n++;
     # brkpt;
     int p = 6;

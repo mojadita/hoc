@@ -74,6 +74,11 @@ jmp_buf begin;
 #define   UQ_SIZE_FP_RETADDR     (2)
 #endif /* UQ_SIZE_FP_RETADDR    } */
 
+#ifndef   UQ_SUB_CALL_INCRMNT /* { */
+#warning  UQ_SUB_CALL_INCRMNT deberia ser configurado en config.mk
+#define   UQ_SUB_CALL_INCRMNT    (8)
+#endif /* UQ_SUB_CALL_INCRMNT    } */
+
 #if       UQ_HOC_DEBUG /* {{ */
 # define P(_fmt, ...)             \
     printf(F(_fmt), ##__VA_ARGS__)
@@ -90,10 +95,14 @@ jmp_buf begin;
 #define CODE_INST(I, ...) code_inst(INST_##I, ##__VA_ARGS__)
 
 Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
-Symbol *sub_call; /* en una llamada a funcion/procedimiento, almacena el simbolo a
-                   * llamar para tener acceso a la lista de argumentos del proc/func
-                   * y poder chequear al vuelo los tipos de estos y las expresiones
-                   * que se le pasan. */
+
+/* en una llamada a funcion/procedimiento, almacena el simbolo a
+ * llamar para tener acceso a la lista de argumentos del proc/func
+ * y poder chequear al vuelo los tipos de estos y las expresiones
+ * que se le pasan. */
+static Symbol *top_sub_call_stack();
+static void push_sub_call_stack(Symbol *sym);
+static void pop_sub_call_stack(void);
 
 size_t size_lvars = 0;
 
@@ -236,9 +245,9 @@ stmt
 
     | procedure mark '(' arglist_opt ')' ';' {
                              $$ = $2;
-                             CODE_INST(call, $1); /* instruction */
-                             CODE_INST(spadd, $1->size_args);    /* pop arguments */
-                             sub_call = NULL;
+                             CODE_INST(call, $1);             /* instruction */
+                             CODE_INST(spadd, $1->size_args); /* pop arguments */
+							 pop_sub_call_stack();
                            }
 
     | '{' create_scope stmtlist '}'  {
@@ -256,7 +265,7 @@ stmt
     ;
 
 procedure
-    : PROCEDURE            { sub_call = $1; }
+    : PROCEDURE            { push_sub_call_stack($1); }
 
 create_scope
     :  /* empty */         { scope *sc = start_scope();
@@ -644,11 +653,11 @@ prim: '(' expr ')'          { $$ = $2; }
                               $$.typ = $1->typref;
                               CODE_INST(call, $1);               /* instruction */
                               CODE_INST(spadd, $1->size_args);
-                              sub_call = NULL; } /* eliminando argumentos */
+                              pop_sub_call_stack(); } /* eliminando argumentos */
     ;
 
 function
-    : FUNCTION              { sub_call = $1;
+    : FUNCTION              { push_sub_call_stack($1);
                               CODE_INST(spadd, -$1->typref->size); /* PUSH espacio para el */
                             }                                      /* valor a retornar */
     ;
@@ -660,6 +669,8 @@ arglist_opt
 
 arglist
     : arglist ',' expr      { $$ = $1 + 1;
+							  printf("$$ = %d, lineno = %d\n", $$, lineno);
+							  Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
                                   execerror("%s accepts only %d parameters\n",
                                             sub_call->name,
@@ -668,6 +679,7 @@ arglist
                               code_conv_val($3.typ, sub_call->argums[$1]->typref);
                             }
     | expr                  { $$ = 1;
+							  Symbol *sub_call = top_sub_call_stack();
                               if (sub_call->argums_len == 0) {
                                   execerror("%s accepts no parameters",
                                             sub_call->name);
@@ -809,6 +821,30 @@ func_head
     ;
 
 %%
+
+/* en una llamada a funcion/procedimiento, almacena el simbolo a
+ * llamar para tener acceso a la lista de argumentos del proc/func
+ * y poder chequear al vuelo los tipos de estos y las expresiones
+ * que se le pasan. */
+static Symbol **sub_call_stack     = NULL;
+static size_t   sub_call_stack_len = 0,
+                sub_call_stack_cap = 0;
+
+Symbol *top_sub_call_stack()
+{
+	return sub_call_stack[sub_call_stack_len - 1];
+}
+
+void push_sub_call_stack(Symbol *sym)
+{
+	DYNARRAY_GROW(sub_call_stack, Symbol *, 1, UQ_SUB_CALL_INCRMNT);
+	sub_call_stack[sub_call_stack_len++] = sym;
+}
+
+void pop_sub_call_stack(void)
+{
+	--sub_call_stack_len;
+}
 
 void
 code_conv_val(
