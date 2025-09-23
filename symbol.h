@@ -7,8 +7,11 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 
+#include <sys/types.h>
+
 typedef struct Symbol_s Symbol;
 
+#include "type2inst.h"
 #include "instr.h"
 #include "cell.h"
 #include "scope.h"
@@ -45,10 +48,13 @@ struct Symbol_s {                         /* Symbol table entry */
             int        offset;            /* variables locales y argumentos (LVAR),
                                            * offset respecto al frame pointer (fp). */
         };
-        struct {
-            size_t     size;              /* si el tipo es TYPE */
-            instr_code constpush;         /* codigo de la instruccion que requiere para
-                                           * insertar un constpush */
+        struct {                          /* si el tipo es TYPE */
+            size_t     size;
+            const type2inst
+                      *t2i;               /* ej. sym->typref->t2i->constpush->code_id
+                                           * nos dara para cada tipo, la instruccion
+                                           * constpush que opera con datos de ese tipo
+                                           */
         };
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los

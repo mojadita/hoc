@@ -9,28 +9,33 @@
 INST(STOP,1)                                   /* para la maquina, termina la ejecucion. */
 INST(drop,1)                                   /* elimina un valor de la pila */
 INST(constpush,2,   SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
-INST(constpush_d,2, SUFF(void, datum_d, prog))
-INST(constpush_l,2, SUFF(void, datum_l, prog))
 INST(add,1)                                    /* suma los dos valores top de la pila */
 INST(add_d,1)
+INST(add_i,1)
 INST(add_l,1)
 INST(sub,1)                                    /* resta los dos valores top de la pila Y - X */
 INST(sub_d,1)
+INST(sub_i,1)
 INST(sub_l,1)
 INST(mul,1)                                    /* multiplica los dos valores top de la pila Y * X */
 INST(mul_d,1)
+INST(mul_i,1)
 INST(mul_l,1)
 INST(divi,1)                                   /* divide los dos valores top de la pila Y / X */
 INST(divi_d,1)
+INST(divi_i,1)
 INST(divi_l,1)
 INST(mod,1)                                    /* calcula Y % X */
 INST(mod_d,1)
+INST(mod_i,1)
 INST(mod_l,1)
 INST(neg,1)                                    /* calcula -X */
 INST(neg_d,1)
+INST(neg_i,1)
 INST(neg_l,1)
 INST(pwr,1)                                    /* calcula Y ^^ X */
 INST(pwr_d,1)
+INST(pwr_i,1)
 INST(pwr_l,1)
 INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
 INST(eval_c,2,      SUFF(void, symb, prog))    /* evalua una variable */
@@ -40,35 +45,41 @@ INST(eval_i,2,      SUFF(void, symb, prog))
 INST(eval_l,2,      SUFF(void, symb, prog))
 INST(eval_s,2,      SUFF(void, symb, prog))
 INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
-INST(assign_c,2,    SUFF(void, symb, prog))
-INST(assign_d,2,    SUFF(void, symb, prog))
-INST(assign_f,2,    SUFF(void, symb, prog))
-INST(assign_i,2,    SUFF(void, symb, prog))
-INST(assign_l,2,    SUFF(void, symb, prog))
-INST(assign_s,2,    SUFF(void, symb, prog))
 INST(print,1)                                  /* imprime X */
+INST(print_d,1)
+INST(print_i,1)
+INST(print_l,1)
 INST(bltin0,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin0 (una sin parametros) */
 INST(bltin1,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin1 (de un parametro) */
 INST(bltin2,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin2 (de dos parametros) */
 INST(ge,1)                                     /* operador Y >= X */
 INST(ge_d,1)                                   /* operador Y >= X */
+INST(ge_i,1)                                   /* operador Y >= X */
 INST(ge_l,1)
 INST(le,1)                                     /* operador Y <= X */
 INST(le_d,1)                                   /* operador Y <= X */
+INST(le_i,1)                                   /* operador Y <= X */
 INST(le_l,1)
 INST(gt,1)                                     /* operador Y > X */
 INST(gt_d,1)                                   /* operador Y > X */
+INST(gt_i,1)                                   /* operador Y > X */
 INST(gt_l,1)
 INST(lt,1)                                     /* operador Y < X */
 INST(lt_d,1)                                   /* operador Y < X */
+INST(lt_i,1)                                   /* operador Y < X */
 INST(lt_l,1)
 INST(eq,1)                                     /* operador Y == X */
 INST(eq_d,1)                                   /* operador Y == X */
+INST(eq_i,1)                                   /* operador Y == X */
 INST(eq_l,1)
 INST(ne,1)                                     /* operador Y != X */
 INST(ne_d,1)                                   /* operador Y != X */
+INST(ne_i,1)                                   /* operador Y != X */
 INST(ne_l,1)
 INST(not,1)                                    /* operador ! */
+INST(not_d, 1)
+INST(not_i, 1)
+INST(not_l, 1)
 INST(and_then,1,    SUFF(void, addr, prog))    /* operador Y && X (con cortocircuito) */
 INST(or_else,1,     SUFF(void, addr, prog))    /* operador Y || X (con cortocircuito) */
 INST(call,2,        SUFF(void, symb, prog))    /* llama a una subrutina con los parametros de la pila */
@@ -87,8 +98,9 @@ INST(argassign_i,2, SUFF(void, arg_str, prog))
 INST(argassign_l,2, SUFF(void, arg_str, prog))
 INST(prstr,2,       SUFF(void, str, prog))     /* imprime una cadena */
 INST(prexpr,1)                                 /* imprime una expresion */
-INST(prexpr_i,1)                               /* imprime una expresion */
-INST(prexpr_d,1)
+INST(prexpr_d,1)                               /* imprime una expresion */
+INST(prexpr_i,1)
+INST(prexpr_l,1)
 INST(symbs,1)                                  /* imprime la tabla de simbolos (desaparecera) */
 INST(symbs_all,2,   SUFF(void, symb, prog))    /* imprime toda la tabla de simbolos */
 INST(brkpt,2,       SUFF(void, symb, prog))    /* imprime las variables existentes en el contexto actual */

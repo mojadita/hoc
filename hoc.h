@@ -8,6 +8,7 @@
 #ifndef HOC_H
 #define HOC_H
 
+#include "type2inst.h"
 #include "config.h"
 #include <setjmp.h>
 #include <stdio.h>
@@ -64,7 +65,5 @@ extern jmp_buf begin;
 extern int lineno;
 extern int col_no;
 extern char *progname;
-
-extern Cell prog[];
 
 #endif /* HOC_H */

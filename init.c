@@ -16,6 +16,7 @@
 #include "math.h"
 #include "code.h"
 #include "scope.h"
+#include "type2inst.h"
 
 double integer(double x);
 double Rand(void);
@@ -70,18 +71,19 @@ Symbol *Char,
        *String;
 
 static struct predefined_types { /* predefined types */
-    char *name;
-    int   size,
-          align;
-    Symbol **sym;
+    char             *name;
+    int               size,
+                      align;
+    Symbol          **sym;
+    const type2inst  *t2i;
 } builtin_types [] = {
-    { "char",   1, 1, &Char, },
-    { "bool",   1, 1, &Boolean, },
-    { "int",    1, 1, &Integer, },
-    { "long",   1, 1, &Long, },
-    { "float",  1, 1, &Float, },
-    { "double", 1, 1, &Double, },
-    { "string", 1, 1, &String, },
+    { "char",   1, 1, &Char,    &t2i_c, },
+    { "bool",   1, 1, &Boolean, &t2i_i, },
+    { "int",    1, 1, &Integer, &t2i_i, },
+    { "long",   1, 1, &Long,    &t2i_l, },
+    { "float",  1, 1, &Float,   &t2i_f, },
+    { "double", 1, 1, &Double,  &t2i_d, },
+    { "string", 1, 1, &String,  NULL,   },
     { NULL,     0, },
 };
 
@@ -95,6 +97,7 @@ void init(void)  /* install constants and built-ins in table */
     {
         Symbol *s = install(p->name, TYPE, NULL);
         s->size   = p->size;
+        s->t2i    = p->t2i;
         *p->sym   = s;
     }
 

@@ -7,17 +7,17 @@
 #ifndef CELL_H
 #define CELL_H
 
-typedef union Cell Cell;
+typedef union Cell_u Cell;
 
 #include "symbol.h"
 #include "instr.h"
 
 /*  Celda de Memoria RAM donde se instala el programa  */
-union Cell {
+union Cell_u {
     struct {
-        instr_code inst: 8;
-        int        args: 8;
-        unsigned   desp: 16;
+        instr_code inst:   8;
+        int        args:   8;
+        int        desp:  16;
     };
     char         chr;
     short        sht;
@@ -29,5 +29,7 @@ union Cell {
     Symbol      *sym;
     const char  *str;
 };
+
+extern Cell prog[];   /* memoria de programa */
 
 #endif /* CELL_H */

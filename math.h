@@ -19,6 +19,6 @@ double Rand(void);
 double rd(void);
 double now(void);
 double integer(double x);
-long fast_pwr_i(long x, unsigned e);
+long fast_pwr_l(long x, unsigned e);
 
 #endif /* MATH_H */

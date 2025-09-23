@@ -1,4 +1,4 @@
-# ack.c code.c do_help.c error.c hoc_test.c hoc.c init.c instr.c intern.c lex.c main.c math.c reserved_words.c scope.c symbol.c
+# ack.c code.c do_help.c error.c hoc.c init.c instr.c intern.c lex.c main.c math.c pwr.c reserved_words.c scope.c symbol.c type2inst.c
 ack.o: ack.c /usr/include/stdio.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_null.h /usr/include/sys/_types.h \
   /usr/include/machine/_types.h /usr/include/x86/_types.h \
@@ -8,10 +8,11 @@ code.o: code.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/machine/_types.h /usr/include/x86/_types.h \
   /usr/include/machine/_limits.h /usr/include/x86/_limits.h \
   /usr/include/stdio.h /usr/include/sys/_null.h config.h colors.h code.h \
-  hoc.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h cell.h symbol.h scope.h instr.h \
-  /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h
+  hoc.h type2inst.h instr.h /usr/include/stdarg.h \
+  /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h instrucciones.h \
+  cell.h symbol.h scope.h /usr/include/setjmp.h \
+  /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h hoc.tab.h \
+  math.h
 do_help.o: do_help.c /usr/include/errno.h /usr/include/sys/cdefs.h \
   /usr/include/stdio.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -33,9 +34,8 @@ error.o: error.c /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/x86/_limits.h /usr/include/stdio.h \
   /usr/include/sys/_null.h /usr/include/setjmp.h \
   /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h config.h \
-  colors.h hoc.h cell.h symbol.h scope.h code.h instr.h instrucciones.h \
-  hoc.tab.h error.h
-hoc_test.o: hoc_test.c
+  colors.h hoc.h type2inst.h instr.h instrucciones.h cell.h symbol.h \
+  scope.h code.h hoc.tab.h error.h
 hoc.o: hoc.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/sys/_stdarg.h /usr/include/sys/_types.h \
@@ -44,29 +44,29 @@ hoc.o: hoc.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdio.h /usr/include/sys/_null.h /usr/include/stdlib.h \
   /usr/include/ctype.h /usr/include/_ctype.h /usr/include/runetype.h \
   /usr/include/xlocale/_ctype.h /usr/include/math.h config.h colors.h \
-  dynarray.h hoc.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h cell.h symbol.h scope.h code.h instr.h \
-  instrucciones.h hoc.tab.h lex.h error.h math.h /usr/include/string.h \
-  /usr/include/strings.h /usr/include/xlocale/_strings.h \
-  /usr/include/xlocale/_string.h
+  dynarray.h hoc.h type2inst.h instr.h instrucciones.h cell.h symbol.h \
+  scope.h code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h hoc.tab.h lex.h error.h math.h init.h \
+  /usr/include/string.h /usr/include/strings.h \
+  /usr/include/xlocale/_strings.h /usr/include/xlocale/_string.h
 init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
   /usr/include/x86/_types.h /usr/include/machine/_limits.h \
   /usr/include/x86/_limits.h /usr/include/math.h config.h hoc.h \
+  type2inst.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h scope.h \
+  code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h math.h
+instr.o: instr.c config.h code.h hoc.h type2inst.h instr.h \
+  /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h /usr/include/sys/cdefs.h \
+  /usr/include/sys/_types.h /usr/include/machine/_types.h \
+  /usr/include/x86/_types.h /usr/include/machine/_limits.h \
+  /usr/include/x86/_limits.h instrucciones.h cell.h symbol.h scope.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h /usr/include/stdio.h cell.h symbol.h scope.h \
-  code.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h math.h
-instr.o: instr.c config.h code.h hoc.h /usr/include/setjmp.h \
-  /usr/include/sys/cdefs.h /usr/include/machine/setjmp.h \
   /usr/include/x86/setjmp.h /usr/include/stdio.h \
-  /usr/include/sys/_null.h /usr/include/sys/_types.h \
-  /usr/include/machine/_types.h /usr/include/x86/_types.h \
-  /usr/include/machine/_limits.h /usr/include/x86/_limits.h cell.h \
-  symbol.h scope.h instr.h /usr/include/stdarg.h \
-  /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h instrucciones.h \
-  hoc.tab.h
+  /usr/include/sys/_null.h hoc.tab.h
 intern.o: intern.c /usr/include/string.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_null.h /usr/include/sys/_types.h \
   /usr/include/machine/_types.h /usr/include/x86/_types.h \
@@ -84,17 +84,18 @@ lex.o: lex.c /usr/include/stdio.h /usr/include/sys/cdefs.h \
   /usr/include/machine/_inttypes.h /usr/include/x86/_inttypes.h \
   /usr/include/sys/stdint.h /usr/include/machine/_stdint.h \
   /usr/include/x86/_stdint.h /usr/include/sys/_stdint.h \
-  /usr/include/assert.h config.h hoc.h /usr/include/setjmp.h \
-  /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h cell.h \
-  symbol.h scope.h code.h instr.h /usr/include/stdarg.h \
-  /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h instrucciones.h \
-  hoc.tab.h lex.h reserved_words.h intern.h /usr/include/unistd.h \
-  /usr/include/sys/types.h /usr/include/machine/endian.h \
-  /usr/include/x86/endian.h /usr/include/sys/_endian.h \
-  /usr/include/sys/_pthreadtypes.h /usr/include/sys/bitcount.h \
-  /usr/include/sys/select.h /usr/include/sys/_sigset.h \
-  /usr/include/sys/_timeval.h /usr/include/sys/timespec.h \
-  /usr/include/sys/_timespec.h /usr/include/sys/unistd.h
+  /usr/include/assert.h config.h hoc.h type2inst.h instr.h \
+  /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h scope.h \
+  code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h hoc.tab.h lex.h reserved_words.h intern.h \
+  /usr/include/unistd.h /usr/include/sys/types.h \
+  /usr/include/machine/endian.h /usr/include/x86/endian.h \
+  /usr/include/sys/_endian.h /usr/include/sys/_pthreadtypes.h \
+  /usr/include/sys/bitcount.h /usr/include/sys/select.h \
+  /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
+  /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
+  /usr/include/sys/unistd.h
 main.o: main.c /usr/include/getopt.h /usr/include/sys/cdefs.h \
   /usr/include/errno.h /usr/include/stdio.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -102,30 +103,36 @@ main.o: main.c /usr/include/getopt.h /usr/include/sys/cdefs.h \
   /usr/include/x86/_limits.h /usr/include/stdlib.h /usr/include/string.h \
   /usr/include/strings.h /usr/include/xlocale/_strings.h \
   /usr/include/xlocale/_string.h config.h colors.h do_help.h hoc.h \
-  /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h cell.h symbol.h scope.h code.h instr.h \
+  type2inst.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h scope.h \
+  code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h hoc.tab.h init.h
+math.o: math.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h
-math.o: math.c /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h /usr/include/sys/cdefs.h \
-  /usr/include/sys/_types.h /usr/include/machine/_types.h \
-  /usr/include/x86/_types.h /usr/include/machine/_limits.h \
-  /usr/include/x86/_limits.h /usr/include/stdio.h \
-  /usr/include/sys/_null.h /usr/include/stdlib.h /usr/include/math.h \
-  /usr/include/time.h /usr/include/sys/_clock_id.h \
+  /usr/include/sys/_stdarg.h /usr/include/sys/_types.h \
+  /usr/include/machine/_types.h /usr/include/x86/_types.h \
+  /usr/include/machine/_limits.h /usr/include/x86/_limits.h \
+  /usr/include/stdio.h /usr/include/sys/_null.h /usr/include/stdlib.h \
+  /usr/include/math.h /usr/include/time.h /usr/include/sys/_clock_id.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
   /usr/include/xlocale/_time.h error.h
+pwr.o: pwr.c /usr/include/assert.h /usr/include/sys/cdefs.h \
+  /usr/include/stdio.h /usr/include/sys/_null.h \
+  /usr/include/sys/_types.h /usr/include/machine/_types.h \
+  /usr/include/x86/_types.h /usr/include/machine/_limits.h \
+  /usr/include/x86/_limits.h
 reserved_words.o: reserved_words.c /usr/include/stdlib.h \
   /usr/include/sys/cdefs.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
   /usr/include/x86/_types.h /usr/include/machine/_limits.h \
   /usr/include/x86/_limits.h /usr/include/string.h \
   /usr/include/strings.h /usr/include/xlocale/_strings.h \
-  /usr/include/xlocale/_string.h config.h hoc.h /usr/include/setjmp.h \
-  /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h \
-  /usr/include/stdio.h cell.h symbol.h scope.h code.h instr.h \
+  /usr/include/xlocale/_string.h config.h hoc.h type2inst.h instr.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h reserved_words.h
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h scope.h \
+  code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h \
+  reserved_words.h
 scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -133,10 +140,10 @@ scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/x86/_limits.h /usr/include/string.h \
   /usr/include/strings.h /usr/include/xlocale/_strings.h \
   /usr/include/xlocale/_string.h config.h scope.h code.h hoc.h \
+  type2inst.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h /usr/include/stdio.h cell.h symbol.h instr.h \
-  /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h dynarray.h \
+  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h dynarray.h \
   intern.h
 symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
@@ -145,7 +152,16 @@ symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/x86/_limits.h /usr/include/string.h \
   /usr/include/strings.h /usr/include/xlocale/_strings.h \
   /usr/include/xlocale/_string.h /usr/include/stdio.h config.h hoc.h \
+  type2inst.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
+  /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h scope.h \
+  code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
+  /usr/include/x86/setjmp.h hoc.tab.h colors.h
+type2inst.o: type2inst.c type2inst.h instr.h /usr/include/stdarg.h \
+  /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h \
+  /usr/include/sys/cdefs.h /usr/include/sys/_types.h \
+  /usr/include/machine/_types.h /usr/include/x86/_types.h \
+  /usr/include/machine/_limits.h /usr/include/x86/_limits.h \
+  instrucciones.h cell.h symbol.h scope.h code.h hoc.h config.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h cell.h symbol.h scope.h code.h instr.h \
-  /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h hoc.tab.h colors.h
+  /usr/include/x86/setjmp.h /usr/include/stdio.h \
+  /usr/include/sys/_null.h hoc.tab.h

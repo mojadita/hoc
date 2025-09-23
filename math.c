@@ -101,7 +101,7 @@ double integer(double x)
     return (int) x;
 }
 
-long fast_pwr_i(long x, unsigned e)
+long fast_pwr_l(long x, unsigned e)
 {
     unsigned mask;
     assert(x != 0.0 || e != 0);

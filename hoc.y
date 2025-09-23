@@ -8,6 +8,8 @@
  * License: BSD.
  */
 
+#define YYDEBUG 1
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -247,7 +249,7 @@ stmt
                              $$ = $2;
                              CODE_INST(call, $1);             /* instruction */
                              CODE_INST(spadd, $1->size_args); /* pop arguments */
-							 pop_sub_call_stack();
+                             pop_sub_call_stack();
                            }
 
     | '{' create_scope stmtlist '}'  {
@@ -637,7 +639,9 @@ prim: '(' expr ')'          { $$ = $2; }
     | LVAR                  { $$.cel = CODE_INST(argeval, $1->offset, $1->name);
                               $$.typ = $1->typref; }
 
-    | CONST                 { $$.cel = code_inst($1->typref->constpush, $1->val);
+    | CONST                 { $$.cel = code_inst(
+                                    $1->typref->t2i->constpush->code_id,
+                                    $1->val);
                               $$.typ = $1->typref; }
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }
@@ -669,8 +673,8 @@ arglist_opt
 
 arglist
     : arglist ',' expr      { $$ = $1 + 1;
-							  printf("$$ = %d, lineno = %d\n", $$, lineno);
-							  Symbol *sub_call = top_sub_call_stack();
+                              printf("$$ = %d, lineno = %d\n", $$, lineno);
+                              Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
                                   execerror("%s accepts only %d parameters\n",
                                             sub_call->name,
@@ -679,7 +683,7 @@ arglist
                               code_conv_val($3.typ, sub_call->argums[$1]->typref);
                             }
     | expr                  { $$ = 1;
-							  Symbol *sub_call = top_sub_call_stack();
+                              Symbol *sub_call = top_sub_call_stack();
                               if (sub_call->argums_len == 0) {
                                   execerror("%s accepts no parameters",
                                             sub_call->name);
@@ -832,18 +836,18 @@ static size_t   sub_call_stack_len = 0,
 
 Symbol *top_sub_call_stack()
 {
-	return sub_call_stack[sub_call_stack_len - 1];
+    return sub_call_stack[sub_call_stack_len - 1];
 }
 
 void push_sub_call_stack(Symbol *sym)
 {
-	DYNARRAY_GROW(sub_call_stack, Symbol *, 1, UQ_SUB_CALL_INCRMNT);
-	sub_call_stack[sub_call_stack_len++] = sym;
+    DYNARRAY_GROW(sub_call_stack, Symbol *, 1, UQ_SUB_CALL_INCRMNT);
+    sub_call_stack[sub_call_stack_len++] = sym;
 }
 
 void pop_sub_call_stack(void)
 {
-	--sub_call_stack_len;
+    --sub_call_stack_len;
 }
 
 void
@@ -894,8 +898,8 @@ OpRel code_unpatched_op(int op)
 
 Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
 {
-    printf("exp1.typ = %s, op = <%d>, exp2.typ = %s\n",
-        exp1->typ->name, op->op, exp2->typ->name);
+    printf("exp1.typ = %s, op = <%s-%d>, exp2.typ = %s\n",
+        exp1->typ->name, yyname[op->op], op->op, exp2->typ->name);
     return exp1->typ;
 }
 
