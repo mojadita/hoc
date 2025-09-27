@@ -50,6 +50,7 @@ struct Symbol_s {                         /* Symbol table entry */
         };
         struct {                          /* si el tipo es TYPE */
             size_t     size;
+            int        weight;
             const type2inst
                       *t2i;               /* ej. sym->typref->t2i->constpush->code_id
                                            * nos dara para cada tipo, la instruccion

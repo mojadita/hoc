@@ -1561,7 +1561,7 @@ void ne_i(const instr *i)
          res = { .inum = p1.inum != p2.inum };
 
     P_TAIL(": %i != %i -> %i",
-		p1.inum, p2.inum, res.inum);
+        p1.inum, p2.inum, res.inum);
 
     push(res);
 
@@ -5074,6 +5074,68 @@ void move_sp_to_fp_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+/*****************************************************/
+void c2d(const instr *i) /* cast char to double */
+{
+    UPDATE_PC();
+}
+
+void c2d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void c2f(const instr *i) /* cast char to float */
+{
+    UPDATE_PC();
+}
+
+void c2f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void c2i(const instr *i) /* cast char to int */
+{
+    UPDATE_PC();
+}
+
+void c2i_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void c2l(const instr *i) /* cast char to long */
+{
+    UPDATE_PC();
+}
+
+void c2l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void c2s(const instr *i) /* cast char to short */
+{
+    UPDATE_PC();
+}
+
+void c2s_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+/*****************************************************/
+void d2c(const instr *i) /* cast double to char */
+{
+    UPDATE_PC();
+}
+
+void d2c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void d2f(const instr *i) /* cast double to float */
 {
     UPDATE_PC();
@@ -5100,6 +5162,27 @@ void d2l(const instr *i) /* cast double to long */
 }
 
 void d2l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void d2s(const instr *i) /* cast double to short */
+{
+    UPDATE_PC();
+}
+
+void d2s_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+/*****************************************************/
+void f2c(const instr *i) /* cast float to char */
+{
+    UPDATE_PC();
+}
+
+void f2c_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
@@ -5134,6 +5217,26 @@ void f2l_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void f2s(const instr *i) /* cast float to short */
+{
+    UPDATE_PC();
+}
+
+void f2s_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+/*****************************************************/
+void i2c(const instr *i) /* cast int to char */
+{
+    UPDATE_PC();
+}
+
+void i2c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
 
 void i2d(const instr *i) /* cast int to double */
 {
@@ -5165,6 +5268,27 @@ void i2l_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void i2s(const instr *i) /* cast int to short */
+{
+    UPDATE_PC();
+}
+
+void i2s_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+/*****************************************************/
+void l2c(const instr *i) /* cast long to char */
+{
+    UPDATE_PC();
+}
+
+void l2c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void l2d(const instr *i) /* cast long to double */
 {
     UPDATE_PC();
@@ -5191,6 +5315,67 @@ void l2i(const instr *i) /* cast long to int */
 }
 
 void l2i_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void l2s(const instr *i) /* cast long to short */
+{
+    UPDATE_PC();
+}
+
+void l2s_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+/*****************************************************/
+void s2c(const instr *i) /* cast short to char */
+{
+    UPDATE_PC();
+}
+
+void s2c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void s2d(const instr *i) /* cast short to double */
+{
+    UPDATE_PC();
+}
+
+void s2d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void s2f(const instr *i) /* cast short to float */
+{
+    UPDATE_PC();
+}
+
+void s2f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void s2i(const instr *i) /* cast short to int */
+{
+    UPDATE_PC();
+}
+
+void s2i_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void s2l(const instr *i) /* cast short to long */
+{
+    UPDATE_PC();
+}
+
+void s2l_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }

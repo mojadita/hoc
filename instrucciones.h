@@ -38,12 +38,6 @@ INST(pwr_d,1)
 INST(pwr_i,1)
 INST(pwr_l,1)
 INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
-INST(eval_c,2,      SUFF(void, symb, prog))    /* evalua una variable */
-INST(eval_d,2,      SUFF(void, symb, prog))
-INST(eval_f,2,      SUFF(void, symb, prog))
-INST(eval_i,2,      SUFF(void, symb, prog))
-INST(eval_l,2,      SUFF(void, symb, prog))
-INST(eval_s,2,      SUFF(void, symb, prog))
 INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
 INST(print,1)                                  /* imprime X */
 INST(print_d,1)
@@ -85,17 +79,7 @@ INST(or_else,1,     SUFF(void, addr, prog))    /* operador Y || X (con cortocirc
 INST(call,2,        SUFF(void, symb, prog))    /* llama a una subrutina con los parametros de la pila */
 INST(ret,1)                                    /* retorna de un procedimiento definido por el usuario */
 INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_c,2,   SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argeval_d,2,   SUFF(void, arg_str, prog))
-INST(argeval_f,2,   SUFF(void, arg_str, prog))
-INST(argeval_i,2,   SUFF(void, arg_str, prog))
-INST(argeval_l,2,   SUFF(void, arg_str, prog))
 INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
-INST(argassign_c,2, SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
-INST(argassign_d,2, SUFF(void, arg_str, prog))
-INST(argassign_f,2, SUFF(void, arg_str, prog))
-INST(argassign_i,2, SUFF(void, arg_str, prog))
-INST(argassign_l,2, SUFF(void, arg_str, prog))
 INST(prstr,2,       SUFF(void, str, prog))     /* imprime una cadena */
 INST(prexpr,1)                                 /* imprime una expresion */
 INST(prexpr_d,1)                               /* imprime una expresion */
@@ -248,15 +232,33 @@ INST(spadd,1,       SUFF(void, arg,  prog))/* a;ade/substrae del stack pointer *
 INST(push_fp, 1)                         /* mete el frame pointer en la pila */
 INST(pop_fp, 1)                          /* saca el fp del top de la pila */
 INST(move_sp_to_fp, 1)                   /* asigna el fp con el valor del sp. */
+INST(c2d,1)                              /* convertir char hasta double */
+INST(c2f,1)                              /* convertir char hasta float */
+INST(c2i,1)                              /* convertir char hasta int */
+INST(c2l,1)                              /* convertir char hasta long */
+INST(c2s,1)                              /* convertir char hasta short */
+INST(d2c,1)                              /* convertir double hasta char */
 INST(d2f,1)                              /* convertir double hasta float */
 INST(d2i,1)                              /* convertir double hasta int */
 INST(d2l,1)                              /* convertir double hasta long */
+INST(d2s,1)                              /* convertir double hasta short */
+INST(f2c,1)                              /* convertir float hasta char */
 INST(f2d,1)                              /* convertir float hasta double */
 INST(f2i,1)                              /* convertir float hasta int */
 INST(f2l,1)                              /* convertir float hasta long */
+INST(f2s,1)                              /* convertir float hasta short */
+INST(i2c,1)                              /* convertir int hasta char */
 INST(i2d,1)                              /* convertir int hasta double */
 INST(i2f,1)                              /* convertir int hasta float */
 INST(i2l,1)                              /* convertir int hasta long */
+INST(i2s,1)                              /* convertir int hasta short */
+INST(l2c,1)                              /* convertir long hasta char */
 INST(l2d,1)                              /* convertir long hasta double */
 INST(l2f,1)                              /* convertir long hasta float */
 INST(l2i,1)                              /* convertir long hasta int */
+INST(l2s,1)                              /* convertir long hasta short */
+INST(s2c,1)                              /* convertir short hasta char */
+INST(s2d,1)                              /* convertir short hasta double */
+INST(s2f,1)                              /* convertir short hasta float */
+INST(s2i,1)                              /* convertir short hasta int */
+INST(s2l,1)                              /* convertir short hasta long */

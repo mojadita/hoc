@@ -62,43 +62,53 @@ static struct builtin { /* built-ins-1 */
 };
 
 
-Symbol *Char,
-       *Boolean,
+Symbol
+       *Char,
+       *Double,
+       *Float,
        *Integer,
        *Long,
-       *Float,
-       *Double,
-       *String;
+       *Short,
+       *String,
+       *Prev;
 
 static struct predefined_types { /* predefined types */
     char             *name;
     int               size,
-                      align;
-    Symbol          **sym;
+                      align,
+                      weight;
+    Symbol          **sym_ref;
     const type2inst  *t2i;
 } builtin_types [] = {
-    { "char",   1, 1, &Char,    &t2i_c, },
-    { "bool",   1, 1, &Boolean, &t2i_i, },
-    { "int",    1, 1, &Integer, &t2i_i, },
-    { "long",   1, 1, &Long,    &t2i_l, },
-    { "float",  1, 1, &Float,   &t2i_f, },
-    { "double", 1, 1, &Double,  &t2i_d, },
-    { "string", 1, 1, &String,  NULL,   },
-    { NULL,     0, },
+    { .name   = "char",   .size    = 1,        .align = 1,
+      .weight = 0,        .sym_ref = &Char,    .t2i   = &t2i_c, },
+    { .name   = "int",    .size    = 1,        .align = 1,
+      .weight = 1,        .sym_ref = &Integer, .t2i   = &t2i_i, },
+    { .name   = "long",   .size    = 1,        .align = 1,
+      .weight = 2,        .sym_ref = &Long,    .t2i   = &t2i_l, },
+    { .name   = "float",  .size    = 1,        .align = 1,
+      .weight = 3,        .sym_ref = &Float,   .t2i   = &t2i_f, },
+    { .name   = "double", .size    = 1,        .align = 1,
+      .weight = 4,        .sym_ref = &Double,  .t2i   = &t2i_d, },
+    { .name   = "string", .size    = 1,        .align = 1,
+      .weight = -1,       .sym_ref = &String,  .t2i   = NULL,   },
+    { .name   = NULL,     .size    = 0,                         },
 };
 
 void init(void)  /* install constants and built-ins in table */
 {
 
     /* vamos con los tipos */
+
     for ( struct predefined_types *p = builtin_types;
             p->name;
             p++)
     {
-        Symbol *s = install(p->name, TYPE, NULL);
-        s->size   = p->size;
-        s->t2i    = p->t2i;
-        *p->sym   = s;
+        Symbol *s   = install(p->name, TYPE, NULL);
+        s->size     = p->size;
+        s->weight   = p->weight;
+        s->t2i      = p->t2i;
+        *p->sym_ref = s;
     }
 
     Symbol *D = lookup("double");
@@ -128,5 +138,5 @@ void init(void)  /* install constants and built-ins in table */
     }
 
     /* creamos el simbolo prev */
-    register_global_var("prev", D);
+    Prev = register_global_var("prev", D);
 }

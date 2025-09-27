@@ -94,7 +94,8 @@ jmp_buf begin;
 # define PT(_fmt, ...)
 #endif
 
-#define CODE_INST(I, ...) code_inst(INST_##I, ##__VA_ARGS__)
+#define CODE_INST(I, ...)           code_inst(INST_##I, ##__VA_ARGS__)
+#define CODE_INST_TYP(_typ, I, ...) code_inst(_typ->t2i->I->code_id, ##__VA_ARGS__)
 
 Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
 
@@ -164,9 +165,8 @@ list: /* empty */
 
     | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list expr  '\n'  { Symbol *prev = lookup("prev");
-                         code_conv_val($2.typ, prev->typref);
-                         CODE_INST(assign, prev);
+    | list expr  '\n'  { code_conv_val($2.typ, Prev->typref);
+                         CODE_INST(assign, Prev);
                          CODE_INST(print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
@@ -181,24 +181,28 @@ list: /* empty */
 stmt
     : expr        ';'      { $$ = $1.cel;
                              CODE_INST(drop); }
-    | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE), "return;");
-                             PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
+    | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE),
+                                      "return;");
+                             PT(">>> inserting UNPATCHED code @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(Goto, 0);
-                             PT("<<< end inserting unpatched code\n");
+                             PT("<<< end inserting UNPATCHED code\n");
                              add_patch_return(indef, $$);
                            }
-    | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION), "return <expr>;");
+    | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION),
+                                      "return <expr>;");
                              $$ = $2.cel;
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
                              code_conv_val($2.typ, indef->typref);
-                             CODE_INST(argassign, indef->size_args + UQ_SIZE_FP_RETADDR, "{RET_VAL} ");
+                             CODE_INST(argassign,
+                                       indef->size_args + UQ_SIZE_FP_RETADDR,
+                                       "{RET_VAL} ");
                              CODE_INST(drop);
 
-                             PT(">>> inserting unpatched code @ [%04lx]\n", progp - prog);
+                             PT(">>> inserting UNPATCHED code @ [%04lx]\n", progp - prog);
                              Cell *p = CODE_INST(Goto, prog);
                              add_patch_return(indef, p);
-                             PT("<<< end inserting unpatched code\n");
+                             PT("<<< end inserting UNPATCHED code\n");
                            }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -228,18 +232,18 @@ stmt
 
     | IF cond do stmt else stmt {
                              $$ = $2;
+                             PT(">>> PATCHING CODE @ [%04lx]\n", progp - prog);
                              Cell *saved_progp = progp;
                              progp = $3;
                              PT("*** $6 == %p\n", $6);
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
-                                 CODE_INST(if_f_goto, $6);
-                             PT("<<< end patching CODE @ [%04lx], "
+                             CODE_INST(if_f_goto, $6);
+                             PT("<<< end PATCHING CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
                              progp = $5;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             PT(">>> PATCHING CODE @ [%04lx]\n", progp - prog);
                                  CODE_INST(Goto, saved_progp);
-                             PT("<<< end patching CODE @ [%04lx], "
+                             PT("<<< end PATCHING CODE @ [%04lx], "
                                    "continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
                              progp = saved_progp;
@@ -291,7 +295,7 @@ gvar_decl
 gvar_decl_list
     : gvar_decl_list ',' gvar_init  { $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
-                                        $$.start = $3.start;
+                                          $$.start = $3.start;
                                       }
                                       Symbol *s = register_global_var($3.name, $$.typref);
                                       if ($3.start) {
@@ -301,9 +305,10 @@ gvar_decl_list
                                       }
                                     }
     | TYPE gvar_init                { $$.typref = $1;
-                                      $$.start  = $2.start ? $2.start : NULL;
+                                      $$.start  = $2.start;
                                       Symbol *s = register_global_var($2.name, $$.typref);
                                       if ($2.start) {
+
                                           code_conv_val($2.typref, $1);
                                           CODE_INST(assign, s);
                                           CODE_INST(drop);
@@ -398,7 +403,7 @@ expr_seq
     ;
 
 item: STRING               { $$ = CODE_INST(prstr, $1); }
-    | expr                 { $$ = CODE_INST(prexpr); }
+    | expr                 { $$ = CODE_INST_TYP($1.typ, prexpr); }
     ;
 
 cond: '(' expr ')'         { $$ = $2.cel;
@@ -417,9 +422,14 @@ stmtlist
     ;
 
 expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
+    | VAR    '=' expr      { $$ = $3;
+                             code_conv_val($3.typ, $1->typref);
+                             CODE_INST(assign, $1);
+                           }
     | VAR   op_assign expr { $$.cel = $3.cel;
                              $$.typ = $1->typref;
-                             code_conv_val($3.typ, $1->typref);
+                             /* LCU:  Sat Sep 27 02:16:25 -05 2025
+                              * TODO: voy por aqui. */
                              switch ($2) {
                              case '=':     CODE_INST(assign, $1); break;
                              case PLS_EQ:  CODE_INST(addvar, $1); break;
@@ -461,8 +471,7 @@ expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
     ;
 
 op_assign
-    : '='       { $$ = '='; }
-    | PLS_EQ    { $$ = PLS_EQ; }
+    : PLS_EQ    { $$ = PLS_EQ; }
     | MIN_EQ    { $$ = MIN_EQ; }
     | MUL_EQ    { $$ = MUL_EQ; }
     | DIV_EQ    { $$ = DIV_EQ; }
@@ -639,9 +648,7 @@ prim: '(' expr ')'          { $$ = $2; }
     | LVAR                  { $$.cel = CODE_INST(argeval, $1->offset, $1->name);
                               $$.typ = $1->typref; }
 
-    | CONST                 { $$.cel = code_inst(
-                                    $1->typref->t2i->constpush->code_id,
-                                    $1->val);
+    | CONST                 { $$.cel = CODE_INST(constpush, $1->val);
                               $$.typ = $1->typref; }
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }
@@ -856,33 +863,58 @@ code_conv_val(
         Symbol *t_dst)
 {
     if (t_src != t_dst) {
-        if          (t_src == Integer) {
-            if      (t_dst == Long)    CODE_INST(i2l);
-            else if (t_dst == Float)   CODE_INST(i2f);
-            else if (t_dst == Double)  CODE_INST(i2d);
-            else execerror("Bad conversion from %s to %s",
-                    t_src->name, t_dst->name);
-        } else if   (t_src == Long) {
-            if      (t_dst == Integer) CODE_INST(l2i);
-            else if (t_dst == Float)   CODE_INST(l2f);
-            else if (t_dst == Double)  CODE_INST(l2d);
-            else execerror("Bad conversion from %s to %s",
-                    t_src->name, t_dst->name);
-        } else if   (t_src == Float) {
-            if      (t_dst == Integer) CODE_INST(f2i);
-            else if (t_dst == Long)    CODE_INST(f2l);
-            else if (t_dst == Double)  CODE_INST(f2d);
+        if          (t_src == Char) {
+            if      (t_dst == Double)  CODE_INST(c2d);
+            else if (t_dst == Float)   CODE_INST(c2f);
+            else if (t_dst == Integer) CODE_INST(c2i);
+            else if (t_dst == Long)    CODE_INST(c2l);
+            else if (t_dst == Short)   CODE_INST(c2s);
             else execerror("Bad conversion from %s to %s",
                     t_src->name, t_dst->name);
         } else if   (t_src == Double) {
-            if      (t_dst == Integer) CODE_INST(d2i);
-            else if (t_dst == Long)    CODE_INST(d2l);
+            if      (t_dst == Char)    CODE_INST(d2c);
             else if (t_dst == Float)   CODE_INST(d2f);
+            else if (t_dst == Integer) CODE_INST(d2i);
+            else if (t_dst == Long)    CODE_INST(d2l);
+            else if (t_dst == Short)   CODE_INST(d2s);
             else execerror("Bad conversion from %s to %s",
                     t_src->name, t_dst->name);
-        }
+        } else if   (t_src == Float) {
+            if      (t_dst == Char)    CODE_INST(f2c);
+            else if (t_dst == Double)  CODE_INST(f2d);
+            else if (t_dst == Integer) CODE_INST(f2i);
+            else if (t_dst == Long)    CODE_INST(f2l);
+            else if (t_dst == Short)   CODE_INST(f2s);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Integer) {
+            if      (t_dst == Char)    CODE_INST(i2c);
+            else if (t_dst == Double)  CODE_INST(i2d);
+            else if (t_dst == Float)   CODE_INST(i2f);
+            else if (t_dst == Long)    CODE_INST(i2l);
+            else if (t_dst == Short)   CODE_INST(i2s);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Long) {
+            if      (t_dst == Char)    CODE_INST(l2c);
+            else if (t_dst == Double)  CODE_INST(l2d);
+            else if (t_dst == Float)   CODE_INST(l2f);
+            else if (t_dst == Integer) CODE_INST(l2i);
+            else if (t_dst == Short)   CODE_INST(l2s);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Short) {
+            if      (t_dst == Char)    CODE_INST(s2c);
+            else if (t_dst == Double)  CODE_INST(s2d);
+            else if (t_dst == Float)   CODE_INST(s2f);
+            else if (t_dst == Integer) CODE_INST(s2i);
+            else if (t_dst == Long)    CODE_INST(s2l);
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
     }
-}
+} /* code_conv_val */
 
 OpRel code_unpatched_op(int op)
 {
@@ -898,10 +930,31 @@ OpRel code_unpatched_op(int op)
 
 Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
 {
+    assert(exp1->typ == Integer || exp1->typ == Long || exp1->typ == Double);
+    assert(exp2->typ == Integer || exp2->typ == Long || exp2->typ == Double);
+
     printf("exp1.typ = %s, op = <%s-%d>, exp2.typ = %s\n",
         exp1->typ->name, yyname[op->op], op->op, exp2->typ->name);
-    return exp1->typ;
-}
+
+    if (exp1->typ->weight == exp2->typ->weight)
+        return exp1->typ;
+
+    assert(exp1->typ->weight > 0 && exp2->typ->weight > 0);
+
+    if (exp1->typ->weight > exp2->typ->weight) {
+		code_conv_val(exp2->typ, exp1->typ);
+		return exp1->typ;
+	}
+
+	PT(">>> begin PATCHING CODE @ [%04lx]\n", op->cel - prog);
+	Cell *saved_progp = progp;
+	progp             = op->cel;
+	code_conv_val(exp1->typ, exp2->typ);
+	progp             = saved_progp;
+	PT("<<< end   PATCHING CODE\n");
+	return exp2->typ;
+
+} /* check_op_bin */
 
 void patch_block(Cell*patch_point)
 {

@@ -17,7 +17,7 @@ struct type2inst_s {
     const instr
         *constpush, *add, *sub, *mul, *divi, *mod, *neg, *pwr, *eval, *assign,
         *print, *ge, *le, *gt, *lt, *eq, *ne, *not, *argeval, *argassign, *prexpr,
-		*inceval, *evalinc, *deceval, *evaldec, *addvar, *subvar, *mulvar, *divvar,
+        *inceval, *evalinc, *deceval, *evaldec, *addvar, *subvar, *mulvar, *divvar,
         *modvar, *pwrvar, *arginc, *incarg, *decarg, *argdec, *addarg, *subarg,
         *mularg, *divarg, *modarg, *pwrarg;
 };

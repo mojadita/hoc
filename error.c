@@ -49,7 +49,7 @@ void vwarning(const char *fmt, va_list args)
 
 void defnonly(int cual, const char *name, ...)
 {
-    char buffer[100];
+    char buffer[1000];
     va_list args;
     va_start(args, name);
     vsnprintf(buffer, sizeof buffer, name, args);

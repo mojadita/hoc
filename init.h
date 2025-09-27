@@ -8,13 +8,15 @@
 #define INIT_H
 
 #include "symbol.h"
-extern Symbol *Char,
-       *Boolean,
+extern Symbol
+       *Char,
+       *Double,
+       *Float,
        *Integer,
        *Long,
-       *Float,
-       *Double,
-       *String;
+       *Short,
+       *String,
+       *Prev;
 
 void init(void);  /* install constants and built-ins in table */
 
