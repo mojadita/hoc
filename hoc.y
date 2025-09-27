@@ -94,8 +94,11 @@ jmp_buf begin;
 # define PT(_fmt, ...)
 #endif
 
-#define CODE_INST(I, ...)           code_inst(INST_##I, ##__VA_ARGS__)
-#define CODE_INST_TYP(_typ, I, ...) code_inst(_typ->t2i->I->code_id, ##__VA_ARGS__)
+#define CODE_INST(I, ...)                \
+        code_inst(INST_##I, ##__VA_ARGS__)
+
+#define CODE_INST_TYP(_typ, _iname, ...) \
+        code_inst(_typ->t2i->_iname->code_id, ##__VA_ARGS__)
 
 Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
 
@@ -403,12 +406,12 @@ expr_seq
     ;
 
 item: STRING               { $$ = CODE_INST(prstr, $1); }
-    | expr                 { $$ = CODE_INST_TYP($1.typ, prexpr); }
+    | expr                 { Symbol *type = $1.typ;
+                             $$ = CODE_INST_TYP(type, prexpr); }
     ;
 
 cond: '(' expr ')'         { $$ = $2.cel;
-                             code_conv_val($2.typ, Integer);
-                           }
+                             code_conv_val($2.typ, Integer); }
     ;
 
 mark: /* empty */          { $$ = progp; }
@@ -425,6 +428,10 @@ expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
     | VAR    '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
                              CODE_INST(assign, $1);
+                           }
+    | LVAR   '=' expr      { $$ = $3;
+                             code_conv_val($3.typ, $1->typref);
+                             CODE_INST(argassign, $1->offset, $1->name);
                            }
     | VAR   op_assign expr { $$.cel = $3.cel;
                              $$.typ = $1->typref;
@@ -510,8 +517,7 @@ expr_and
                               code_conv_val($3.typ, Integer);
                               Cell *saved_progp = progp;
                               progp = $2;
-                              PT(">>> begin patching CODE @ [%04lx]\n",
-                                      progp - prog);
+                              PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
                                   code_conv_val($1.typ, Integer);
                                   CODE_INST(and_then, saved_progp);
                               PT("<<< end   patching CODE @ [%04lx], "
@@ -930,8 +936,8 @@ OpRel code_unpatched_op(int op)
 
 Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
 {
-    assert(exp1->typ == Integer || exp1->typ == Long || exp1->typ == Double);
-    assert(exp2->typ == Integer || exp2->typ == Long || exp2->typ == Double);
+    assert(exp1->typ == Integer || exp1->typ == Long || exp1->typ == Double || exp1->typ == Float);
+    assert(exp2->typ == Integer || exp2->typ == Long || exp2->typ == Double || exp2->typ == Float);;
 
     printf("exp1.typ = %s, op = <%s-%d>, exp2.typ = %s\n",
         exp1->typ->name, yyname[op->op], op->op, exp2->typ->name);
@@ -942,17 +948,17 @@ Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
     assert(exp1->typ->weight > 0 && exp2->typ->weight > 0);
 
     if (exp1->typ->weight > exp2->typ->weight) {
-		code_conv_val(exp2->typ, exp1->typ);
-		return exp1->typ;
-	}
+        code_conv_val(exp2->typ, exp1->typ);
+        return exp1->typ;
+    }
 
-	PT(">>> begin PATCHING CODE @ [%04lx]\n", op->cel - prog);
-	Cell *saved_progp = progp;
-	progp             = op->cel;
-	code_conv_val(exp1->typ, exp2->typ);
-	progp             = saved_progp;
-	PT("<<< end   PATCHING CODE\n");
-	return exp2->typ;
+    PT(">>> begin PATCHING CODE @ [%04lx]\n", op->cel - prog);
+    Cell *saved_progp = progp;
+    progp             = op->cel;
+    code_conv_val(exp1->typ, exp2->typ);
+    progp             = saved_progp;
+    PT("<<< end   PATCHING CODE\n");
+    return exp2->typ;
 
 } /* check_op_bin */
 

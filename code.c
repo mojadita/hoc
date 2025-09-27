@@ -767,7 +767,7 @@ void pwr_l_prt(const instr *i, const Cell *pc)
 
 void eval(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .val = var->val };
@@ -783,12 +783,12 @@ void eval(const instr *i)
 void eval_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_c(const instr *i) /* evaluate global variable on stack */
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .inum = var->chr };
@@ -804,12 +804,12 @@ void eval_c(const instr *i) /* evaluate global variable on stack */
 void eval_c_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_d(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .val = var->val };
@@ -825,12 +825,12 @@ void eval_d(const instr *i)
 void eval_d_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_f(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .val = var->flt };
@@ -846,20 +846,20 @@ void eval_f(const instr *i)
 void eval_f_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_i(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .inum = var->inum };
 
     push(tgt);
 
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](%i) -> %i",
-        sym->name, var_addr, var->inum, tgt.num);
+    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> %i",
+        sym->name, var_addr, tgt.inum);
 
     UPDATE_PC();
 }
@@ -867,12 +867,12 @@ void eval_i(const instr *i)
 void eval_i_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_l(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .num = var->num };
@@ -888,12 +888,12 @@ void eval_l(const instr *i)
 void eval_l_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void eval_s(const instr *i)
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    tgt      = { .inum = var->sht };
@@ -909,22 +909,22 @@ void eval_s(const instr *i)
 void eval_s_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].desp);
+        pc[1].sym->name, pc[0].param);
 }
 
 void symb_prog(const instr *i, Cell *pc, va_list args)
 {
     Symbol *sym = va_arg(args, Symbol *);
 
-    pc[0].desp  = sym->defn - prog;
+    pc[0].param  = sym->defn - prog;
     pc[1].sym   = sym;
 
-    PRG(" "GREEN"%s"ANSI_END"[%04x]", sym->name, pc[0].desp);
+    PRG(" "GREEN"%s"ANSI_END"[%04x]", sym->name, pc[0].param);
 }
 
 void assign(const instr *i) /* assign top value to next value */
 {
-    int     var_addr = pc[0].desp;
+    int     var_addr = pc[0].param;
     Symbol *sym      = pc[1].sym;
     Cell   *var      = prog + var_addr;
     Cell    src      = top();
@@ -939,7 +939,7 @@ void assign(const instr *i) /* assign top value to next value */
 
 void assign_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void print(const instr *i) /* pop top value from stack, print it */
@@ -956,16 +956,44 @@ void print_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void print_c(const instr *i) /* pop top value from stack, print it */
+{
+    Cell d = pop();
+
+    printf("\t\t0x%02hhx\n", d.chr);
+
+    UPDATE_PC();
+}
+
+void print_c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void print_d(const instr *i) /* pop top value from stack, print it */
 {
     Cell d = pop();
 
-    printf("\t\t%32.8g\n", d.val);
+    printf("\t\t%32.15g\n", d.val);
 
     UPDATE_PC();
 }
 
 void print_d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void print_f(const instr *i) /* pop top value from stack, print it */
+{
+    Cell d = pop();
+
+    printf("\t\t%32.7g\n", d.flt);
+
+    UPDATE_PC();
+}
+
+void print_f_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
@@ -994,6 +1022,20 @@ void print_l(const instr *i) /* pop top value from stack, print it */
 }
 
 void print_l_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void print_s(const instr *i) /* pop top value from stack, print it */
+{
+    Cell d = pop();
+
+    printf("\t\t0x%04hx\n", d.sht);
+
+    UPDATE_PC();
+}
+
+void print_s_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
@@ -1164,7 +1206,7 @@ void bltin2_l(const instr *i) /* evaluate built-in with two arguments */
             res = { .num = sym->ptr2( p1.val, p2.val ) };
 
     P_TAIL(": %s(%.8lg, %.8lg) -> %li",
-        sym->name, p1.val, p2.val, res.num);
+            sym->name, p1.val, p2.val, res.num);
     push(res);
 
     UPDATE_PC();
@@ -1181,7 +1223,8 @@ void ge(const instr *i) /* greater or equal */
          p1  = pop(),
          res = { .val = p1.val >= p2.val };
 
-    P_TAIL(": %lg >= %lg -> %lg", p1.val, p2.val, res.val);
+    P_TAIL(": %lg >= %lg -> %lg",
+            p1.val, p2.val, res.val);
     push(res);
 
     UPDATE_PC();
@@ -1198,7 +1241,8 @@ void ge_d(const instr *i) /* greater or equal */
          p1  = pop(),
          res = { .num = p1.val >= p2.val };
 
-    P_TAIL(": %lg >= %lg -> %li", p1.val, p2.val, res.num);
+    P_TAIL(": %lg >= %lg -> %li",
+            p1.val, p2.val, res.num);
     push(res);
 
     UPDATE_PC();
@@ -1215,7 +1259,8 @@ void ge_i(const instr *i)
          p1  = pop(),
          res = { .inum = p1.inum >= p2.inum };
 
-    P_TAIL(": %i >= %i -> %i", p1.inum, p2.inum, res.inum);
+    P_TAIL(": %i >= %i -> %i",
+            p1.inum, p2.inum, res.inum);
 
     push(res);
 
@@ -1233,7 +1278,8 @@ void ge_l(const instr *i)
          p1  = pop(),
          res = { .num = p1.num >= p2.num };
 
-    P_TAIL(": %li >= %li -> %li", p1.num, p2.num, res.num);
+    P_TAIL(": %li >= %li -> %li",
+            p1.num, p2.num, res.num);
 
     push(res);
 
@@ -1251,7 +1297,8 @@ void le(const instr *i) /* less or equal */
           p1  = pop(),
           res = { .val = p1.val <= p2.val };
 
-    P_TAIL(": %lg <= %lg -> %lg", p1.val, p2.val, res.val);
+    P_TAIL(": %lg <= %lg -> %lg",
+            p1.val, p2.val, res.val);
     push(res);
 
     UPDATE_PC();
@@ -1268,7 +1315,8 @@ void le_d(const instr *i) /* less or equal */
           p1  = pop(),
           res = { .num = p1.val <= p2.val };
 
-    P_TAIL(": %lg <= %lg -> %li", p1.val, p2.val, res.num);
+    P_TAIL(": %lg <= %lg -> %i",
+            p1.val, p2.val, res.inum);
     push(res);
 
     UPDATE_PC();
@@ -1285,7 +1333,8 @@ void le_i(const instr *i)
           p1  = pop(),
           res = { .inum = p1.inum <= p2.inum };
 
-    P_TAIL(": %i <= %i -> %li", p1.inum, p2.inum, res.inum);
+    P_TAIL(": %i <= %i -> %i",
+            p1.inum, p2.inum, res.inum);
     push(res);
 
     UPDATE_PC();
@@ -1666,7 +1715,7 @@ void and_then(const instr *i)  /* and_then */
         pop();
         UPDATE_PC();
     } else {
-        pc = prog + pc[0].desp;
+        pc = prog + pc[0].param;
     }
 
     P_TAIL(": %lg &&%s -> [%04lx]", d.val, op, pc - prog);
@@ -1674,7 +1723,7 @@ void and_then(const instr *i)  /* and_then */
 
 void and_then_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 void and_then_i(const instr *i)  /* and_then */
@@ -1688,7 +1737,7 @@ void and_then_i(const instr *i)  /* and_then */
         pop();
         UPDATE_PC();
     } else {
-        pc = prog + pc[0].desp;
+        pc = prog + pc[0].param;
     }
 
     P_TAIL(": %li &&%s -> [%04lx]", d.num, op, pc - prog);
@@ -1696,7 +1745,7 @@ void and_then_i(const instr *i)  /* and_then */
 
 void and_then_i_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 void or_else(const instr *i)  /* or_else */
@@ -1708,7 +1757,7 @@ void or_else(const instr *i)  /* or_else */
         pop();
         UPDATE_PC();
     } else {
-        pc = prog + pc[0].desp;
+        pc = prog + pc[0].param;
     }
     P_TAIL(": %lg ||%s -> [%04lx]",
         d.val, op, pc - prog);
@@ -1716,7 +1765,7 @@ void or_else(const instr *i)  /* or_else */
 
 void or_else_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 void or_else_i(const instr *i)  /* or_else */
@@ -1728,7 +1777,7 @@ void or_else_i(const instr *i)  /* or_else */
         pop();
         UPDATE_PC();
     } else {
-        pc = prog + pc[0].desp;
+        pc = prog + pc[0].param;
     }
     P_TAIL(": %li ||%s -> [%04lx]",
         d.num, op, pc - prog);
@@ -1736,7 +1785,7 @@ void or_else_i(const instr *i)  /* or_else */
 
 void or_else_i_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 /* se llama al definir una funcion (o procedimiento) */
@@ -1773,20 +1822,20 @@ void call(const instr *i)   /* call a function */
     Symbol *sym = pc[1].sym;
 
     P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> ret_addr=[%04lx]",
-        sym->name, pc[0].desp, pc + i->n_cells - prog);
+        sym->name, pc[0].param, pc + i->n_cells - prog);
 
     Cell ret_addr = { .cel = pc + i->n_cells };
 
     push(ret_addr);
 
-    pc = prog + pc[0].desp;
+    pc = prog + pc[0].param;
 } /* call */
 
 void call_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x], args=%ld\n",
         pc[1].sym->name,
-        pc[0].desp,
+        pc[0].param,
         pc[1].sym->argums_len);
 }
 
@@ -1811,20 +1860,20 @@ Cell *getarg(int offset)    /* return a pointer to argument */
 
 void arg_prog(const instr *i, Cell *pc, va_list args)
 {
-    pc[0].args = va_arg(args, int);
-    PRG(" %+d", pc[0].args);
+    pc[0].param = va_arg(args, int);
+    PRG(" %+d", pc[0].param);
 }
 
 void arg_str_prog(const instr *i, Cell *pc, va_list args)
 {
-    pc[0].args = va_arg(args, int);
+    pc[0].param = va_arg(args, int);
     pc[1].str  = va_arg(args, char *);
-    PRG(" "GREEN"%s"ANSI_END"<%+d>", pc[1].str, pc[0].args);
+    PRG(" "GREEN"%s"ANSI_END"<%+d>", pc[1].str, pc[0].param);
 }
 
 void argeval(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1837,12 +1886,12 @@ void argeval(const instr *i) /* push argument onto stack */
 
 void argeval_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argeval_c(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1856,12 +1905,12 @@ void argeval_c(const instr *i) /* push argument onto stack */
 
 void argeval_c_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argeval_d(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1873,12 +1922,12 @@ void argeval_d(const instr *i) /* push argument onto stack */
 
 void argeval_d_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argeval_f(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1892,12 +1941,12 @@ void argeval_f(const instr *i) /* push argument onto stack */
 
 void argeval_f_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argeval_i(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1911,12 +1960,12 @@ void argeval_i(const instr *i) /* push argument onto stack */
 
 void argeval_i_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argeval_l(const instr *i) /* push argument onto stack */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = *getarg(arg);
 
@@ -1928,12 +1977,12 @@ void argeval_l(const instr *i) /* push argument onto stack */
 
 void argeval_l_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argassign(const instr *i) /* store top of stack in argument */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -1946,12 +1995,12 @@ void argassign(const instr *i) /* store top of stack in argument */
 
 void argassign_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argassign_c(const instr *i) /* store top of stack in argument */
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -1970,7 +2019,7 @@ void argassign_c_prt(const instr *i, const Cell *pc)
 
 void argassign_d(const instr *i)
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -1989,7 +2038,7 @@ void argassign_d_prt(const instr *i, const Cell *pc)
 
 void argassign_f(const instr *i)
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -2008,7 +2057,7 @@ void argassign_f_prt(const instr *i, const Cell *pc)
 
 void argassign_i(const instr *i)
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -2027,7 +2076,7 @@ void argassign_i_prt(const instr *i, const Cell *pc)
 
 void argassign_l(const instr *i)
 {
-    int         arg = pc[0].args;
+    int         arg = pc[0].param;
     const char *nam = pc[1].str;
     Cell        d   = top();
     Cell       *ref = getarg(arg);
@@ -2079,6 +2128,45 @@ void prexpr_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void prexpr_c(const instr *i)  /* print numeric value */
+{
+    P_TAIL("\n");
+    printf("%c", pop().chr);
+
+    UPDATE_PC();
+}
+
+void prexpr_c_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void prexpr_d(const instr *i)  /* print numeric value */
+{
+    P_TAIL("\n");
+    printf("%.15lg", pop().val);
+
+    UPDATE_PC();
+}
+
+void prexpr_d_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void prexpr_f(const instr *i)  /* print numeric value */
+{
+    P_TAIL("\n");
+    printf("0x%02hhx", pop().chr);
+
+    UPDATE_PC();
+}
+
+void prexpr_f_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void prexpr_i(const instr *i)  /* print numeric value */
 {
     P_TAIL("\n");
@@ -2105,15 +2193,15 @@ void prexpr_l_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
-void prexpr_d(const instr *i)  /* print numeric value */
+void prexpr_s(const instr *i)  /* print numeric value */
 {
     P_TAIL("\n");
-    printf("%.15lg", pop().val);
+    printf("0x%04x", pop().sht);
 
     UPDATE_PC();
 }
 
-void prexpr_d_prt(const instr *i, const Cell *pc)
+void prexpr_s_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
@@ -2180,34 +2268,34 @@ void list_prt(const instr *i, const Cell *pc)
 
 void if_f_goto(const instr *i) /* jump if false */
 {
-    P_TAIL(": -> [%04x]", pc[0].desp);
+    P_TAIL(": -> [%04x]", pc[0].param);
     Cell d = pop();
     pc = d.val
         ? pc + i->n_cells
-        : prog + pc[0].desp;
+        : prog + pc[0].param;
 }
 
 void if_f_goto_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 void addr_prog(const instr *i, Cell *pc, va_list args)
 {
-    progp[0].desp = va_arg(args, Cell *) - prog;
+    progp[0].param = va_arg(args, Cell *) - prog;
 
-    PRG(" [%04x]", progp[0].desp);
+    PRG(" [%04x]", progp[0].param);
 }
 
 void Goto(const instr *i) /* jump if false */
 {
-    P_TAIL(": -> [%04x]", pc[0].desp);
-    pc = prog + pc[0].desp;
+    P_TAIL(": -> [%04x]", pc[0].param);
+    pc = prog + pc[0].param;
 }
 
 void Goto_prt(const instr *i, const Cell *pc)
 {
-    PR("[%04x]\n", pc[0].desp);
+    PR("[%04x]\n", pc[0].param);
 }
 
 void noop(const instr *i)
@@ -2222,7 +2310,7 @@ void noop_prt(const instr *i, const Cell *pc)
 
 void inceval(const instr *i) /* 1. incremento, 2. evaluo la variable */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
 
@@ -2236,12 +2324,12 @@ void inceval(const instr *i) /* 1. incremento, 2. evaluo la variable */
 
 void inceval_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void inceval_c(const instr *i) /* 1. incremento, 2. evaluo la variable */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = ++var->chr };
@@ -2261,7 +2349,7 @@ void inceval_c_prt(const instr *i, const Cell *pc)
 
 void inceval_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = ++var->val };
@@ -2281,7 +2369,7 @@ void inceval_d_prt(const instr *i, const Cell *pc)
 
 void inceval_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = ++var->flt };
@@ -2300,7 +2388,7 @@ void inceval_f_prt(const instr *i, const Cell *pc)
 
 void inceval_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = ++var->inum };
@@ -2319,7 +2407,7 @@ void inceval_i_prt(const instr *i, const Cell *pc)
 
 void inceval_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = ++var->num };
@@ -2338,7 +2426,7 @@ void inceval_l_prt(const instr *i, const Cell *pc)
 
 void inceval_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = ++var->sht };
@@ -2359,7 +2447,7 @@ void evalinc(const instr *i) /* 1. copio valor,
                               * 2. evaluo variable,
                               * 3. devuelvo valor copiado. */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
 
@@ -2373,14 +2461,14 @@ void evalinc(const instr *i) /* 1. copio valor,
 
 void evalinc_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evalinc_c(const instr *i) /* 1. copio valor,
                                 * 2. evaluo variable,
                                 * 3. devuelvo valor copiado. */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr++ };
@@ -2400,7 +2488,7 @@ void evalinc_c_prt(const instr *i, const Cell *pc)
 
 void evalinc_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val++ };
@@ -2420,7 +2508,7 @@ void evalinc_d_prt(const instr *i, const Cell *pc)
 
 void evalinc_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt++ };
@@ -2440,7 +2528,7 @@ void evalinc_f_prt(const instr *i, const Cell *pc)
 
 void evalinc_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum++ };
@@ -2460,7 +2548,7 @@ void evalinc_i_prt(const instr *i, const Cell *pc)
 
 void evalinc_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num++ };
@@ -2480,7 +2568,7 @@ void evalinc_l_prt(const instr *i, const Cell *pc)
 
 void evalinc_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = ++var->sht };
@@ -2500,7 +2588,7 @@ void evalinc_s_prt(const instr *i, const Cell *pc)
 
 void deceval(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = --var->val };
@@ -2515,12 +2603,12 @@ void deceval(const instr *i) /* assign top value to next value */
 
 void deceval_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void deceval_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = --var->chr };
@@ -2536,12 +2624,12 @@ void deceval_c(const instr *i) /* assign top value to next value */
 void deceval_c_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-            pc[1].sym->name, pc[0].desp);
+            pc[1].sym->name, pc[0].param);
 }
 
 void deceval_d(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = --var->val };
@@ -2557,12 +2645,12 @@ void deceval_d(const instr *i) /* assign top value to next value */
 void deceval_d_prt(const instr *i, const Cell *pc)
 {
     PR(GREEN"%s"ANSI_END"[%04x]\n",
-            pc[1].sym->name, pc[0].desp);
+            pc[1].sym->name, pc[0].param);
 }
 
 void deceval_f(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = --var->flt };
@@ -2577,12 +2665,12 @@ void deceval_f(const instr *i) /* assign top value to next value */
 
 void deceval_f_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void deceval_i(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = --var->inum };
@@ -2597,12 +2685,12 @@ void deceval_i(const instr *i) /* assign top value to next value */
 
 void deceval_i_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void deceval_l(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = --var->num };
@@ -2617,12 +2705,12 @@ void deceval_l(const instr *i) /* assign top value to next value */
 
 void deceval_l_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void deceval_s(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = --var->sht };
@@ -2637,12 +2725,12 @@ void deceval_s(const instr *i) /* assign top value to next value */
 
 void deceval_s_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val-- };
@@ -2657,12 +2745,12 @@ void evaldec(const instr *i) /* assign top value to next value */
 
 void evaldec_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr-- };
@@ -2677,12 +2765,12 @@ void evaldec_c(const instr *i) /* assign top value to next value */
 
 void evaldec_c_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_d(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val-- };
@@ -2697,12 +2785,12 @@ void evaldec_d(const instr *i) /* assign top value to next value */
 
 void evaldec_d_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_f(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt-- };
@@ -2716,12 +2804,12 @@ void evaldec_f(const instr *i) /* assign top value to next value */
 
 void evaldec_f_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_i(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum-- };
@@ -2735,12 +2823,12 @@ void evaldec_i(const instr *i) /* assign top value to next value */
 
 void evaldec_i_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_l(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num-- };
@@ -2755,12 +2843,12 @@ void evaldec_l(const instr *i) /* assign top value to next value */
 
 void evaldec_l_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void evaldec_s(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht-- };
@@ -2774,12 +2862,12 @@ void evaldec_s(const instr *i) /* assign top value to next value */
 
 void evaldec_s_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void addvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val += pop().val };
@@ -2794,12 +2882,12 @@ void addvar(const instr *i) /* assign top value to next value */
 
 void addvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void addvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr += pop().num };
@@ -2819,7 +2907,7 @@ void addvar_c_prt(const instr *i, const Cell *pc)
 
 void addvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val += pop().val };
@@ -2839,7 +2927,7 @@ void addvar_d_prt(const instr *i, const Cell *pc)
 
 void addvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt += pop().val };
@@ -2859,7 +2947,7 @@ void addvar_f_prt(const instr *i, const Cell *pc)
 
 void addvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum += pop().num };
@@ -2879,7 +2967,7 @@ void addvar_i_prt(const instr *i, const Cell *pc)
 
 void addvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num += pop().num };
@@ -2899,7 +2987,7 @@ void addvar_l_prt(const instr *i, const Cell *pc)
 
 void addvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht += pop().num };
@@ -2919,7 +3007,7 @@ void addvar_s_prt(const instr *i, const Cell *pc)
 
 void subvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val -= pop().val };
@@ -2933,12 +3021,12 @@ void subvar(const instr *i) /* assign top value to next value */
 
 void subvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void subvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr -= pop().num };
@@ -2958,7 +3046,7 @@ void subvar_c_prt(const instr *i, const Cell *pc)
 
 void subvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val -= pop().val };
@@ -2978,7 +3066,7 @@ void subvar_d_prt(const instr *i, const Cell *pc)
 
 void subvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt -= pop().val };
@@ -2998,7 +3086,7 @@ void subvar_f_prt(const instr *i, const Cell *pc)
 
 void subvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum -= pop().num };
@@ -3018,7 +3106,7 @@ void subvar_i_prt(const instr *i, const Cell *pc)
 
 void subvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num -= pop().num };
@@ -3037,7 +3125,7 @@ void subvar_l_prt(const instr *i, const Cell *pc)
 
 void subvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht -= pop().num };
@@ -3056,7 +3144,7 @@ void subvar_s_prt(const instr *i, const Cell *pc)
 
 void mulvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val *= pop().val };
@@ -3071,12 +3159,12 @@ void mulvar(const instr *i) /* assign top value to next value */
 
 void mulvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void mulvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr *= pop().num };
@@ -3096,7 +3184,7 @@ void mulvar_c_prt(const instr *i, const Cell *pc)
 
 void mulvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val *= pop().val };
@@ -3116,7 +3204,7 @@ void mulvar_d_prt(const instr *i, const Cell *pc)
 
 void mulvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt *= pop().val };
@@ -3136,7 +3224,7 @@ void mulvar_f_prt(const instr *i, const Cell *pc)
 
 void mulvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum *= pop().num };
@@ -3156,7 +3244,7 @@ void mulvar_i_prt(const instr *i, const Cell *pc)
 
 void mulvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num *= pop().num };
@@ -3176,7 +3264,7 @@ void mulvar_l_prt(const instr *i, const Cell *pc)
 
 void mulvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht *= pop().num };
@@ -3196,7 +3284,7 @@ void mulvar_s_prt(const instr *i, const Cell *pc)
 
 void divvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val /= pop().val };
@@ -3211,12 +3299,12 @@ void divvar(const instr *i) /* assign top value to next value */
 
 void divvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void divvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr /= pop().num };
@@ -3236,7 +3324,7 @@ void divvar_c_prt(const instr *i, const Cell *pc)
 
 void divvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val /= pop().val };
@@ -3256,7 +3344,7 @@ void divvar_d_prt(const instr *i, const Cell *pc)
 
 void divvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt /= pop().val };
@@ -3276,7 +3364,7 @@ void divvar_f_prt(const instr *i, const Cell *pc)
 
 void divvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum /= pop().num };
@@ -3296,7 +3384,7 @@ void divvar_i_prt(const instr *i, const Cell *pc)
 
 void divvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num /= pop().num };
@@ -3316,7 +3404,7 @@ void divvar_l_prt(const instr *i, const Cell *pc)
 
 void divvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht /= pop().num };
@@ -3336,7 +3424,7 @@ void divvar_s_prt(const instr *i, const Cell *pc)
 
 void modvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val = fmod(var->val, pop().val) };
@@ -3351,12 +3439,12 @@ void modvar(const instr *i) /* assign top value to next value */
 
 void modvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void modvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr %= pop().num };
@@ -3376,7 +3464,7 @@ void modvar_c_prt(const instr *i, const Cell *pc)
 
 void modvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val = fmod(var->val, pop().val) };
@@ -3396,7 +3484,7 @@ void modvar_d_prt(const instr *i, const Cell *pc)
 
 void modvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt = fmod(var->flt, pop().val) };
@@ -3415,7 +3503,7 @@ void modvar_f_prt(const instr *i, const Cell *pc)
 
 void modvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum %= pop().num };
@@ -3435,7 +3523,7 @@ void modvar_i_prt(const instr *i, const Cell *pc)
 
 void modvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num %= pop().num };
@@ -3455,7 +3543,7 @@ void modvar_l_prt(const instr *i, const Cell *pc)
 
 void modvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht %= pop().num };
@@ -3475,7 +3563,7 @@ void modvar_s_prt(const instr *i, const Cell *pc)
 
 void pwrvar(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val = pow(var->val, pop().val) };
@@ -3490,12 +3578,12 @@ void pwrvar(const instr *i) /* assign top value to next value */
 
 void pwrvar_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].desp);
+    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
 }
 
 void pwrvar_c(const instr *i) /* assign top value to next value */
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->chr = fast_pwr_l(var->chr, pop().num) };
@@ -3515,7 +3603,7 @@ void pwrvar_c_prt(const instr *i, const Cell *pc)
 
 void pwrvar_d(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->val = pow(var->val, pop().val) };
@@ -3535,7 +3623,7 @@ void pwrvar_d_prt(const instr *i, const Cell *pc)
 
 void pwrvar_f(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .val = var->flt = pow(var->flt, pop().val) };
@@ -3555,7 +3643,7 @@ void pwrvar_f_prt(const instr *i, const Cell *pc)
 
 void pwrvar_i(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->inum = fast_pwr_l(var->inum, pop().num) };
@@ -3575,7 +3663,7 @@ void pwrvar_i_prt(const instr *i, const Cell *pc)
 
 void pwrvar_l(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->num = fast_pwr_l(var->num, pop().num) };
@@ -3594,7 +3682,7 @@ void pwrvar_l_prt(const instr *i, const Cell *pc)
 
 void pwrvar_s(const instr *i)
 {
-    int     addr = pc[0].desp;
+    int     addr = pc[0].param;
     Symbol *sym  = pc[1].sym;
     Cell   *var  = prog + addr;
     Cell    tgt  = { .num = var->sht = fast_pwr_l(var->sht, pop().num) };
@@ -3614,7 +3702,7 @@ void pwrvar_s_prt(const instr *i, const Cell *pc)
 
 void arginc(const instr *i) /* evaluo e incremento */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val++ };
@@ -3629,12 +3717,12 @@ void arginc(const instr *i) /* evaluo e incremento */
 
 void arginc_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void arginc_c(const instr *i) /* evaluo e incremento */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr++ };
@@ -3654,7 +3742,7 @@ void arginc_c_prt(const instr *i, const Cell *pc)
 
 void arginc_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val++ };
@@ -3674,7 +3762,7 @@ void arginc_d_prt(const instr *i, const Cell *pc)
 
 void arginc_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt++ };
@@ -3694,7 +3782,7 @@ void arginc_f_prt(const instr *i, const Cell *pc)
 
 void arginc_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum++ };
@@ -3714,7 +3802,7 @@ void arginc_i_prt(const instr *i, const Cell *pc)
 
 void arginc_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num++ };
@@ -3734,7 +3822,7 @@ void arginc_l_prt(const instr *i, const Cell *pc)
 
 void arginc_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht++ };
@@ -3754,7 +3842,7 @@ void arginc_s_prt(const instr *i, const Cell *pc)
 
 void incarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = ++lvar->val };
@@ -3769,12 +3857,12 @@ void incarg(const instr *i) /* assign top value to next value */
 
 void incarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void incarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = ++lvar->chr };
@@ -3794,7 +3882,7 @@ void incarg_c_prt(const instr *i, const Cell *pc)
 
 void incarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = ++lvar->val };
@@ -3814,7 +3902,7 @@ void incarg_d_prt(const instr *i, const Cell *pc)
 
 void incarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = ++lvar->flt };
@@ -3834,7 +3922,7 @@ void incarg_f_prt(const instr *i, const Cell *pc)
 
 void incarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = ++lvar->inum };
@@ -3854,7 +3942,7 @@ void incarg_i_prt(const instr *i, const Cell *pc)
 
 void incarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = ++lvar->num };
@@ -3874,7 +3962,7 @@ void incarg_l_prt(const instr *i, const Cell *pc)
 
 void incarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = ++lvar->sht };
@@ -3894,7 +3982,7 @@ void incarg_s_prt(const instr *i, const Cell *pc)
 
 void decarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = --lvar->val };
@@ -3909,12 +3997,12 @@ void decarg(const instr *i) /* assign top value to next value */
 
 void decarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = --lvar->chr };
@@ -3929,12 +4017,12 @@ void decarg_c(const instr *i) /* assign top value to next value */
 
 void decarg_c_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_d(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = --lvar->val };
@@ -3949,12 +4037,12 @@ void decarg_d(const instr *i) /* assign top value to next value */
 
 void decarg_d_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_f(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = --lvar->flt };
@@ -3969,12 +4057,12 @@ void decarg_f(const instr *i) /* assign top value to next value */
 
 void decarg_f_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_i(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = --lvar->inum };
@@ -3989,12 +4077,12 @@ void decarg_i(const instr *i) /* assign top value to next value */
 
 void decarg_i_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_l(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = --lvar->num };
@@ -4009,12 +4097,12 @@ void decarg_l(const instr *i) /* assign top value to next value */
 
 void decarg_l_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void decarg_s(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = --lvar->sht };
@@ -4029,12 +4117,12 @@ void decarg_s(const instr *i) /* assign top value to next value */
 
 void decarg_s_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val-- };
@@ -4049,12 +4137,12 @@ void argdec(const instr *i) /* assign top value to next value */
 
 void argdec_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr-- };
@@ -4069,12 +4157,12 @@ void argdec_c(const instr *i) /* assign top value to next value */
 
 void argdec_c_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_d(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val-- };
@@ -4089,12 +4177,12 @@ void argdec_d(const instr *i) /* assign top value to next value */
 
 void argdec_d_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_f(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt-- };
@@ -4109,12 +4197,12 @@ void argdec_f(const instr *i) /* assign top value to next value */
 
 void argdec_f_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_i(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum-- };
@@ -4129,12 +4217,12 @@ void argdec_i(const instr *i) /* assign top value to next value */
 
 void argdec_i_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_l(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num-- };
@@ -4149,12 +4237,12 @@ void argdec_l(const instr *i) /* assign top value to next value */
 
 void argdec_l_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void argdec_s(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht-- };
@@ -4169,12 +4257,12 @@ void argdec_s(const instr *i) /* assign top value to next value */
 
 void argdec_s_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void addarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val += pop().val };
@@ -4189,12 +4277,12 @@ void addarg(const instr *i) /* assign top value to next value */
 
 void addarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void addarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr += pop().num };
@@ -4214,7 +4302,7 @@ void addarg_c_prt(const instr *i, const Cell *pc)
 
 void addarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val += pop().val };
@@ -4234,7 +4322,7 @@ void addarg_d_prt(const instr *i, const Cell *pc)
 
 void addarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt += pop().val };
@@ -4254,7 +4342,7 @@ void addarg_f_prt(const instr *i, const Cell *pc)
 
 void addarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum += pop().num };
@@ -4274,7 +4362,7 @@ void addarg_i_prt(const instr *i, const Cell *pc)
 
 void addarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num += pop().num };
@@ -4294,7 +4382,7 @@ void addarg_l_prt(const instr *i, const Cell *pc)
 
 void addarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht += pop().num };
@@ -4314,7 +4402,7 @@ void addarg_s_prt(const instr *i, const Cell *pc)
 
 void subarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val -= pop().val };
@@ -4329,12 +4417,12 @@ void subarg(const instr *i) /* assign top value to next value */
 
 void subarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void subarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr -= pop().num };
@@ -4354,7 +4442,7 @@ void subarg_c_prt(const instr *i, const Cell *pc)
 
 void subarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val -= pop().val };
@@ -4374,7 +4462,7 @@ void subarg_d_prt(const instr *i, const Cell *pc)
 
 void subarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val -= pop().val };
@@ -4398,7 +4486,7 @@ void subarg_f_prt(const instr *i, const Cell *pc)
 
 void subarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum -= pop().num };
@@ -4418,7 +4506,7 @@ void subarg_i_prt(const instr *i, const Cell *pc)
 
 void subarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num -= pop().num };
@@ -4438,7 +4526,7 @@ void subarg_l_prt(const instr *i, const Cell *pc)
 
 void subarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht -= pop().num };
@@ -4458,7 +4546,7 @@ void subarg_s_prt(const instr *i, const Cell *pc)
 
 void mularg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val *= pop().val };
@@ -4473,12 +4561,12 @@ void mularg(const instr *i) /* assign top value to next value */
 
 void mularg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void mularg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr *= pop().num };
@@ -4498,7 +4586,7 @@ void mularg_c_prt(const instr *i, const Cell *pc)
 
 void mularg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val *= pop().val };
@@ -4518,7 +4606,7 @@ void mularg_d_prt(const instr *i, const Cell *pc)
 
 void mularg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt *= pop().val };
@@ -4538,7 +4626,7 @@ void mularg_f_prt(const instr *i, const Cell *pc)
 
 void mularg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum *= pop().num };
@@ -4558,7 +4646,7 @@ void mularg_i_prt(const instr *i, const Cell *pc)
 
 void mularg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num *= pop().num };
@@ -4578,7 +4666,7 @@ void mularg_l_prt(const instr *i, const Cell *pc)
 
 void mularg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht *= pop().num };
@@ -4598,7 +4686,7 @@ void mularg_s_prt(const instr *i, const Cell *pc)
 
 void divarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val /= pop().val };
@@ -4613,12 +4701,12 @@ void divarg(const instr *i) /* assign top value to next value */
 
 void divarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void divarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr /= pop().num };
@@ -4638,7 +4726,7 @@ void divarg_c_prt(const instr *i, const Cell *pc)
 
 void divarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val /= pop().val };
@@ -4658,7 +4746,7 @@ void divarg_d_prt(const instr *i, const Cell *pc)
 
 void divarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt /= pop().val };
@@ -4678,7 +4766,7 @@ void divarg_f_prt(const instr *i, const Cell *pc)
 
 void divarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum /= pop().num };
@@ -4698,7 +4786,7 @@ void divarg_i_prt(const instr *i, const Cell *pc)
 
 void divarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num /= pop().num };
@@ -4718,7 +4806,7 @@ void divarg_l_prt(const instr *i, const Cell *pc)
 
 void divarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht /= pop().num };
@@ -4738,7 +4826,7 @@ void divarg_s_prt(const instr *i, const Cell *pc)
 
 void modarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val = fmod(lvar->val, pop().val) };
@@ -4753,12 +4841,12 @@ void modarg(const instr *i) /* assign top value to next value */
 
 void modarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void modarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr %= pop().num };
@@ -4778,7 +4866,7 @@ void modarg_c_prt(const instr *i, const Cell *pc)
 
 void modarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val = fmod(lvar->val, pop().val) };
@@ -4798,7 +4886,7 @@ void modarg_d_prt(const instr *i, const Cell *pc)
 
 void modarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt = fmod(lvar->flt, pop().val) };
@@ -4818,7 +4906,7 @@ void modarg_f_prt(const instr *i, const Cell *pc)
 
 void modarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum %= pop().num };
@@ -4838,7 +4926,7 @@ void modarg_i_prt(const instr *i, const Cell *pc)
 
 void modarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num %= pop().num };
@@ -4858,7 +4946,7 @@ void modarg_l_prt(const instr *i, const Cell *pc)
 
 void modarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht %= pop().num };
@@ -4878,7 +4966,7 @@ void modarg_s_prt(const instr *i, const Cell *pc)
 
 void pwrarg(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val = pow(lvar->val, pop().val) };
@@ -4893,12 +4981,12 @@ void pwrarg(const instr *i) /* assign top value to next value */
 
 void pwrarg_prt(const instr *i, const Cell *pc)
 {
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].args);
+    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
 }
 
 void pwrarg_c(const instr *i) /* assign top value to next value */
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->chr = fast_pwr_l(lvar->chr, pop().num) };
@@ -4918,7 +5006,7 @@ void pwrarg_c_prt(const instr *i, const Cell *pc)
 
 void pwrarg_d(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->val = pow(lvar->val, pop().val) };
@@ -4938,7 +5026,7 @@ void pwrarg_d_prt(const instr *i, const Cell *pc)
 
 void pwrarg_f(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .val = lvar->flt = pow(lvar->flt, pop().val) };
@@ -4958,7 +5046,7 @@ void pwrarg_f_prt(const instr *i, const Cell *pc)
 
 void pwrarg_i(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->inum = fast_pwr_l(lvar->inum, pop().num) };
@@ -4978,7 +5066,7 @@ void pwrarg_i_prt(const instr *i, const Cell *pc)
 
 void pwrarg_l(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->num = fast_pwr_l(lvar->num, pop().num) };
@@ -4998,7 +5086,7 @@ void pwrarg_l_prt(const instr *i, const Cell *pc)
 
 void pwrarg_s(const instr *i)
 {
-    int         lvar_offset = pc[0].args;
+    int         lvar_offset = pc[0].param;
     const char *lvar_name   = pc[1].str;
     Cell       *lvar        = getarg(lvar_offset);
     Cell        tgt         = { .num = lvar->sht = fast_pwr_l(lvar->sht, pop().num) };
@@ -5018,7 +5106,7 @@ void pwrarg_s_prt(const instr *i, const Cell *pc)
 
 void spadd(const instr *i) /* pop n elementos de la pila */
 {
-    int n = pc[0].args;
+    int n = pc[0].param;
     P_TAIL(": %+d", n);
     sp += n;
 
@@ -5027,7 +5115,7 @@ void spadd(const instr *i) /* pop n elementos de la pila */
 
 void spadd_prt(const instr *i, const Cell *pc)
 {
-    PR("%+d\n", pc[0].args);
+    PR("%+d\n", pc[0].param);
 }
 
 void push_fp(const instr *i)

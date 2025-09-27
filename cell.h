@@ -15,9 +15,8 @@ typedef union Cell_u Cell;
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell_u {
     struct {
-        instr_code inst:   8;
-        int        args:   8;
-        int        desp:  16;
+        instr_code inst:   12;
+        int        param:  20;
     };
     char         chr;
     short        sht;

@@ -40,9 +40,12 @@ INST(pwr_l,1)
 INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
 INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
 INST(print,1)                                  /* imprime X */
+INST(print_c,1)
 INST(print_d,1)
+INST(print_f,1)
 INST(print_i,1)
 INST(print_l,1)
+INST(print_s,1)
 INST(bltin0,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin0 (una sin parametros) */
 INST(bltin1,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin1 (de un parametro) */
 INST(bltin2,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin2 (de dos parametros) */
@@ -82,9 +85,12 @@ INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone 
 INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(prstr,2,       SUFF(void, str, prog))     /* imprime una cadena */
 INST(prexpr,1)                                 /* imprime una expresion */
-INST(prexpr_d,1)                               /* imprime una expresion */
+INST(prexpr_c,1)                               /* imprime una expresion */
+INST(prexpr_d,1)
+INST(prexpr_f,1)
 INST(prexpr_i,1)
 INST(prexpr_l,1)
+INST(prexpr_s,1)
 INST(symbs,1)                                  /* imprime la tabla de simbolos (desaparecera) */
 INST(symbs_all,2,   SUFF(void, symb, prog))    /* imprime toda la tabla de simbolos */
 INST(brkpt,2,       SUFF(void, symb, prog))    /* imprime las variables existentes en el contexto actual */
