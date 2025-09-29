@@ -14,9 +14,12 @@
 #include "hoc.h"
 #include "hoc.tab.h"
 #include "math.h"
+#include "cell.h"
 #include "code.h"
 #include "scope.h"
 #include "type2inst.h"
+#include "types.h"
+#include "init.h"
 
 double integer(double x);
 double Rand(void);
@@ -62,7 +65,7 @@ static struct builtin { /* built-ins-1 */
 };
 
 
-Symbol
+const Symbol
        *Char,
        *Double,
        *Float,
@@ -72,27 +75,81 @@ Symbol
        *String,
        *Prev;
 
+Cell one_c = { .chr  = 1    },
+     one_d = { .val  = 1.0  },
+     one_f = { .flt  = 1.0F },
+     one_i = { .inum = 1    },
+     one_l = { .num  = 1L   },
+     one_s = { .sht  = 1    };
+
+
 static struct predefined_types { /* predefined types */
     char             *name;
     int               size,
                       align,
                       weight;
-    Symbol          **sym_ref;
-    const type2inst  *t2i;
+    const Symbol    **sym_ref;
+    const Cell       *one;     /* pre and post increment */
+    const type2inst  *t2i;     /* select instruction
+                                * for type mapping */
+    const char       *fmt;     /* format string */
 } builtin_types [] = {
-    { .name   = "char",   .size    = 1,        .align = 1,
-      .weight = 0,        .sym_ref = &Char,    .t2i   = &t2i_c, },
-    { .name   = "int",    .size    = 1,        .align = 1,
-      .weight = 1,        .sym_ref = &Integer, .t2i   = &t2i_i, },
-    { .name   = "long",   .size    = 1,        .align = 1,
-      .weight = 2,        .sym_ref = &Long,    .t2i   = &t2i_l, },
-    { .name   = "float",  .size    = 1,        .align = 1,
-      .weight = 3,        .sym_ref = &Float,   .t2i   = &t2i_f, },
-    { .name   = "double", .size    = 1,        .align = 1,
-      .weight = 4,        .sym_ref = &Double,  .t2i   = &t2i_d, },
-    { .name   = "string", .size    = 1,        .align = 1,
-      .weight = -1,       .sym_ref = &String,  .t2i   = NULL,   },
-    { .name   = NULL,     .size    = 0,                         },
+    { .name    = "char",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_c,
+      .weight  = 0,
+      .sym_ref = &Char,
+      .t2i     = &t2i_c,
+      .fmt     = FMT_CHAR,
+    }, {
+      .name    = "int",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_d,
+      .weight  = 1,
+      .sym_ref = &Integer,
+      .t2i     = &t2i_i,
+      .fmt     = FMT_INT,
+    }, {
+      .name    = "long",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_f,
+      .weight  = 2,
+      .sym_ref = &Long,
+      .t2i     = &t2i_l,
+      .fmt     = FMT_LONG,
+    }, {
+      .name    = "float",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_i,
+      .weight  = 3,
+      .sym_ref = &Float,
+      .t2i     = &t2i_f,
+      .fmt     = FMT_FLOAT,
+    }, {
+      .name    = "double",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_l,
+      .weight  = 4,
+      .sym_ref = &Double,
+      .t2i     = &t2i_d,
+      .fmt     = FMT_DOUBLE,
+    }, {
+      .name    = "string",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_s,
+      .weight  = -1,
+      .sym_ref = &String,
+      .t2i     = NULL,
+      .fmt     = "%s",
+    }, {
+      .name    = NULL,
+    },
 };
 
 void init(void)  /* install constants and built-ins in table */
@@ -108,6 +165,7 @@ void init(void)  /* install constants and built-ins in table */
         s->size     = p->size;
         s->weight   = p->weight;
         s->t2i      = p->t2i;
+        s->one      = p->one;
         *p->sym_ref = s;
     }
 

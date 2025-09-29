@@ -37,15 +37,15 @@ Symbol *define(
 void  end_define(Symbol   *subr);     /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 
-Cell *getarg(int arg);               /* return a pointer to argument */
+Cell *getarg(int arg);                /* return a pointer to argument */
 
 Symbol *register_global_var(
         const char *name,
-        Symbol *typref); /* registers a global variable */
+        const Symbol *typref);        /* registers a global variable */
 
 Symbol *register_local_var(
         const char *name,
-        Symbol *typref); /* registers a local variable */
+        const Symbol *typref); /* registers a local variable */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:

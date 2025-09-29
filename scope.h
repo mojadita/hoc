@@ -171,8 +171,8 @@ Symbol *lookup_current_scope(
  * @return La funcion retorna un puntero al
  *         nuevo Symbol creado. */
 Symbol *install(
-        const char *sym_name,
-        int         sym_type,
-        Symbol     *lvar_type);
+        const char   *sym_name,
+        int           sym_type,
+        const Symbol *lvar_type);
 
 #endif /* SCOPE_H */

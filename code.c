@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "config.h"
@@ -16,6 +17,7 @@
 #include "code.h"
 #include "hoc.h"
 #include "math.h"
+#include "types.h"
 
 #include "scope.h"
 
@@ -82,8 +84,8 @@ void initexec(void) /* initialize for execution */
 
 
 Symbol *register_global_var(
-        const char *name,
-        Symbol     *typref)
+        const char   *name,
+        const Symbol *typref)
 {
     assert(get_current_scope() == NULL);
     if (progp >= varbase) {
@@ -103,8 +105,8 @@ Symbol *register_global_var(
 } /* register_global_var */
 
 Symbol *register_local_var(
-        const char *name,
-        Symbol     *typref)
+        const char   *name,
+        const Symbol *typref)
 {
     scope *scop = get_current_scope();
     assert(scop != NULL);
@@ -238,11 +240,39 @@ void drop_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+void dupl(const instr *i) /* duplicate cell */
+{
+    push(top());
+    UPDATE_PC();
+}
+
+void dupl_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
+void swap(const instr *i) /* swap cell */
+{
+    Cell aux1 = pop(),
+         aux2 = pop();
+
+    push(aux1);
+    push(aux2);
+
+    UPDATE_PC();
+}
+
+void swap_prt(const instr *i, const Cell *pc)
+{
+    PR("\n");
+}
+
 void constpush(const instr *i) /* push constant onto stack */
 {
     Cell d = pc[1];
 
     push(d);
+
     P_TAIL(": -> %.8lg", d.val);
 
     UPDATE_PC();
@@ -250,14 +280,120 @@ void constpush(const instr *i) /* push constant onto stack */
 
 void constpush_prt(const instr *i, const Cell *pc)
 {
-    PR("%2.8g\n", pc[1].val);
+    PR("%.8lg\n", pc[1].val);
+}
+
+void constpush_c(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> " FMT_CHAR, d.chr);
+
+    UPDATE_PC();
+}
+
+void constpush_c_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_CHAR"\n", pc[1].chr);
+}
+
+void constpush_d(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> " FMT_DOUBLE, d.val);
+
+    UPDATE_PC();
+}
+
+void constpush_d_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_DOUBLE"\n", pc[1].val);
+}
+
+void constpush_f(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> "FMT_FLOAT, d.flt);
+
+    UPDATE_PC();
+}
+
+void constpush_f_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_FLOAT "\n", pc[1].flt);
+}
+
+void constpush_i(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> "FMT_INT, d.inum);
+
+    UPDATE_PC();
+}
+
+void constpush_i_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_INT "\n", pc[1].inum);
+}
+
+void constpush_l(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> " FMT_LONG, d.num);
+
+    UPDATE_PC();
+}
+
+void constpush_l_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_LONG "\n", pc[1].num);
+}
+
+void constpush_s(const instr *i) /* push constant onto stack */
+{
+    Cell d = pc[1];
+
+    push(d);
+
+    P_TAIL(": -> " FMT_SHORT, d.sht);
+
+    UPDATE_PC();
+}
+
+void constpush_s_prt(const instr *i, const Cell *pc)
+{
+    PR(FMT_SHORT "\n", pc[1].sht);
 }
 
 void datum_prog(const instr *i, Cell *pc, va_list args)
 {
-    progp[1].val = va_arg(args, double);
+    static bool need_init = true;
+    static char fmt[100];
 
-    PRG(" %.8lg", progp[1].val);
+    Cell c = progp[1] = va_arg(args, Cell);
+
+    PRG("{ .chr = "  FMT_CHAR
+        ", .val = "  FMT_DOUBLE
+        ", .flt = "  FMT_FLOAT
+        ", .inum = " FMT_INT
+        ", .num = "  FMT_LONG
+        ", .sht = "  FMT_SHORT,
+        c.chr,  c.val, c.flt,
+        c.inum, c.num, c.sht);
 }
 
 void add(const instr *i) /* add top two elements on stack */
@@ -300,10 +436,10 @@ void add_i(const instr *i)
 {
     Cell p2  = pop(),
          p1  = pop(),
-         res = { .num = p1.num + p2.num };
+         res = { .inum = p1.inum + p2.inum };
 
-    P_TAIL(": %li + %li -> %li",
-            p1.num, p2.num, res.num);
+    P_TAIL(": %i + %i -> %i",
+            p1.inum, p2.inum, res.inum);
     push(res);
 
     UPDATE_PC();

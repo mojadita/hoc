@@ -8,7 +8,15 @@
 
 INST(STOP,1)                                   /* para la maquina, termina la ejecucion. */
 INST(drop,1)                                   /* elimina un valor de la pila */
+INST(dupl,1)                                   /* Duplicar celda */
+INST(swap,1)                                   /* Intercambiar celda */
 INST(constpush,2,   SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
+INST(constpush_c,2, SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
+INST(constpush_d,2, SUFF(void, datum, prog))
+INST(constpush_f,2, SUFF(void, datum, prog))
+INST(constpush_i,2, SUFF(void, datum, prog))
+INST(constpush_l,2, SUFF(void, datum, prog))
+INST(constpush_s,2, SUFF(void, datum, prog))
 INST(add,1)                                    /* suma los dos valores top de la pila */
 INST(add_d,1)
 INST(add_i,1)

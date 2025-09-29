@@ -61,7 +61,7 @@ init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h scope.h \
   code.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h math.h
+  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h math.h init.h
 instr.o: instr.c config.h code.h instr.h /usr/include/stdarg.h \
   /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h \
   /usr/include/sys/cdefs.h /usr/include/sys/_types.h \

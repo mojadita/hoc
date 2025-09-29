@@ -12,6 +12,7 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -27,6 +28,7 @@
 #include "instr.h"
 #include "init.h"   /* por los punteros a los tipos fundamentales */
 #include "code.h"
+#include "types.h"
 
 #include "symbol.h"
 #include "cell.h"
@@ -38,10 +40,10 @@ void yyerror( char * msg );
 
 static void patch_block(Cell*patch_point);
 static void add_patch_return(Symbol *subr, Cell *patch_point);
-static void patch_returns(Symbol *subr, Cell *target);
+static void patch_returns(const Symbol *subr, Cell *target);
 static OpRel code_unpatched_op(int op);
-static Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2);
-static void code_conv_val(Symbol *t_src, Symbol *t_dst);
+static const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2);
+static bool code_conv_val(const Symbol *t_src, const Symbol *t_dst);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -123,7 +125,7 @@ size_t size_lvars = 0;
     Symbol       *sym;  /* puntero a simbolo */
     double        val;  /* valor double */
     Cell         *cel;  /* referencia a Cell */
-    int           num;  /* valor entero, para $<num> */
+    unsigned long num;  /* valor entero, para $<num> */
     const char   *str;  /* cadena de caracteres */
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
@@ -406,7 +408,7 @@ expr_seq
     ;
 
 item: STRING               { $$ = CODE_INST(prstr, $1); }
-    | expr                 { Symbol *type = $1.typ;
+    | expr                 { const Symbol *type = $1.typ;
                              $$ = CODE_INST_TYP(type, prexpr); }
     ;
 
@@ -625,15 +627,43 @@ op_exp
     ;
 
 prim: '(' expr ')'          { $$ = $2; }
-    | NUMBER                { $$.cel = CODE_INST(constpush, $1);
+    | NUMBER                { Cell c = { .val = $1 };
+                              $$.cel = CODE_INST_TYP(Double, constpush, c);
                               $$.typ = Double;
                             }
-    | INTEGER               { $$.cel = CODE_INST(constpush, (double) $1);
+    | INTEGER               { Cell c = { .inum = $1 };
+                              $$.cel = CODE_INST_TYP(Integer, constpush, c);
                               $$.typ = Integer;
                             }
 
-    | PLS_PLS VAR           { $$.cel = CODE_INST(inceval, $2);
-                              $$.typ = $2->typref; }
+    | PLS_PLS VAR           { $$.cel = CODE_INST(eval, $2);
+                              const Symbol
+                                  *varb_type = $2->typref,
+                                  *expr_type = NULL;
+                              if (varb_type == Char || varb_type == Short || varb_type == Integer) {
+                                  expr_type = Integer;
+                              } else if (varb_type == Long) {
+                                  expr_type = Long;
+                              } else if (varb_type == Float || varb_type == Double) {
+                                  expr_type = Double;
+                              }
+                              bool type_was_converted = code_conv_val($2->typref, expr_type);
+                              CODE_INST_TYP(expr_type, constpush);
+                              CODE_INST_TYP(expr_type, constpush, expr_type->one);
+                              CODE_INST_TYP(expr_type, add);
+                              if (type_was_converted) {
+                                  CODE_INST(dupl);
+                                  code_conv_val(expr_type, $2->typref);
+                              }
+                              CODE_INST(assign, $2);
+                              if (type_was_converted) {
+                                  CODE_INST(drop);
+                              }
+                              $$.typ = expr_type;
+                              /* LCU: Mon Sep 29 02:40:18 -05 2025
+                               * TODO: voy por aqui. */
+                            }
+
     | MIN_MIN VAR           { $$.cel = CODE_INST(deceval, $2);
                               $$.typ = $2->typref; }
     | VAR     PLS_PLS       { $$.cel = CODE_INST(evalinc, $1);
@@ -686,7 +716,7 @@ arglist_opt
 
 arglist
     : arglist ',' expr      { $$ = $1 + 1;
-                              printf("$$ = %d, lineno = %d\n", $$, lineno);
+                              printf("$$ = %ld, lineno = %d\n", $$, lineno);
                               Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
                                   execerror("%s accepts only %d parameters\n",
@@ -766,7 +796,7 @@ block
 
 formal_arglist_opt
     : formal_arglist        {
-                              PT("*** formal_arg_list_opt == %d\n", $1);
+                              PT("*** formal_arg_list_opt == %ld\n", $1);
                               /* cambiando los offsets para que se refieran a las
                                * posiciones de las expresiones calculadas antes de
                                * entrar a la funcion (sumando a sus offsets la cantidad
@@ -863,12 +893,14 @@ void pop_sub_call_stack(void)
     --sub_call_stack_len;
 }
 
-void
+bool
 code_conv_val(
-        Symbol *t_src,
-        Symbol *t_dst)
+        const Symbol *t_src,
+        const Symbol *t_dst)
 {
-    if (t_src != t_dst) {
+    bool needs_to_change = t_src != t_dst;
+
+    if (needs_to_change) {
         if          (t_src == Char) {
             if      (t_dst == Double)  CODE_INST(c2d);
             else if (t_dst == Float)   CODE_INST(c2f);
@@ -920,6 +952,7 @@ code_conv_val(
         } else execerror("Bad conversion from %s to %s",
                     t_src->name, t_dst->name);
     }
+    return needs_to_change;
 } /* code_conv_val */
 
 OpRel code_unpatched_op(int op)
@@ -934,7 +967,7 @@ OpRel code_unpatched_op(int op)
     return ret_val;
 } /* code_unpatched_op */
 
-Symbol *check_op_bin(Expr *exp1, OpRel *op, Expr *exp2)
+const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
 {
     assert(exp1->typ == Integer || exp1->typ == Long || exp1->typ == Double || exp1->typ == Float);
     assert(exp2->typ == Integer || exp2->typ == Long || exp2->typ == Double || exp2->typ == Float);;
@@ -988,7 +1021,7 @@ void add_patch_return(Symbol *subr, Cell *patch_point)
             = patch_point;
 } /* add_patch_return */
 
-void patch_returns(Symbol *subr, Cell *target)
+void patch_returns(const Symbol *subr, Cell *target)
 {
     PT("<<< SAVING PROGRAMMING POINT @ [%04lx]\n", progp - prog);
     Cell *saved_progp = progp; /* salvamos el puntero de programacion */

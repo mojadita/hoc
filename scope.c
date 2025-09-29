@@ -113,9 +113,9 @@ Symbol *lookup(const char *sym_name)
 } /* lookup */
 
 Symbol *install(
-        const char *sym_name,
-        int         sym_type,
-        Symbol     *typref)
+        const char   *sym_name,
+        int           sym_type,
+        const Symbol *typref)
 {
     sym_name = intern(sym_name);
     Symbol *ret_val = calloc(1, sizeof *ret_val);

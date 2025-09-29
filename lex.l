@@ -91,8 +91,8 @@ static char *deescape(char *in);
                 add_token(INTEGER, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
                 /* numero entero hex */
-                sscanf(yytext, "%x", &yylval.num);
-                P("integer %d (%d)\n", yylval.num, INTEGER);
+                sscanf(yytext, "%lx", &yylval.num);
+                P("integer %ld (%d)\n", yylval.num, INTEGER);
 
                 return INTEGER;
               }   /* Un numero integer (hex) */
@@ -101,8 +101,8 @@ static char *deescape(char *in);
                 add_token(INTEGER, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
                 /* numero entero octal */
-                sscanf(yytext, "%o", &yylval.num);
-                P("integer %d (%d)\n", yylval.num, INTEGER);
+                sscanf(yytext, "%lo", &yylval.num);
+                P("integer %ld (%d)\n", yylval.num, INTEGER);
 
                 return INTEGER;
               }   /* Un numero integer (octal) */
@@ -111,8 +111,8 @@ static char *deescape(char *in);
                 add_token(INTEGER, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
                 /* numero entero decimal */
-                sscanf(yytext, "%d", &yylval.num);
-                P("integer %d (%d)\n", yylval.num, INTEGER);
+                sscanf(yytext, "%ld", &yylval.num);
+                P("integer %ld (%d)\n", yylval.num, INTEGER);
 
                 return INTEGER;
               }   /* Un numero integer (decimal) */
@@ -122,7 +122,7 @@ static char *deescape(char *in);
                 col_no += yyleng;
                 /* numero en punto flotante */
                 sscanf(yytext, "%lf", &yylval.val);
-                P("number %g (%d)\n", yylval.val, NUMBER);
+                P("number %.15lg (%d)\n", yylval.val, NUMBER);
 
                 return NUMBER;
               }   /* Un numero punto flotante  */
