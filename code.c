@@ -267,786 +267,276 @@ void swap_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
-void constpush(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> %.8lg", d.val);
-
-    UPDATE_PC();
-}
-
-void constpush_prt(const instr *i, const Cell *pc)
-{
-    PR("%.8lg\n", pc[1].val);
-}
-
-void constpush_c(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> " FMT_CHAR, d.chr);
-
-    UPDATE_PC();
-}
-
-void constpush_c_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_CHAR"\n", pc[1].chr);
-}
-
-void constpush_d(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> " FMT_DOUBLE, d.val);
-
-    UPDATE_PC();
-}
-
-void constpush_d_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_DOUBLE"\n", pc[1].val);
-}
-
-void constpush_f(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> "FMT_FLOAT, d.flt);
-
-    UPDATE_PC();
-}
-
-void constpush_f_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_FLOAT "\n", pc[1].flt);
-}
-
-void constpush_i(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> "FMT_INT, d.inum);
-
-    UPDATE_PC();
-}
-
-void constpush_i_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_INT "\n", pc[1].inum);
-}
-
-void constpush_l(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> " FMT_LONG, d.num);
-
-    UPDATE_PC();
-}
-
-void constpush_l_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_LONG "\n", pc[1].num);
-}
-
-void constpush_s(const instr *i) /* push constant onto stack */
-{
-    Cell d = pc[1];
-
-    push(d);
-
-    P_TAIL(": -> " FMT_SHORT, d.sht);
-
-    UPDATE_PC();
-}
-
-void constpush_s_prt(const instr *i, const Cell *pc)
-{
-    PR(FMT_SHORT "\n", pc[1].sht);
-}
-
-void datum_prog(const instr *i, Cell *pc, va_list args)
-{
-    static bool need_init = true;
-    static char fmt[100];
-
-    Cell c = progp[1] = va_arg(args, Cell);
-
-    PRG("{ .chr = "  FMT_CHAR
-        ", .val = "  FMT_DOUBLE
-        ", .flt = "  FMT_FLOAT
-        ", .inum = " FMT_INT
-        ", .num = "  FMT_LONG
-        ", .sht = "  FMT_SHORT,
-        c.chr,  c.val, c.flt,
-        c.inum, c.num, c.sht);
-}
-
-void add(const instr *i) /* add top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val + p2.val };
-
-    P_TAIL(": %lg + %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void add_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void add_d(const instr *i) /* add top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val + p2.val };
-
-    P_TAIL(": %lg + %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void add_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void add_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum + p2.inum };
-
-    P_TAIL(": %i + %i -> %i",
-            p1.inum, p2.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void add_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void add_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num + p2.num };
-
-    P_TAIL(": %li + %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void add_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void sub(const instr *i) /* subtract top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val - p2.val };
-
-    P_TAIL(": %lg - %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void sub_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void sub_d(const instr *i) /* subtract top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val - p2.val };
-
-    P_TAIL(": %lg - %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void sub_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void sub_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num - p2.num };
-
-    P_TAIL(": %li - %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void sub_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void sub_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num - p2.num };
-
-    P_TAIL(": %li - %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void sub_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mul(const instr *i) /* multiply top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val * p2.val };
-
-    P_TAIL(": %lg * %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mul_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mul_d(const instr *i) /* multiply top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val * p2.val };
-
-    P_TAIL(": %lg * %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mul_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mul_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num * p2.num };
-
-    P_TAIL(": %li * %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mul_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mul_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num * p2.num };
-
-    P_TAIL(": %li * %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mul_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void divi(const instr *i) /* divide top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val / p2.val };
-    P_TAIL(": %lg / %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void divi_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void divi_d(const instr *i) /* divide top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val / p2.val };
-    P_TAIL(": %lg / %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void divi_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void divi_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num / p2.num };
-    P_TAIL(": %li / %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void divi_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void divi_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num / p2.num };
-    P_TAIL(": %li / %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void divi_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mod(const instr *i) /* mod top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = fmod(p1.val, p2.val) };
-
-    P_TAIL(": %lg %% %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mod_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mod_d(const instr *i) /* mod top two elements on stack */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = fmod(p1.val, p2.val) };
-
-    P_TAIL(": %lg %% %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mod_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mod_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum % p2.inum };
-
-    P_TAIL(": %i %% %i -> %i",
-            p1.inum, p2.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mod_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void mod_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num % p2.num };
-
-    P_TAIL(": %li %% %li -> %li",
-            p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void mod_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void neg(const instr *i) /* change sign top element on stack */
-{
-    Cell d   = pop(),
-         res = { .val = -d.val };
-
-    P_TAIL(": d=%lg -> %lg",
-            d.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void neg_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void neg_d(const instr *i) /* change sign top element on stack */
-{
-    Cell d   = pop(),
-         res = { .val = -d.val };
-
-    P_TAIL(": d=%lg -> %lg",
-            d.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void neg_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void neg_i(const instr *i)
-{
-    Cell d   = pop(),
-         res = { .num = -d.num };
-
-    P_TAIL(": d=%li -> %li",
-            d.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void neg_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void neg_l(const instr *i)
-{
-    Cell d   = pop(),
-         res = { .num = -d.num };
-
-    P_TAIL(": d=%li -> %li",
-            d.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void neg_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void pwr(const instr *i) /* pow top two elements on stack */
-{
-    Cell e  = pop(),
-         b  = pop(),
-         res = { .val = pow(b.val, e.val) };
-
-    P_TAIL(": b=%lg, e=%lg -> %lg",
-            b.val, e.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void pwr_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void pwr_d(const instr *i) /* pow top two elements on stack */
-{
-    Cell exp  = pop(),
-         base = pop();
-
-    if (base.val == 0 && exp.val == 0 || exp.val < 0)
-        execerror("0.0 raised to 0.0 (or negative) not allowed");
-
-    Cell tgt  = { .val = pow(base.val, exp.val) };
-
-    P_TAIL(": base=%lg, exp=%lg -> %lg",
-            base.val, exp.val, tgt.val);
-
-    push(tgt);
-
-    UPDATE_PC();
-}
-
-void pwr_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void pwr_i(const instr *i) /* pow top two elements on stack */
-{
-    int base     = pop().inum;
-    unsigned exp = pop().inum;
-
-    if (base == 0 && exp == 0 || exp < 0)
-        execerror("0 raised to 0 not allowed");
-
-    Cell result = { .inum = fast_pwr_l(base, exp) };
-
-    push(result);
-
-    UPDATE_PC();
-}
-
-void pwr_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void pwr_l(const instr *i) /* pow top two elements on stack */
-{
-    long     base = pop().num;
-    unsigned exp  = pop().num;
-
-    if (base == 0 && exp == 0 || exp < 0)
-        execerror("0 raised to 0 not allowed");
-
-    Cell result = { .num = fast_pwr_l(base, exp) };
-
-    push(result);
-
-    UPDATE_PC();
-}
-
-void pwr_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void eval(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .val = var->val };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](%.15lg) -> %.15lg",
-        sym->name, var_addr, var->val, tgt.val);
-
-    UPDATE_PC();
-}
-
-void eval_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_c(const instr *i) /* evaluate global variable on stack */
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .inum = var->chr };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](0x%02hhx) -> %i",
-        sym->name, var_addr, var->chr, tgt.inum);
-
-    UPDATE_PC();
-}
-
-void eval_c_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_d(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .val = var->val };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](%.15lg) -> %.15lg",
-        sym->name, var_addr, var->val, tgt.val);
-
-    UPDATE_PC();
-}
-
-void eval_d_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_f(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .val = var->flt };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](%.8g) -> %.15lg",
-        sym->name, var_addr, var->flt, tgt.val);
-
-    UPDATE_PC();
-}
-
-void eval_f_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_i(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .inum = var->inum };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> %i",
-        sym->name, var_addr, tgt.inum);
-
-    UPDATE_PC();
-}
-
-void eval_i_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_l(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .num = var->num };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](%li) -> %li",
-        sym->name, var_addr, var->num, tgt.num);
-
-    UPDATE_PC();
-}
-
-void eval_l_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
-
-void eval_s(const instr *i)
-{
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    tgt      = { .inum = var->sht };
-
-    push(tgt);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"[%04x](0x%04hx) -> %i",
-        sym->name, var_addr, var->sht, tgt.inum);
-
-    UPDATE_PC();
-}
-
-void eval_s_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n",
-        pc[1].sym->name, pc[0].param);
-}
+/* ver instancias de esta macro mas abajo para saber el tipo
+ * de funcion que generan, ejemplo:
+ * void datum_c_prog(
+ *      const instr    *i
+ *      Cell           *pc,
+ *      va_list         args)
+ * {
+ *  Cell c = { .chr = va_arg(args, char) };
+ *
+ *  progp[1] = c;
+ *
+ *  PRG(" { .chr = " FMT_CHAR " }", c.chr);
+ * }
+ *
+ */
+#define DATUM_PROG(_typ, _suff, _fld, _fmt)        \
+    void datum##_suff##_prog(                      \
+            const instr    *i,                     \
+            Cell           *pc,                    \
+            va_list         args)                  \
+    {                                              \
+        Cell c =  { ._fld = va_arg(args, _typ) };  \
+                                                   \
+        progp[1] = c;                              \
+                                                   \
+        PRG("{ ." #_fld " = "  _fmt " }", c._fld); \
+    }
+
+DATUM_PROG(double,   , val,  FMT_DOUBLE)  /* la original */
+DATUM_PROG(int,    _c, chr,  FMT_CHAR)
+DATUM_PROG(double, _d, val,  FMT_DOUBLE)
+DATUM_PROG(double, _f, flt,  FMT_FLOAT)
+DATUM_PROG(int,    _i, inum, FMT_INT)
+DATUM_PROG(long,   _l, num,  FMT_LONG)
+DATUM_PROG(int,    _s, sht,  FMT_SHORT)
+
+#undef DATUM_PROG
+
+#define CONSTPUSH(_suff, _fld, _fmt)  /* { */ \
+        void constpush##_suff(const instr *i) \
+        {                                     \
+            Cell d = pc[1];                   \
+                                              \
+            push(d);                          \
+                                              \
+            P_TAIL(": -> " _fmt, d._fld);     \
+                                              \
+            UPDATE_PC();                      \
+        } /* constpush##_suff */              \
+                                              \
+        void constpush##_suff##_prt(          \
+                const instr *i,               \
+                const Cell *pc)               \
+        {                                     \
+            PR(" " _fmt "\n", pc[1]._fld);    \
+        } /* constpush##_suff##_prt      }{ */
+
+CONSTPUSH(,   val,  FMT_DOUBLE)
+CONSTPUSH(_c, chr,  FMT_CHAR)   /* push constant onto stack */
+CONSTPUSH(_d, val,  FMT_DOUBLE)
+CONSTPUSH(_f, flt,  FMT_FLOAT)
+CONSTPUSH(_i, inum, FMT_INT)
+CONSTPUSH(_l, num,  FMT_LONG)
+CONSTPUSH(_s, sht,  FMT_SHORT)
+
+#undef CONSTPUSH /*                      } */
+
+#define OP(_nam, _suff, _fld, _op, _fmt) /* { */    \
+    void _nam##_suff(const instr *i)                \
+    {                                               \
+        Cell p2  = pop(),                           \
+             p1  = pop(),                           \
+             res = { ._fld = p1._fld _op p2._fld }; \
+                                                    \
+        P_TAIL(": " _fmt " %s " _fmt " -> " _fmt,   \
+                p1._fld, #_op, p2._fld, res._fld);  \
+        push(res);                                  \
+                                                    \
+        UPDATE_PC();                                \
+    } /* add##_suff */                              \
+                                                    \
+    void _nam##_suff##_prt(                         \
+            const instr    *i,                      \
+            const Cell     *pc)                     \
+    {                                               \
+        PR("\n");                                   \
+    } /* _nam##_suff##_prt         }{ */
+
+OP(add,   , val,  +, FMT_DOUBLE)
+OP(add, _c, chr,  +, FMT_CHAR) /* add top two elements on stack */
+OP(add, _d, val,  +, FMT_DOUBLE)
+OP(add, _f, flt,  +, FMT_FLOAT)
+OP(add, _i, inum, +, FMT_INT)
+OP(add, _l, num,  +, FMT_LONG)
+OP(add, _s, sht,  +, FMT_SHORT)
+
+OP(sub,   , val,  -, FMT_DOUBLE) /* subtract two elements on stack */
+OP(sub, _c, chr,  -, FMT_CHAR)
+OP(sub, _d, val,  -, FMT_DOUBLE)
+OP(sub, _f, flt,  -, FMT_FLOAT)
+OP(sub, _i, inum, -, FMT_INT)
+OP(sub, _l, num,  -, FMT_LONG)
+OP(sub, _s, chr,  -, FMT_SHORT)
+
+OP(mul,   , val,  *, FMT_DOUBLE) /* multiply two elements on stack */
+OP(mul, _c, chr,  *, FMT_CHAR)
+OP(mul, _d, val,  *, FMT_DOUBLE)
+OP(mul, _f, flt,  *, FMT_FLOAT)
+OP(mul, _i, inum, *, FMT_INT)
+OP(mul, _l, num,  *, FMT_LONG)
+OP(mul, _s, chr,  *, FMT_SHORT)
+
+OP(divi,   , val,  /, FMT_DOUBLE) /* multiply two elements on stack */
+OP(divi, _c, chr,  /, FMT_CHAR)
+OP(divi, _d, val,  /, FMT_DOUBLE)
+OP(divi, _f, flt,  /, FMT_FLOAT)
+OP(divi, _i, inum, /, FMT_INT)
+OP(divi, _l, num,  /, FMT_LONG)
+OP(divi, _s, chr,  /, FMT_SHORT)
+
+OP(mod, _c, chr,  %, FMT_CHAR) /* multiply two elements on stack (only integers) */
+OP(mod, _l, num,  %, FMT_LONG)
+OP(mod, _i, inum, %, FMT_INT)
+OP(mod, _s, chr,  %, FMT_SHORT)
+
+OP(ge,,    val,  >=,  FMT_DOUBLE)
+OP(ge, _c, chr,  >=,  FMT_CHAR)
+OP(ge, _d, val,  >=,  FMT_DOUBLE)
+OP(ge, _f, flt,  >=,  FMT_FLOAT)
+OP(ge, _i, inum, >=,  FMT_INT)
+OP(ge, _l, num,  >=,  FMT_LONG)
+OP(ge, _s, sht,  >=,  FMT_SHORT)
+
+OP(le,,    val,  <=,  FMT_DOUBLE)
+OP(le, _c, chr,  <=,  FMT_CHAR)
+OP(le, _d, val,  <=,  FMT_DOUBLE)
+OP(le, _f, flt,  <=,  FMT_FLOAT)
+OP(le, _i, inum, <=,  FMT_INT)
+OP(le, _l, num,  <=,  FMT_LONG)
+OP(le, _s, sht,  <=,  FMT_SHORT)
+
+OP(gt,,    val,  >,  FMT_DOUBLE)
+OP(gt, _c, chr,  >,  FMT_CHAR)
+OP(gt, _d, val,  >,  FMT_DOUBLE)
+OP(gt, _f, flt,  >,  FMT_FLOAT)
+OP(gt, _i, inum, >,  FMT_INT)
+OP(gt, _l, num,  >,  FMT_LONG)
+OP(gt, _s, sht,  >,  FMT_SHORT)
+
+OP(lt,,    val,  <,  FMT_DOUBLE)
+OP(lt, _c, chr,  <,  FMT_CHAR)
+OP(lt, _d, val,  <,  FMT_DOUBLE)
+OP(lt, _f, flt,  <,  FMT_FLOAT)
+OP(lt, _i, inum, <,  FMT_INT)
+OP(lt, _l, num,  <,  FMT_LONG)
+OP(lt, _s, sht,  <,  FMT_SHORT)
+
+OP(eq,,    val,  ==,  FMT_DOUBLE)
+OP(eq, _c, chr,  ==,  FMT_CHAR)
+OP(eq, _d, val,  ==,  FMT_DOUBLE)
+OP(eq, _f, flt,  ==,  FMT_FLOAT)
+OP(eq, _i, inum, ==,  FMT_INT)
+OP(eq, _l, num,  ==,  FMT_LONG)
+OP(eq, _s, sht,  ==,  FMT_SHORT)
+
+OP(ne,,    val,  !=,  FMT_DOUBLE)
+OP(ne, _c, chr,  !=,  FMT_CHAR)
+OP(ne, _d, val,  !=,  FMT_DOUBLE)
+OP(ne, _f, flt,  !=,  FMT_FLOAT)
+OP(ne, _i, inum, !=,  FMT_INT)
+OP(ne, _l, num,  !=,  FMT_LONG)
+OP(ne, _s, sht,  !=,  FMT_SHORT)
+
+#undef OP  /* } */
+
+#define MOD(_suff, _fld, _fmt) /* { */                 \
+    void mod##_suff(const instr *i)                    \
+    {                                                  \
+        Cell p2  = pop(),                              \
+             p1  = pop(),                              \
+             res = { ._fld = fmod(p1._fld, p2._fld) }; \
+                                                       \
+        P_TAIL(": " _fmt " %% " _fmt " -> " _fmt,      \
+                p1._fld, p2._fld, res._fld);           \
+                                                       \
+        push(res);                                     \
+                                                       \
+        UPDATE_PC();                                   \
+    } /* mod##_suff */                                 \
+                                                       \
+    void mod##_suff##_prt(                             \
+            const instr *i,                            \
+            const Cell  *pc)                           \
+    {                                                  \
+        PR("\n");                                      \
+    } /* mod##_suff##_prt         }{ */
+
+MOD(,   val, FMT_DOUBLE)
+MOD(_d, val, FMT_DOUBLE) /* mod top two elements on stack */
+MOD(_f, val, FMT_FLOAT)
+
+#undef MOD /*                     } */
+
+#define UNARY_LOP(_name, _suff, _fld, _res, _op, _fmt) /* { */    \
+    void _name##_suff(const instr *i)       \
+    {                                     \
+        Cell d   = pop(),                 \
+             res = { ._res = _op d._fld };\
+                                          \
+        P_TAIL(": " #_op " " _fmt " -> " _fmt,   \
+                d._fld, res._fld);        \
+        push(res);                        \
+                                          \
+        UPDATE_PC();                      \
+    } /* _name##_suff */                    \
+                                          \
+    void _name##_suff##_prt(const instr *i, \
+            const Cell *pc)               \
+    {                                     \
+        PR("\n");                         \
+    } /* _name##_suff##_prt         }{ */
+
+UNARY_LOP(neg,,    val,  val,  -, FMT_DOUBLE)
+UNARY_LOP(neg, _c, chr,  chr,  -, FMT_CHAR) /* change sign top element on stack */
+UNARY_LOP(neg, _d, val,  val,  -, FMT_DOUBLE)
+UNARY_LOP(neg, _f, flt,  flt,  -, FMT_FLOAT)
+UNARY_LOP(neg, _i, inum, inum, -, FMT_INT)
+UNARY_LOP(neg, _l, num,  num,  -, FMT_LONG)
+UNARY_LOP(neg, _s, sht,  sht,  -, FMT_SHORT)
+
+UNARY_LOP(not,,    val,  inum, !, FMT_DOUBLE)
+UNARY_LOP(not, _c, chr,  inum, !, FMT_CHAR) /* boolean not top element on stack */
+UNARY_LOP(not, _d, val,  inum, !, FMT_DOUBLE)
+UNARY_LOP(not, _f, flt,  inum, !, FMT_FLOAT)
+UNARY_LOP(not, _i, inum, inum, !, FMT_INT)
+UNARY_LOP(not, _l, num,  inum, !, FMT_LONG)
+UNARY_LOP(not, _s, sht,  inum, !, FMT_SHORT)
+
+#undef NEG /*                     } */
+
+#define PWR(_suff, _fld, _fn, _fmt)  /* { */        \
+    void pwr##_suff(const instr *i)                 \
+    {                                               \
+        Cell e  = pop(),                            \
+             b  = pop(),                            \
+             res = { ._fld = _fn(b._fld, e._fld) }; \
+                                                    \
+        P_TAIL(": b=" _fmt ", e=" _fmt " -> " _fmt, \
+                b._fld, e._fld, res._fld);          \
+        push(res);                                  \
+                                                    \
+        UPDATE_PC();                                \
+    } /* pwr##_suff */                              \
+                                                    \
+    void pwr##_suff##_prt(                          \
+            const instr *i,                         \
+            const Cell  *pc)                        \
+    {                                               \
+        PR("\n");                                   \
+    } /* pwr##_suff##_prt               }{ */
+
+PWR(,   val,  pow,        FMT_DOUBLE)
+PWR(_c, chr,  fast_pwr_l, FMT_CHAR)   /* pow top two elements on stack */
+PWR(_d, val,  pow,        FMT_DOUBLE)
+PWR(_i, inum, fast_pwr_l, FMT_INT)
+PWR(_l, num,  fast_pwr_l, FMT_LONG)
+PWR(_f, flt,  pow,        FMT_FLOAT)
+PWR(_s, sht,  fast_pwr_l, FMT_SHORT)
+
+#undef PWR /*                           } */
 
 void symb_prog(const instr *i, Cell *pc, va_list args)
 {
@@ -1055,126 +545,183 @@ void symb_prog(const instr *i, Cell *pc, va_list args)
     pc[0].param  = sym->defn - prog;
     pc[1].sym   = sym;
 
-    PRG(" "GREEN"%s"ANSI_END"[%04x]", sym->name, pc[0].param);
+    PRG(" "GREEN"%s"ANSI_END"[%04x]",
+        sym->name, pc[0].param);
 }
 
-void assign(const instr *i) /* assign top value to next value */
+#define EVAL(_suff, _fld, _fmt) /* { */                \
+    void eval##_suff(const instr *i)                   \
+    {                                                  \
+        int     var_addr = pc[0].param;                \
+        Symbol *sym      = pc[1].sym;                  \
+        Cell   *var      = prog + var_addr;            \
+        Cell    tgt      = { ._fld = var->_fld };      \
+                                                       \
+        push(tgt);                                     \
+                                                       \
+        P_TAIL(": "GREEN"%s"ANSI_END"[%04x] -> " _fmt, \
+            sym->name, var_addr, tgt._fld);            \
+                                                       \
+        UPDATE_PC();                                   \
+    } /* eval##_suff */                                \
+                                                       \
+    void eval##_suff##_prt(                            \
+            const instr *i,                            \
+            const Cell  *pc)                           \
+    {                                                  \
+        PR(GREEN"%s"ANSI_END"[%04x]\n",                \
+            pc[1].sym->name, pc[0].param);             \
+    } /* eval##_suff##_prt               }{ */
+
+EVAL(,   val,  FMT_DOUBLE)
+EVAL(_c, chr,  FMT_CHAR)   /* evaluates a global variable */
+EVAL(_d, val,  FMT_DOUBLE)
+EVAL(_i, inum, FMT_INT)
+EVAL(_l, num,  FMT_LONG)
+EVAL(_s, sht,  FMT_SHORT)
+
+#undef EVAL /*                           } */
+
+#define ARGEVAL(_suff, _fld, _fmt) /* { */ \
+    void argeval##_suff(const instr *i)  \
+    {                                    \
+        int         arg = pc[0].param;   \
+        const char *nam = pc[1].str;     \
+        Cell        d   = *getarg(arg);  \
+                                         \
+        P_TAIL(": " GREEN "%s" ANSI_END  \
+            "<%+d> -> " _fmt,            \
+            nam, arg, d._fld);           \
+                                         \
+        push(d);                         \
+                                         \
+        UPDATE_PC();                     \
+    } /* argeval##_suff */               \
+                                         \
+    void argeval##_suff##_prt(           \
+            const instr *i,              \
+            const Cell  *pc)             \
+    {                                    \
+        PR(GREEN"%s"ANSI_END"<%+d>\n",   \
+            pc[1].str, pc[0].param);     \
+    } /* argeval##_suff##_prt         }{ */
+
+ARGEVAL(, val, FMT_DOUBLE)
+ARGEVAL(_c, chr, FMT_CHAR)   /* push local var onto stack */
+ARGEVAL(_d, val, FMT_DOUBLE)
+ARGEVAL(_f, flt, FMT_FLOAT)
+ARGEVAL(_i, inum, FMT_INT)
+ARGEVAL(_l, num, FMT_LONG)
+ARGEVAL(_s, sht, FMT_SHORT)
+
+#undef EVAL /*                        } */
+
+#define ASSIGN(_suff, _fld, _fmt) /* { */        \
+    void assign##_suff(const instr *i)           \
+    {                                            \
+        int     gvar_addr = pc[0].param;         \
+        Symbol *sym       = pc[1].sym;           \
+        Cell   *var       = prog + gvar_addr;    \
+        Cell    src       = top();               \
+                                                 \
+        *var = src;                              \
+                                                 \
+        P_TAIL(": " _fmt " -> "                  \
+                GREEN "%s" ANSI_END "[%04x]",    \
+                src._fld, sym->name, gvar_addr); \
+                                                 \
+        UPDATE_PC();                             \
+    } /* assign##_suff */                        \
+                                                 \
+    void assign##_suff##_prt(                    \
+            const instr *i,                      \
+            const Cell  *pc)                     \
+    {                                            \
+        PR(GREEN "%s" ANSI_END "[%04x]\n",       \
+            pc[1].sym->name, pc[0].param);       \
+    } /* assign##_suff##_prt         }{ */
+
+ASSIGN(,   val,  FMT_DOUBLE)
+ASSIGN(_c, chr,  FMT_CHAR)      /* assign top value to next value */
+ASSIGN(_d, val,  FMT_DOUBLE)
+ASSIGN(_f, flt,  FMT_FLOAT)
+ASSIGN(_i, inum, FMT_INT)
+ASSIGN(_l, num,  FMT_LONG)
+ASSIGN(_s, sht,  FMT_SHORT)
+
+#undef ASSIGN /*                     } */
+
+
+void arg_str_prog(const instr *i, Cell *pc, va_list args)
 {
-    int     var_addr = pc[0].param;
-    Symbol *sym      = pc[1].sym;
-    Cell   *var      = prog + var_addr;
-    Cell    src      = top();
-
-    *var = src;
-
-    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"[%04x]",
-           src.val, sym->name, var_addr);
-
-    UPDATE_PC();
+    pc[0].param = va_arg(args, int);
+    pc[1].str  = va_arg(args, char *);
+    PRG(" "GREEN"%s"ANSI_END"<%+d>", pc[1].str, pc[0].param);
 }
 
-void assign_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"[%04x]\n", pc[1].sym->name, pc[0].param);
-}
+#define ARGASSIGN(_suff, _fld, _fmt) /* { */ \
+    void argassign##_suff(const instr *i)    \
+    {                                        \
+        int  lvar_off = pc[0].param;         \
+        const char                           \
+            *name     = pc[1].str;           \
+        Cell                                 \
+            *var      = getarg(lvar_off),    \
+             src      = top();               \
+                                             \
+        *var = src;                          \
+                                             \
+        P_TAIL(": " _fmt " -> "              \
+                GREEN "%s" ANSI_END "<%+d>", \
+                src._fld, name, lvar_off);   \
+                                             \
+        UPDATE_PC();                         \
+    } /* argassign##_suff */                 \
+                                             \
+    void argassign##_suff##_prt(             \
+            const instr *i,                  \
+            const Cell  *pc)                 \
+    {                                        \
+        PR(GREEN "%s" ANSI_END "<%+d>\n",    \
+            pc[1].str, pc[0].param);         \
+    } /* argassign##_suff##_prt         }{ */
 
-void print(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
+ARGASSIGN(,   val,  FMT_DOUBLE)
+ARGASSIGN(_c, chr,  FMT_CHAR)   /* store top of stack in local var */
+ARGASSIGN(_d, val,  FMT_DOUBLE)
+ARGASSIGN(_f, flt,  FMT_FLOAT)
+ARGASSIGN(_i, inum, FMT_INT)
+ARGASSIGN(_l, num,  FMT_LONG)
+ARGASSIGN(_s, sht,  FMT_SHORT)
 
-    printf("\t\t%32.8g\n", d.val);
+#undef ARGASSIGN /*                     } */
 
-    UPDATE_PC();
-}
+#define PRINT_INST(_suff, _fld, _fmt) /* { */     \
+    void print##_suff(const instr *i)             \
+    {                                             \
+        Cell d = pop();                           \
+                                                  \
+        printf("\t\t\t\t\t\t" _fmt "\n", d._fld); \
+                                                  \
+        UPDATE_PC();                              \
+    } /* print##_suff */                          \
+                                                  \
+    void print##_suff##_prt(                      \
+            const instr *i,                       \
+            const Cell  *pc)                      \
+    {                                             \
+        PR("\n");                                 \
+    } /* print##_suff##_prt         }{ */
 
-void print_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
+PRINT_INST(,   val,  FMT_DOUBLE)
+PRINT_INST(_c, chr,  FMT_CHAR)   /* pop top value from stack, print it */
+PRINT_INST(_d, val,  FMT_DOUBLE)
+PRINT_INST(_f, flt,  FMT_FLOAT)
+PRINT_INST(_i, inum, FMT_INT)
+PRINT_INST(_l, num,  FMT_LONG)
+PRINT_INST(_s, sht,  FMT_SHORT)
 
-void print_c(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t0x%02hhx\n", d.chr);
-
-    UPDATE_PC();
-}
-
-void print_c_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void print_d(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t%32.15g\n", d.val);
-
-    UPDATE_PC();
-}
-
-void print_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void print_f(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t%32.7g\n", d.flt);
-
-    UPDATE_PC();
-}
-
-void print_f_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void print_i(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t%32i\n", d.inum);
-
-    UPDATE_PC();
-}
-
-void print_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void print_l(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t%32li\n", d.num);
-
-    UPDATE_PC();
-}
-
-void print_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void print_s(const instr *i) /* pop top value from stack, print it */
-{
-    Cell d = pop();
-
-    printf("\t\t0x%04hx\n", d.sht);
-
-    UPDATE_PC();
-}
-
-void print_s_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
+#undef PRINT /*                     } */
 
 void bltin0(const instr *i) /* evaluate built-in on top of stack */
 {
@@ -1353,576 +900,35 @@ void bltin2_l_prt(const instr *i, const Cell *pc)
     PR("%s\n", pc[1].sym->help);
 }
 
-void ge(const instr *i) /* greater or equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val >= p2.val };
-
-    P_TAIL(": %lg >= %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ge_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ge_d(const instr *i) /* greater or equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.val >= p2.val };
-
-    P_TAIL(": %lg >= %lg -> %li",
-            p1.val, p2.val, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ge_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ge_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum >= p2.inum };
-
-    P_TAIL(": %i >= %i -> %i",
-            p1.inum, p2.inum, res.inum);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ge_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ge_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num >= p2.num };
-
-    P_TAIL(": %li >= %li -> %li",
-            p1.num, p2.num, res.num);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ge_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void le(const instr *i) /* less or equal */
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .val = p1.val <= p2.val };
-
-    P_TAIL(": %lg <= %lg -> %lg",
-            p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void le_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void le_d(const instr *i) /* less or equal */
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .num = p1.val <= p2.val };
-
-    P_TAIL(": %lg <= %lg -> %i",
-            p1.val, p2.val, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void le_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void le_i(const instr *i)
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .inum = p1.inum <= p2.inum };
-
-    P_TAIL(": %i <= %i -> %i",
-            p1.inum, p2.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void le_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void le_l(const instr *i)
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .num = p1.num <= p2.num };
-
-    P_TAIL(": %li <= %li -> %li", p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void le_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void gt(const instr *i) /* greater than */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val > p2.val };
-
-    P_TAIL(": %lg > %lg -> %lg", p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void gt_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void gt_d(const instr *i) /* greater than */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.val > p2.val };
-
-    P_TAIL(": %lg > %lg -> %li", p1.val, p2.val, res.num);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void gt_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void gt_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum > p2.inum };
-
-    P_TAIL(": %i > %i -> %i", p1.inum, p2.inum, res.inum);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void gt_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void gt_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.num > p2.num };
-
-    P_TAIL(": %li > %li -> %li", p1.num, p2.num, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void gt_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void lt(const instr *i) /* less than */
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .val = p1.val < p2.val };
-
-    P_TAIL(": %lg < %lg -> %lg", p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void lt_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void lt_d(const instr *i) /* less than */
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .num = p1.val < p2.val };
-
-    P_TAIL(": %lg < %lg -> %li", p1.val, p2.val, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void lt_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void lt_i(const instr *i)
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .inum = p1.inum < p2.inum };
-
-    P_TAIL(": %i < %i -> %i", p1.inum, p2.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void lt_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void lt_l(const instr *i)
-{
-    Cell  p2  = pop(),
-          p1  = pop(),
-          res = { .inum = p1.num < p2.num };
-
-    P_TAIL(": %li < %li -> %i", p1.num, p2.num, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void lt_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void eq(const instr *i) /* equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val == p2.val };
-
-    P_TAIL(": %lg == %lg -> %lg", p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void eq_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void eq_d(const instr *i) /* equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.val == p2.val };
-
-    P_TAIL(": %lg == %lg -> %li", p1.val, p2.val, res.num);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void eq_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void eq_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum == p2.inum };
-
-    P_TAIL(": %i == %i -> %i", p1.inum, p2.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void eq_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void eq_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.num == p2.num };
-
-    P_TAIL(": %li == %li -> %i", p1.num, p2.num, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void eq_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ne(const instr *i) /* not equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .val = p1.val != p2.val };
-
-    P_TAIL(": %lg != %lg -> %lg", p1.val, p2.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ne_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ne_d(const instr *i) /* not equal */
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .num = p1.val != p2.val };
-
-    P_TAIL(": %lg != %lg -> %li", p1.val, p2.val, res.num);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ne_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ne_i(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.inum != p2.inum };
-
-    P_TAIL(": %i != %i -> %i",
-        p1.inum, p2.inum, res.inum);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ne_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void ne_l(const instr *i)
-{
-    Cell p2  = pop(),
-         p1  = pop(),
-         res = { .inum = p1.num != p2.num };
-
-    P_TAIL(": %li != %li -> %i", p1.num, p2.num, res.inum);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void ne_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void not(const instr *i) /* not */
-{
-    Cell p  = pop(),
-         res = { .val = ! p.val };
-
-    P_TAIL(": ! %lg -> %lg", p.val, res.val);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void not_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void not_d(const instr *i) /* not */
-{
-    Cell p  = pop(),
-         res = { .inum = ! p.val };
-
-    P_TAIL(": ! %lg -> %i", p.val, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void not_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void not_i(const instr *i) /* not */
-{
-    Cell p  = pop(),
-         res = { .inum = ! p.inum };
-
-    P_TAIL(": ! %i -> %i", p.inum, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void not_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void not_l(const instr *i) /* not */
-{
-    Cell p  = pop(),
-         res = { .inum = ! p.num };
-
-    P_TAIL(": ! %li -> %i", p.num, res.inum);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void not_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void and_then(const instr *i)  /* and_then */
-{
-    Cell        d  = top();
-    const char *op = d.val
-                   ? " drop;"
-                   : "";
-
-    if (d.val) {
-        pop();
-        UPDATE_PC();
-    } else {
-        pc = prog + pc[0].param;
-    }
-
-    P_TAIL(": %lg &&%s -> [%04lx]", d.val, op, pc - prog);
-}
-
-void and_then_prt(const instr *i, const Cell *pc)
-{
-    PR("[%04x]\n", pc[0].param);
-}
-
-void and_then_i(const instr *i)  /* and_then */
-{
-    Cell        d  = top();
-    const char *op = d.num
-                   ? " drop;"
-                   : "";
-
-    if (d.num) {
-        pop();
-        UPDATE_PC();
-    } else {
-        pc = prog + pc[0].param;
-    }
-
-    P_TAIL(": %li &&%s -> [%04lx]", d.num, op, pc - prog);
-}
-
-void and_then_i_prt(const instr *i, const Cell *pc)
-{
-    PR("[%04x]\n", pc[0].param);
-}
-
-void or_else(const instr *i)  /* or_else */
-{
-    Cell d = top();
-    const char *op = d.val ? " drop;" : "";
-
-    if (!d.val) {
-        pop();
-        UPDATE_PC();
-    } else {
-        pc = prog + pc[0].param;
-    }
-    P_TAIL(": %lg ||%s -> [%04lx]",
-        d.val, op, pc - prog);
-}
-
-void or_else_prt(const instr *i, const Cell *pc)
-{
-    PR("[%04x]\n", pc[0].param);
-}
-
-void or_else_i(const instr *i)  /* or_else */
-{
-    Cell d = top();
-    const char *op = d.num ? " drop;" : "";
-
-    if (!d.num) {
-        pop();
-        UPDATE_PC();
-    } else {
-        pc = prog + pc[0].param;
-    }
-    P_TAIL(": %li ||%s -> [%04lx]",
-        d.num, op, pc - prog);
-}
-
-void or_else_i_prt(const instr *i, const Cell *pc)
-{
-    PR("[%04x]\n", pc[0].param);
-}
+#define AND_THEN_OR_ELSE(_name, _suff, _fld, _op, _ops, _fmt) /* { */\
+    void _name##_suff(const instr *i)            \
+    {                                            \
+        Cell        d  = top();                  \
+        const char *op = d._fld ? " drop;" : ""; \
+                                                 \
+        if (_op d._fld) {                        \
+            pop();                               \
+            UPDATE_PC();                         \
+        } else {                                 \
+            pc = prog + pc[0].param;             \
+        }                                        \
+                                                 \
+        P_TAIL(": " _fmt " " #_ops               \
+            " %s -> [%04lx]",                    \
+            d._fld, op, pc - prog);              \
+    } /* _name##_suff */                         \
+                                                 \
+    void _name##_suff##_prt(                     \
+            const instr *i,                      \
+            const Cell  *pc)                     \
+    {                                            \
+        PR("[%04x]\n", pc[0].param);             \
+    } /* _name##_suff##_prt                                      }{*/
+
+AND_THEN_OR_ELSE(and_then,, inum, , "&&", FMT_INT)
+AND_THEN_OR_ELSE(or_else,,  val, !, "||", FMT_DOUBLE)
+
+#undef AND_THEN_OR_ELSE /*                                       } */
 
 /* se llama al definir una funcion (o procedimiento) */
 Symbol *define(
@@ -1997,236 +1003,7 @@ Cell *getarg(int offset)    /* return a pointer to argument */
 void arg_prog(const instr *i, Cell *pc, va_list args)
 {
     pc[0].param = va_arg(args, int);
-    PRG(" %+d", pc[0].param);
-}
-
-void arg_str_prog(const instr *i, Cell *pc, va_list args)
-{
-    pc[0].param = va_arg(args, int);
-    pc[1].str  = va_arg(args, char *);
-    PRG(" "GREEN"%s"ANSI_END"<%+d>", pc[1].str, pc[0].param);
-}
-
-void argeval(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %.8g", nam, arg, d.val);
-
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argeval_c(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> 0x%02x", nam, arg, d.chr);
-
-    d.num = d.chr;
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_c_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argeval_d(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %.15lg", nam, arg, d.val);
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_d_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argeval_f(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %.7g", nam, arg, d.flt);
-
-    d.val = d.flt;
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_f_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argeval_i(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %i", nam, arg, d.inum);
-
-    d.num = d.inum;
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_i_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argeval_l(const instr *i) /* push argument onto stack */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = *getarg(arg);
-
-    P_TAIL(": "GREEN"%s"ANSI_END"<%+d> -> %li", nam, arg, d.num);
-    push(d);
-
-    UPDATE_PC();
-}
-
-void argeval_l_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argassign(const instr *i) /* store top of stack in argument */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->val = d.val;
-    P_TAIL(": %.8g -> "GREEN"%s"ANSI_END"<%+d>", d.val, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_prt(const instr *i, const Cell *pc)
-{
-    PR(GREEN"%s"ANSI_END"<%+d>\n", pc[1].str, pc[0].param);
-}
-
-void argassign_c(const instr *i) /* store top of stack in argument */
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->chr = d.num;
-    P_TAIL(": 0x%02hhx -> "GREEN"%s"ANSI_END"<%+d>",
-           ref->chr, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_c_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void argassign_d(const instr *i)
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->val = d.val;
-    P_TAIL(": %.15lg -> "GREEN"%s"ANSI_END"<%+d>",
-            ref->val, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_d_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void argassign_f(const instr *i)
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->flt = d.val;
-    P_TAIL(": %.15g -> "GREEN"%s"ANSI_END"<%+d>",
-            ref->flt, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_f_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void argassign_i(const instr *i)
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->inum = d.num;
-    P_TAIL(": %i -> "GREEN"%s"ANSI_END"<%+d>",
-            ref->inum, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_i_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
-}
-
-void argassign_l(const instr *i)
-{
-    int         arg = pc[0].param;
-    const char *nam = pc[1].str;
-    Cell        d   = top();
-    Cell       *ref = getarg(arg);
-
-    ref->num = d.num;
-    P_TAIL(": %li -> "GREEN"%s"ANSI_END"<%+d>",
-            ref->num, nam, arg);
-
-    UPDATE_PC();
-}
-
-void argassign_l_prt(const instr *i, const Cell *pc)
-{
-    PR("\n");
+    PRG(" <%+d>", pc[0].param);
 }
 
 void prstr(const instr *i) /* print string */
@@ -2444,6 +1221,8 @@ void noop_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
+/* LCU: Mon Sep 29 15:31:44 -05 2025
+ * TODO: desde aqui... { */
 void inceval(const instr *i) /* 1. incremento, 2. evaluo la variable */
 {
     int     addr = pc[0].param;
@@ -5239,6 +4018,9 @@ void pwrarg_s_prt(const instr *i, const Cell *pc)
 {
     PR("\n");
 }
+
+/* LCU: Mon Sep 29 15:37:22 -05 2025
+ * Hasta aqui... ufff... todo para eliminar!!! } */
 
 void spadd(const instr *i) /* pop n elementos de la pila */
 {

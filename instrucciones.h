@@ -11,12 +11,12 @@ INST(drop,1)                                   /* elimina un valor de la pila */
 INST(dupl,1)                                   /* Duplicar celda */
 INST(swap,1)                                   /* Intercambiar celda */
 INST(constpush,2,   SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
-INST(constpush_c,2, SUFF(void, datum, prog))   /* introduce un valor constante en la pila */
-INST(constpush_d,2, SUFF(void, datum, prog))
-INST(constpush_f,2, SUFF(void, datum, prog))
-INST(constpush_i,2, SUFF(void, datum, prog))
-INST(constpush_l,2, SUFF(void, datum, prog))
-INST(constpush_s,2, SUFF(void, datum, prog))
+INST(constpush_c,2, SUFF(void, datum_c, prog))   /* introduce un valor constante en la pila */
+INST(constpush_d,2, SUFF(void, datum_d, prog))
+INST(constpush_f,2, SUFF(void, datum_f, prog))
+INST(constpush_i,2, SUFF(void, datum_i, prog))
+INST(constpush_l,2, SUFF(void, datum_l, prog))
+INST(constpush_s,2, SUFF(void, datum_s, prog))
 INST(add,1)                                    /* suma los dos valores top de la pila */
 INST(add_d,1)
 INST(add_i,1)
@@ -47,6 +47,8 @@ INST(pwr_i,1)
 INST(pwr_l,1)
 INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
 INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
+INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(print,1)                                  /* imprime X */
 INST(print_c,1)
 INST(print_d,1)
@@ -89,8 +91,6 @@ INST(and_then,1,    SUFF(void, addr, prog))    /* operador Y && X (con cortocirc
 INST(or_else,1,     SUFF(void, addr, prog))    /* operador Y || X (con cortocircuito) */
 INST(call,2,        SUFF(void, symb, prog))    /* llama a una subrutina con los parametros de la pila */
 INST(ret,1)                                    /* retorna de un procedimiento definido por el usuario */
-INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
-INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(prstr,2,       SUFF(void, str, prog))     /* imprime una cadena */
 INST(prexpr,1)                                 /* imprime una expresion */
 INST(prexpr_c,1)                               /* imprime una expresion */

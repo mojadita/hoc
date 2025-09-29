@@ -627,12 +627,10 @@ op_exp
     ;
 
 prim: '(' expr ')'          { $$ = $2; }
-    | NUMBER                { Cell c = { .val = $1 };
-                              $$.cel = CODE_INST_TYP(Double, constpush, c);
+    | NUMBER                { $$.cel = CODE_INST_TYP(Double, constpush, $1);
                               $$.typ = Double;
                             }
-    | INTEGER               { Cell c = { .inum = $1 };
-                              $$.cel = CODE_INST_TYP(Integer, constpush, c);
+    | INTEGER               { $$.cel = CODE_INST_TYP(Integer, constpush, $1);
                               $$.typ = Integer;
                             }
 
