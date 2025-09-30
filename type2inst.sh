@@ -7,5 +7,51 @@
 # License: BSD
 #
 
-grep "INST([a-zA-Z_][_A-Za-z0-9]*$1," instrucciones.h \
-| sed -e "s/INST(\([a-zA-Z_][_A-Za-z0-9]*\)$1,.*/    .\1        = instruction_set + INST_\1$1,/"
+TARGET=type2inst.c-prueba
+DATE="$(LANG=C date)"
+YEAR="$(LANG=C date +%Y)"
+
+cmd() {
+	grep "INST([a-zA-Z_][_A-Za-z0-9]*${1}," \
+         instrucciones.h \
+    | sed -e "s/INST(\([a-zA-Z_][_A-Za-z0-9]*\)${1},.*/    .\1        = instruction_set + INST_\1${1},/"
+}
+
+cat <<b549d7fa-9e0c-11f0-9aa0-0023ae68f329 #> "${TARGET}"
+/* ${TARGET} -- tablas de punteros a instrucciones para
+ *                cada tipo.
+ * Author: Edward Rivas <rivastkw@gmail.com>
+ * Date: ${DATE}
+ * Copyright: (c) ${YEAR} Edward Rivas.  All rights reserved.
+ * License: BSD
+ * NOTE: This file generated automatically, don't edit.
+ */
+
+#include "type2inst.h"
+
+type2inst t2i_c = {
+
+$(cmd _c)
+
+}, t2i_d = {
+
+$(cmd _d)
+
+}, t2i_f = {
+
+$(cmd _d)
+
+}, t2i_i = {
+
+$(cmd _i)
+
+}, t2i_l = {
+
+$(cmd _l)
+
+},  t2i_s = {
+
+$(cmd _s)
+
+}; /* t2i_s */
+b549d7fa-9e0c-11f0-9aa0-0023ae68f329

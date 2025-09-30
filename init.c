@@ -94,7 +94,22 @@ static struct predefined_types { /* predefined types */
                                 * for type mapping */
     const char       *fmt;     /* format string */
 } builtin_types [] = {
-    { .name    = "char",
+    /* LCU: Tue Sep 30 11:35:26 -05 2025
+     * Los tipos de esta tabla estan ordenados por pesos,
+     * a fin de calcular que operando debe ser promocionado
+     * a la hora de usarlo con un operador.  Si bien se
+     * puede cambiar el orden, es mejor no hacerlo para
+     * evitar errores al renumerar los tipos en caso de
+     * tener que hacer una insercion. */
+    { .name    = "string",
+      .size    = 1,
+      .align   = 1,
+      .one     = NULL,
+      .sym_ref = &String,
+      .t2i     = NULL,
+      .fmt     = "%s",
+    }, {
+      .name    = "char",
       .size    = 1,
       .align   = 1,
       .one     = &one_c,
@@ -103,11 +118,20 @@ static struct predefined_types { /* predefined types */
       .t2i     = &t2i_c,
       .fmt     = FMT_CHAR,
     }, {
+      .name    = "short",
+      .size    = 1,
+      .align   = 1,
+      .one     = &one_s,
+      .weight  = 1,
+      .sym_ref = &Short,
+      .t2i     = &t2i_s,
+      .fmt     = FMT_SHORT,
+    }, {
       .name    = "int",
       .size    = 1,
       .align   = 1,
-      .one     = &one_d,
-      .weight  = 1,
+      .one     = &one_i,
+      .weight  = 2,
       .sym_ref = &Integer,
       .t2i     = &t2i_i,
       .fmt     = FMT_INT,
@@ -115,8 +139,8 @@ static struct predefined_types { /* predefined types */
       .name    = "long",
       .size    = 1,
       .align   = 1,
-      .one     = &one_f,
-      .weight  = 2,
+      .one     = &one_l,
+      .weight  = 3,
       .sym_ref = &Long,
       .t2i     = &t2i_l,
       .fmt     = FMT_LONG,
@@ -124,8 +148,8 @@ static struct predefined_types { /* predefined types */
       .name    = "float",
       .size    = 1,
       .align   = 1,
-      .one     = &one_i,
-      .weight  = 3,
+      .one     = &one_f,
+      .weight  = 4,
       .sym_ref = &Float,
       .t2i     = &t2i_f,
       .fmt     = FMT_FLOAT,
@@ -133,20 +157,11 @@ static struct predefined_types { /* predefined types */
       .name    = "double",
       .size    = 1,
       .align   = 1,
-      .one     = &one_l,
-      .weight  = 4,
+      .one     = &one_d,
+      .weight  = 5,
       .sym_ref = &Double,
       .t2i     = &t2i_d,
       .fmt     = FMT_DOUBLE,
-    }, {
-      .name    = "string",
-      .size    = 1,
-      .align   = 1,
-      .one     = &one_s,
-      .weight  = -1,
-      .sym_ref = &String,
-      .t2i     = NULL,
-      .fmt     = "%s",
     }, {
       .name    = NULL,
     },

@@ -171,7 +171,7 @@ list: /* empty */
     | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
     | list expr  '\n'  { code_conv_val($2.typ, Prev->typref);
-                         CODE_INST(assign, Prev);
+                         CODE_INST_TYP(Prev->typref, assign, Prev);
                          CODE_INST(print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
@@ -305,7 +305,7 @@ gvar_decl_list
                                       Symbol *s = register_global_var($3.name, $$.typref);
                                       if ($3.start) {
                                           code_conv_val($3.typref, $1.typref);
-                                          CODE_INST(assign, s);
+                                          CODE_INST_TYP($1.typref, assign, s);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -315,7 +315,7 @@ gvar_decl_list
                                       if ($2.start) {
 
                                           code_conv_val($2.typref, $1);
-                                          CODE_INST(assign, s);
+                                          CODE_INST_TYP($1, assign, s);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -429,25 +429,33 @@ stmtlist
 expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
     | VAR    '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
-                             CODE_INST(assign, $1);
+                             CODE_INST_TYP($1->typref, assign, $1);
                            }
     | LVAR   '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
-                             CODE_INST(argassign, $1->offset, $1->name);
+                             CODE_INST_TYP($1->typref, argassign, $1->offset, $1->name);
                            }
-    | VAR   op_assign expr { $$.cel = $3.cel;
-                             $$.typ = $1->typref;
-                             /* LCU:  Sat Sep 27 02:16:25 -05 2025
-                              * TODO: voy por aqui. */
+    | VAR   op_assign expr { $$ = $3;
+                             /* LCU: Tue Sep 30 11:24:06 -05 2025
+                              * TODO: PROBANDO VOY, PROBANDO VENGO. :) */
+                             if ($3.typ->weight < $1->typref->weight) {
+                                 $$.typ = $1->typref;
+                                 code_conv_val($3.typ, $1->typref);
+                             }
+                             CODE_INST_TYP($1->typref, eval, $1);
+                             if ($1->typref->weight < $3.typ->weight) {
+                                 $$.typ = $3.typ;
+                                 code_conv_val($1->typref, $3.typ);
+                             }
                              switch ($2) {
-                             case '=':     CODE_INST(assign, $1); break;
-                             case PLS_EQ:  CODE_INST(addvar, $1); break;
-                             case MIN_EQ:  CODE_INST(subvar, $1); break;
-                             case MUL_EQ:  CODE_INST(mulvar, $1); break;
-                             case DIV_EQ:  CODE_INST(divvar, $1); break;
-                             case MOD_EQ:  CODE_INST(modvar, $1); break;
-                             case PWR_EQ:  CODE_INST(pwrvar, $1); break;
+                             case PLS_EQ:  CODE_INST_TYP($$.typ, add,  $1); break;
+                             case MIN_EQ:  CODE_INST_TYP($$.typ, sub,  $1); break;
+                             case MUL_EQ:  CODE_INST_TYP($$.typ, mul,  $1); break;
+                             case DIV_EQ:  CODE_INST_TYP($$.typ, divi, $1); break;
+                             case MOD_EQ:  CODE_INST_TYP($$.typ, mod,  $1); break;
+                             case PWR_EQ:  CODE_INST_TYP($$.typ, pwr,  $1); break;
                              } /* switch */
+                             CODE_INST_TYP($3.typ, assign, $1);
                            }
     | LVAR op_assign expr  { $$.cel = $3.cel;
                              $$.typ = $1->typref;
@@ -668,7 +676,7 @@ prim: '(' expr ')'          { $$ = $2; }
                               $$.typ = $1->typref; }
     | VAR     MIN_MIN       { $$.cel = CODE_INST(evaldec, $1);
                               $$.typ = $1->typref; }
-    | VAR                   { $$.cel = CODE_INST(eval,    $1);
+    | VAR                   { $$.cel = CODE_INST_TYP($1->typref, eval,    $1);
                               $$.typ = $1->typref; }
 
     | PLS_PLS LVAR          { $$.cel = CODE_INST(incarg,  $2->offset, $2->name);
@@ -679,7 +687,8 @@ prim: '(' expr ')'          { $$ = $2; }
                               $$.typ = $1->typref; }
     | LVAR    MIN_MIN       { $$.cel = CODE_INST(argdec,  $1->offset, $1->name);
                               $$.typ = $1->typref; }
-    | LVAR                  { $$.cel = CODE_INST(argeval, $1->offset, $1->name);
+    | LVAR                  { $$.cel = CODE_INST_TYP(
+                                     $1->typref, argeval, $1->offset, $1->name);
                               $$.typ = $1->typref; }
 
     | CONST                 { $$.cel = CODE_INST(constpush, $1->val);

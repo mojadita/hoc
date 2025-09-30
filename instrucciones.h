@@ -46,7 +46,19 @@ INST(pwr_d,1)
 INST(pwr_i,1)
 INST(pwr_l,1)
 INST(eval,2,        SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_c,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_d,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_f,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_i,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_l,2,      SUFF(void, symb, prog))    /* evalua una variable */
+INST(eval_s,2,      SUFF(void, symb, prog))    /* evalua una variable */
 INST(assign,2,      SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_c,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_d,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_f,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_i,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_l,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
+INST(assign_s,2,    SUFF(void, symb, prog))    /* asigna X a una variable */
 INST(argeval,2,     SUFF(void, arg_str, prog)) /* evalua un argumento y lo pone en la pila. */
 INST(argassign,2,   SUFF(void, arg_str, prog)) /* asigna el top de la pila a $n.  X -> $n */
 INST(print,1)                                  /* imprime X */

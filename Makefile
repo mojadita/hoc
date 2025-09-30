@@ -63,6 +63,9 @@ clean:
 hoc hoc.out: $(hoc_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc_objs) $(hoc_libs)
 
+type2inst.c: type2inst.sh
+	./type2inst.sh >$@
+
 ##
 ##  Crear un .c a partir de un .y
 .y.c:
