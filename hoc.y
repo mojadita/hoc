@@ -170,9 +170,16 @@ list: /* empty */
 
     | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list expr  '\n'  { code_conv_val($2.typ, Prev->typref);
+    | list expr  '\n'  { bool expr_type_ne_prev_type = $2.typ != Prev->typref;
+                         if (expr_type_ne_prev_type) {
+                            CODE_INST(dupl);
+                         }
+                         code_conv_val($2.typ, Prev->typref);
                          CODE_INST_TYP(Prev->typref, assign, Prev);
-                         CODE_INST(print);
+                         if (expr_type_ne_prev_type) {
+                            CODE_INST(drop);
+                         }
+                         CODE_INST_TYP($2.typ, print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
     | list error '\n' {  yyerrok;
@@ -436,53 +443,61 @@ expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
                              CODE_INST_TYP($1->typref, argassign, $1->offset, $1->name);
                            }
     | VAR   op_assign expr { $$ = $3;
-                             /* LCU: Tue Sep 30 11:24:06 -05 2025
-                              * TODO: PROBANDO VOY, PROBANDO VENGO. :) */
-                             if ($3.typ->weight < $1->typref->weight) {
-                                 $$.typ = $1->typref;
-                                 code_conv_val($3.typ, $1->typref);
-                             }
-                             CODE_INST_TYP($1->typref, eval, $1);
-                             if ($1->typref->weight < $3.typ->weight) {
-                                 $$.typ = $3.typ;
-                                 code_conv_val($1->typref, $3.typ);
-                             }
-                             switch ($2) {
-                             case PLS_EQ:  CODE_INST_TYP($$.typ, add,  $1); break;
-                             case MIN_EQ:  CODE_INST_TYP($$.typ, sub,  $1); break;
-                             case MUL_EQ:  CODE_INST_TYP($$.typ, mul,  $1); break;
-                             case DIV_EQ:  CODE_INST_TYP($$.typ, divi, $1); break;
-                             case MOD_EQ:  CODE_INST_TYP($$.typ, mod,  $1); break;
-                             case PWR_EQ:  CODE_INST_TYP($$.typ, pwr,  $1); break;
-                             } /* switch */
-                             CODE_INST_TYP($3.typ, assign, $1);
+                             /* LCU: Wed Oct  1 14:44:15 -05 2025
+                              *
+                              * The next code is encoded as a macro, as it
+                              * is repeated below, for the next rule, but
+                              * changing the parameters associated to the
+                              * eval/assign vs the argeval/argassign
+                              * instructions respectively.
+                              *
+                              * NOTE: do not move this macro definition from
+                              * this place, as the macro substitution is made
+                              * in the C code (after the substitution of the
+                              * $<n> arguments are made in yacc, breaking the
+                              * context of what gets substituted.
+                              */
+#define VAR_OPASSIGN_EXPR(_eval, _assign) do {                                                               \
+                                 const Symbol *var       = $1,                                               \
+                                              *var_type  = var->typref,                                      \
+                                              *exp_type  = $3.typ,                                           \
+                                              *res_type  = exp_type;                                         \
+                                 const int     op        = $2;                                               \
+                                                                                                             \
+                                 if (exp_type->weight < var_type->weight) {                                  \
+                                     res_type = var_type;                                                    \
+                                     code_conv_val(exp_type, res_type); /* convert expr to var type */       \
+                                 }                                                                           \
+                                 CODE_INST_TYP(res_type, _eval, var);   /* variable evaluation */            \
+                                 if (var_type->weight < exp_type->weight) {                                  \
+                                     code_conv_val(var_type, res_type); /* convert var to expr type */       \
+                                 }                                                                           \
+                                 CODE_INST(swap);                       /* swap them */                      \
+                                 switch (op) {                                                               \
+                                 case PLS_EQ:  CODE_INST_TYP(res_type, add,  $1); break;                     \
+                                 case MIN_EQ:  CODE_INST_TYP(res_type, sub,  $1); break;                     \
+                                 case MUL_EQ:  CODE_INST_TYP(res_type, mul,  $1); break;                     \
+                                 case DIV_EQ:  CODE_INST_TYP(res_type, divi, $1); break;                     \
+                                 case MOD_EQ:  CODE_INST_TYP(res_type, mod,  $1); break;                     \
+                                 case PWR_EQ:  CODE_INST_TYP(res_type, pwr,  $1); break;                     \
+                                 } /* switch */                                                              \
+                                 bool different_types = (res_type != var_type);                              \
+                                 if (different_types) {                   /* if variable type != expr type */\
+                                     CODE_INST(dupl);                     /* duplicate result */             \
+                                     code_conv_val(res_type, var_type);   /* convert back to variable type */\
+                                 }                                                                           \
+                                 CODE_INST_TYP(var_type, _assign, $1);    /* assign to variable */           \
+                                 if (different_types) {                   /* ... and drop */                 \
+                                     CODE_INST(drop);     /**/                                               \
+                                 }                                                                           \
+                             } while (0) /* VAR_OPASSIGN_EXPR */
+
+                             VAR_OPASSIGN_EXPR(eval, assign);
                            }
-    | LVAR op_assign expr  { $$.cel = $3.cel;
-                             $$.typ = $1->typref;
-                             code_conv_val($3.typ, $1->typref);
-                             switch ($2) {
-                             case '=':
-                                 CODE_INST(argassign, $1->offset, $1->name);
-                                 break;
-                             case PLS_EQ:
-                                 CODE_INST(addarg, $1->offset, $1->name);
-                                 break;
-                             case MIN_EQ:
-                                 CODE_INST(subarg, $1->offset, $1->name);
-                                 break;
-                             case MUL_EQ:
-                                 CODE_INST(mularg, $1->offset, $1->name);
-                                 break;
-                             case DIV_EQ:
-                                 CODE_INST(divarg, $1->offset, $1->name);
-                                 break;
-                             case MOD_EQ:
-                                 CODE_INST(modarg, $1->offset, $1->name);
-                                 break;
-                             case PWR_EQ:
-                                 CODE_INST(pwrarg, $1->offset, $1->name);
-                                 break;
-                             } /* switch */
+    | LVAR op_assign expr  { $$ = $3;
+                             /* LCU: Wed Oct  1 14:51:06 -05 2025
+                              * See above */
+                             VAR_OPASSIGN_EXPR(argeval, argassign);
                            }
     | expr_or
     ;
