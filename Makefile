@@ -63,7 +63,7 @@ clean:
 hoc hoc.out: $(hoc_objs)
 	$(CC) $(LDFLAGS) -o $@ $(hoc_objs) $(hoc_libs)
 
-type2inst.c: type2inst.sh
+type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
 
 ##

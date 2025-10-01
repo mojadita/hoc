@@ -206,7 +206,7 @@ stmt
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
                              code_conv_val($2.typ, indef->typref);
-                             CODE_INST(argassign,
+                             CODE_INST_TYP(indef->typref, argassign,
                                        indef->size_args + UQ_SIZE_FP_RETADDR,
                                        "{RET_VAL} ");
                              CODE_INST(drop);
@@ -355,7 +355,7 @@ lvar_decl_list
                                             $3.name, $$.typref);
                                       if ($3.start) {
                                           code_conv_val($3.typref, $1.typref);
-                                          CODE_INST(argassign, sym->offset, sym->name);
+                                          CODE_INST_TYP($1.typref, argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -366,7 +366,7 @@ lvar_decl_list
                                             $2.name, $$.typref);
                                       if ($2.start) {
                                           code_conv_val($2.typref, $1);
-                                          CODE_INST(argassign, sym->offset, sym->name);
+                                          CODE_INST_TYP($1, argassign, sym->offset, sym->name);
                                           CODE_INST(drop);
                                       }
                                     }
@@ -433,8 +433,7 @@ stmtlist
     | /* empty */          { $$ = progp; }
     ;
 
-expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
-    | VAR    '=' expr      { $$ = $3;
+expr: VAR    '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
                              CODE_INST_TYP($1->typref, assign, $1);
                            }
@@ -468,7 +467,7 @@ expr: UNDEF  '=' expr      { execerror("Variable %s no esta declarada", $1); }
                                      res_type = var_type;                                                    \
                                      code_conv_val(exp_type, res_type); /* convert expr to var type */       \
                                  }                                                                           \
-                                 CODE_INST_TYP(res_type, _eval, var);   /* variable evaluation */            \
+                                 CODE_INST_TYP(var_type, _eval, var);   /* variable evaluation */            \
                                  if (var_type->weight < exp_type->weight) {                                  \
                                      code_conv_val(var_type, res_type); /* convert var to expr type */       \
                                  }                                                                           \
@@ -605,8 +604,8 @@ expr_arit
                               $$.cel = $1.cel;
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.op) {
-                              case '+': CODE_INST(add); break;
-                              case '-': CODE_INST(sub); break;
+                              case '+': CODE_INST_TYP($$.typ, add); break;
+                              case '-': CODE_INST_TYP($$.typ, sub); break;
                               }
                             }
     | term
@@ -622,9 +621,9 @@ term
                                * ver NOTA 1, arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.op) {
-                              case '*': CODE_INST(mul);  break;
-                              case '/': CODE_INST(divi); break;
-                              case '%': CODE_INST(mod);  break;
+                              case '*': CODE_INST_TYP($$.typ, mul);  break;
+                              case '/': CODE_INST_TYP($$.typ, divi); break;
+                              case '%': CODE_INST_TYP($$.typ, mod);  break;
                               }
                             }
     | fact
@@ -640,7 +639,7 @@ fact: prim op_exp fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
                                * ver NOTA 1, arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
-                              CODE_INST(pwr);
+                              CODE_INST_TYP($$.typ, pwr);
                             }
     | prim
     ;
@@ -649,8 +648,9 @@ op_exp
     : EXP                   { $$ = code_unpatched_op(EXP); }
     ;
 
-prim: '(' expr ')'          { $$ = $2; }
-    | NUMBER                { $$.cel = CODE_INST_TYP(Double, constpush, $1);
+prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " undefined", $1); }
+    | '(' expr ')'          { $$ = $2; }
+    | NUMBER                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
                               $$.typ = Double;
                             }
     | INTEGER               { $$.cel = CODE_INST_TYP(Integer, constpush, $1);
@@ -706,7 +706,7 @@ prim: '(' expr ')'          { $$ = $2; }
                                      $1->typref, argeval, $1->offset, $1->name);
                               $$.typ = $1->typref; }
 
-    | CONST                 { $$.cel = CODE_INST(constpush, $1->val);
+    | CONST                 { $$.cel = CODE_INST_TYP($1->typref, constpush, $1->val);
                               $$.typ = $1->typref; }
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }

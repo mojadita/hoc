@@ -47,8 +47,10 @@
 
 #define  PR(_fmt, ...)              \
     printf(YELLOW"%04lx" WHITE ": " \
-        CYAN"%-10s"ANSI_END _fmt,   \
+        "<" CYAN "%02x" WHITE "> "  \
+        CYAN"%-14s"ANSI_END _fmt,   \
         pc - prog,                  \
+        i->code_id,                 \
         i->name,                    \
         ##__VA_ARGS__)
 
@@ -172,7 +174,8 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 
     const instr *i = instruction_set + ins;
 
-    PRG("[%04lx]: %s", progp - prog, i->name);
+    PRG("[%04lx]: <%02x> %s",
+			progp - prog, i->code_id, i->name);
 
     progp->inst = ins; /* instalamos la instruccion */
 
@@ -202,7 +205,7 @@ void execute(Cell *p) /* run the machine */
         )
     {
         const instr *ins = instruction_set + pc->inst;
-        EXEC("[%04lx]: %s", pc - prog, ins->name);
+        EXEC("[%04lx]: <%02x> %s", pc - prog, ins->code_id, ins->name);
         ins->exec(ins);
 #if       UQ_DEBUG_STACK /* { */
         P_TAIL(", fp=[%04lx], sp=[%04lx], ss=%d",
