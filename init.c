@@ -181,6 +181,7 @@ void init(void)  /* install constants and built-ins in table */
         s->weight   = p->weight;
         s->t2i      = p->t2i;
         s->one      = p->one;
+        s->fmt      = p->fmt;
         *p->sym_ref = s;
     }
 

@@ -568,14 +568,14 @@ expr_rel
     | expr_arit op_rel expr_arit  {
                               $$.typ = Integer;
                               $$.cel = $1.cel;
-                              check_op_bin(&$1, &$2, &$3);
+                              const Symbol *op_type = check_op_bin(&$1, &$2, &$3);
                               switch ($2.op) {
-                                  case '<':  CODE_INST(lt); break;
-                                  case '>':  CODE_INST(gt); break;
-                                  case  EQ:  CODE_INST(eq); break;
-                                  case  NE:  CODE_INST(ne); break;
-                                  case  GE:  CODE_INST(ge); break;
-                                  case  LE:  CODE_INST(le); break;
+                                  case '<':  CODE_INST_TYP(op_type, lt); break;
+                                  case '>':  CODE_INST_TYP(op_type, gt); break;
+                                  case  EQ:  CODE_INST_TYP(op_type, eq); break;
+                                  case  NE:  CODE_INST_TYP(op_type, ne); break;
+                                  case  GE:  CODE_INST_TYP(op_type, ge); break;
+                                  case  LE:  CODE_INST_TYP(op_type, le); break;
                               } /* switch */
                             }
     | expr_arit

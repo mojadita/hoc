@@ -175,7 +175,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     const instr *i = instruction_set + ins;
 
     PRG("[%04lx]: <%02x> %s",
-			progp - prog, i->code_id, i->name);
+            progp - prog, i->code_id, i->name);
 
     progp->inst = ins; /* instalamos la instruccion */
 
@@ -395,53 +395,76 @@ OP(mod, _l, num,  %, FMT_LONG)
 OP(mod, _i, inum, %, FMT_INT)
 OP(mod, _s, chr,  %, FMT_SHORT)
 
-OP(ge,,    val,  >=,  FMT_DOUBLE)
-OP(ge, _c, chr,  >=,  FMT_CHAR)
-OP(ge, _d, val,  >=,  FMT_DOUBLE)
-OP(ge, _f, flt,  >=,  FMT_FLOAT)
-OP(ge, _i, inum, >=,  FMT_INT)
-OP(ge, _l, num,  >=,  FMT_LONG)
-OP(ge, _s, sht,  >=,  FMT_SHORT)
+#undef OP  /* } */
 
-OP(le,,    val,  <=,  FMT_DOUBLE)
-OP(le, _c, chr,  <=,  FMT_CHAR)
-OP(le, _d, val,  <=,  FMT_DOUBLE)
-OP(le, _f, flt,  <=,  FMT_FLOAT)
-OP(le, _i, inum, <=,  FMT_INT)
-OP(le, _l, num,  <=,  FMT_LONG)
-OP(le, _s, sht,  <=,  FMT_SHORT)
+#define RELOP(_nam, _suff, _fld, _op, _fmt) /* { */ \
+    void _nam##_suff(const instr *i)                \
+    {                                               \
+        Cell p2  = pop(),                           \
+             p1  = pop(),                           \
+             res = { .inum = p1._fld _op p2._fld }; \
+                                                    \
+        P_TAIL(": " _fmt " %s " _fmt " -> " _fmt,   \
+                p1._fld, #_op, p2._fld, res._fld);  \
+        push(res);                                  \
+                                                    \
+        UPDATE_PC();                                \
+    } /* add##_suff */                              \
+                                                    \
+    void _nam##_suff##_prt(                         \
+            const instr    *i,                      \
+            const Cell     *pc)                     \
+    {                                               \
+        PR("\n");                                   \
+    } /* _nam##_suff##_prt         }{ */
 
-OP(gt,,    val,  >,  FMT_DOUBLE)
-OP(gt, _c, chr,  >,  FMT_CHAR)
-OP(gt, _d, val,  >,  FMT_DOUBLE)
-OP(gt, _f, flt,  >,  FMT_FLOAT)
-OP(gt, _i, inum, >,  FMT_INT)
-OP(gt, _l, num,  >,  FMT_LONG)
-OP(gt, _s, sht,  >,  FMT_SHORT)
+RELOP(ge,,    val,  >=,  FMT_DOUBLE)
+RELOP(ge, _c, chr,  >=,  FMT_CHAR)
+RELOP(ge, _d, val,  >=,  FMT_DOUBLE)
+RELOP(ge, _f, flt,  >=,  FMT_FLOAT)
+RELOP(ge, _i, inum, >=,  FMT_INT)
+RELOP(ge, _l, num,  >=,  FMT_LONG)
+RELOP(ge, _s, sht,  >=,  FMT_SHORT)
 
-OP(lt,,    val,  <,  FMT_DOUBLE)
-OP(lt, _c, chr,  <,  FMT_CHAR)
-OP(lt, _d, val,  <,  FMT_DOUBLE)
-OP(lt, _f, flt,  <,  FMT_FLOAT)
-OP(lt, _i, inum, <,  FMT_INT)
-OP(lt, _l, num,  <,  FMT_LONG)
-OP(lt, _s, sht,  <,  FMT_SHORT)
+RELOP(le,,    val,  <=,  FMT_DOUBLE)
+RELOP(le, _c, chr,  <=,  FMT_CHAR)
+RELOP(le, _d, val,  <=,  FMT_DOUBLE)
+RELOP(le, _f, flt,  <=,  FMT_FLOAT)
+RELOP(le, _i, inum, <=,  FMT_INT)
+RELOP(le, _l, num,  <=,  FMT_LONG)
+RELOP(le, _s, sht,  <=,  FMT_SHORT)
 
-OP(eq,,    val,  ==,  FMT_DOUBLE)
-OP(eq, _c, chr,  ==,  FMT_CHAR)
-OP(eq, _d, val,  ==,  FMT_DOUBLE)
-OP(eq, _f, flt,  ==,  FMT_FLOAT)
-OP(eq, _i, inum, ==,  FMT_INT)
-OP(eq, _l, num,  ==,  FMT_LONG)
-OP(eq, _s, sht,  ==,  FMT_SHORT)
+RELOP(gt,,    val,  >,  FMT_DOUBLE)
+RELOP(gt, _c, chr,  >,  FMT_CHAR)
+RELOP(gt, _d, val,  >,  FMT_DOUBLE)
+RELOP(gt, _f, flt,  >,  FMT_FLOAT)
+RELOP(gt, _i, inum, >,  FMT_INT)
+RELOP(gt, _l, num,  >,  FMT_LONG)
+RELOP(gt, _s, sht,  >,  FMT_SHORT)
 
-OP(ne,,    val,  !=,  FMT_DOUBLE)
-OP(ne, _c, chr,  !=,  FMT_CHAR)
-OP(ne, _d, val,  !=,  FMT_DOUBLE)
-OP(ne, _f, flt,  !=,  FMT_FLOAT)
-OP(ne, _i, inum, !=,  FMT_INT)
-OP(ne, _l, num,  !=,  FMT_LONG)
-OP(ne, _s, sht,  !=,  FMT_SHORT)
+RELOP(lt,,    val,  <,  FMT_DOUBLE)
+RELOP(lt, _c, chr,  <,  FMT_CHAR)
+RELOP(lt, _d, val,  <,  FMT_DOUBLE)
+RELOP(lt, _f, flt,  <,  FMT_FLOAT)
+RELOP(lt, _i, inum, <,  FMT_INT)
+RELOP(lt, _l, num,  <,  FMT_LONG)
+RELOP(lt, _s, sht,  <,  FMT_SHORT)
+
+RELOP(eq,,    val,  ==,  FMT_DOUBLE)
+RELOP(eq, _c, chr,  ==,  FMT_CHAR)
+RELOP(eq, _d, val,  ==,  FMT_DOUBLE)
+RELOP(eq, _f, flt,  ==,  FMT_FLOAT)
+RELOP(eq, _i, inum, ==,  FMT_INT)
+RELOP(eq, _l, num,  ==,  FMT_LONG)
+RELOP(eq, _s, sht,  ==,  FMT_SHORT)
+
+RELOP(ne,,    val,  !=,  FMT_DOUBLE)
+RELOP(ne, _c, chr,  !=,  FMT_CHAR)
+RELOP(ne, _d, val,  !=,  FMT_DOUBLE)
+RELOP(ne, _f, flt,  !=,  FMT_FLOAT)
+RELOP(ne, _i, inum, !=,  FMT_INT)
+RELOP(ne, _l, num,  !=,  FMT_LONG)
+RELOP(ne, _s, sht,  !=,  FMT_SHORT)
 
 #undef OP  /* } */
 
@@ -1173,8 +1196,10 @@ void list(const instr *i)
                           * Aqui es donde Edward desaparecio en el rio Orinoco. */
         ip += i->n_cells;
     }
+
     const instr *stop = instruction_set + INST_STOP;
     stop->print(stop, ip); /* STOP :) */
+
     UPDATE_PC();
 }
 
@@ -1185,11 +1210,12 @@ void list_prt(const instr *i, const Cell *pc)
 
 void if_f_goto(const instr *i) /* jump if false */
 {
-    P_TAIL(": -> [%04x]", pc[0].param);
-    Cell d = pop();
-    pc = d.val
+
+    pc = pop().inum
         ? pc + i->n_cells
         : prog + pc[0].param;
+
+    P_TAIL(": -> [%04x]", pc[0].param);
 }
 
 void if_f_goto_prt(const instr *i, const Cell *pc)

@@ -2,8 +2,8 @@
 /* default associativity */
 func int default( \
         int a, int b, int c, int d,      \
-        float e, int f, int g, int h,      \
-        int i, int j, double k, int l,      \
+        int e, int f, int g, int h,      \
+        int i, int j, int k, int l,      \
         int m)          {                \
     return a && b && c && d || e || f || \
            g || h && i && j || k || l || m;
@@ -70,7 +70,7 @@ proc pepe() {
     } else {
         ok = ok + 1;
     }
-    #symbs;
+    brkpt;
                                                         a12++;
                                                     }
                                                     a11++;
@@ -101,5 +101,5 @@ proc pepe() {
     print "failed tests = ", n - ok, " (", 100 *(n - ok)/n, "%)\n";
     print "total  tests = ", n,      "\n";
 }
-#list;
+list;
 pepe();

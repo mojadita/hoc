@@ -206,15 +206,21 @@ void list_variables(Symbol *from)
             sym = sym->next)
     {
         /*   1 fila para cada simbolo e informacion del simbolo  */
+        char workplace[100];
+        if (sym && sym->typref && sym->typref->fmt) {
+            snprintf(workplace, sizeof workplace,
+                CYAN " %s" ANSI_END, sym->typref->fmt);
+        }
+
         switch (sym->type) {
         case LVAR:
             fputs(sep, stdout);
+
             printf_ncols( UQ_BRKPT_WIDTH1,
                     GREEN "%s" ANSI_END "<%+d>",
                     sym->name, sym->offset);
             printf_ncols( UQ_BRKPT_WIDTH2,
-                    CYAN  " %-1.7lg" ANSI_END,
-                    getarg(sym->offset)->val );
+                    workplace, getarg(sym->offset)->val );
             break;
         case VAR:
             fputs(sep, stdout);
@@ -222,8 +228,7 @@ void list_variables(Symbol *from)
                     GREEN "%s" ANSI_END "{%04lx}",
                     sym->name, sym->defn - prog);
             printf_ncols( UQ_BRKPT_WIDTH2,
-                    CYAN " %-1.7lg" ANSI_END,
-                    sym->defn->val );
+                    workplace, sym->defn->val );
             break;
         }
         sep = "][";
