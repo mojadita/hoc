@@ -9,8 +9,8 @@
 
 typedef union Cell_u Cell;
 
-#include "symbol.h"
 #include "instr.h"
+#include "symbol.h"
 
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell_u {

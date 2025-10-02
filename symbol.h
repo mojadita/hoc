@@ -11,9 +11,9 @@
 
 typedef struct Symbol_s Symbol;
 
-#include "type2inst.h"
-#include "instr.h"
 #include "cell.h"
+#include "types.h"
+#include "instr.h"
 #include "scope.h"
 
 struct Symbol_s {                         /* Symbol table entry */
@@ -49,16 +49,11 @@ struct Symbol_s {                         /* Symbol table entry */
                                            * offset respecto al frame pointer (fp). */
         };
         struct {                          /* si el tipo es TYPE */
-            size_t      size;
-            int         weight;
             const type2inst
                        *t2i;              /* ej. sym->typref->t2i->constpush->code_id
                                            * nos dara para cada tipo, la instruccion
                                            * constpush que opera con datos de ese tipo
                                            */
-            const Cell *one;              /* value 1 for the arithmetic types
-                                           * as a cell */
-            const char *fmt;              /* format string to print value of this type */
         };
     }  /* no hay nombre de campo */ ;
        /* union anonima, el nombre del campo no existe, de forma que los

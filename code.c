@@ -117,7 +117,7 @@ Symbol *register_local_var(
             " already defined in current scope\n", name);
     }
     Symbol *sym = install(name, LVAR, typref);
-    scop->size += typref->size;
+    scop->size += typref->t2i->size;
     sym->offset = -(scop->base_offset + scop->size);
 
     PRG("Symbol '%s', type=%s, typref=%s, offset=%+d\n",

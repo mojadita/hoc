@@ -8,6 +8,9 @@
 #define TYPES_H_9fc2bf3a_9d19_11f0_8203_0023ae68f329
 
 #include "config.h"
+#include "cell.h"
+#include "instr.h"
+
 
 #ifndef   FMT_CHAR  /* { */
 #warning  FMT_CHAR should be defined in config.mk
@@ -38,6 +41,42 @@
 #warning  FMT_SHORT should be defined in config.mk
 #define   FMT_SHORT "0x%04hx"
 #endif /* FMT_SHORT     } */
+
+#define TYPE_IS_INTEGER         (1 << 0)
+#define TYPE_IS_FLOATING_POINT  (1 << 1)
+#define TYPE_IS_POINTER         (1 << 2)
+
+typedef struct type2inst_s type2inst;
+
+typedef void (*typeinfo_cb)(const Symbol *type, Cell value);
+
+struct type2inst_s {
+    const instr
+        *const constpush, *const add,       *const sub,
+        *const mul,       *const divi,      *const mod,
+        *const neg,       *const pwr,       *const eval,
+        *const assign,    *const print,     *const ge,
+        *const le,        *const gt,        *const lt,
+        *const eq,        *const ne,        *const not,
+        *const argeval,   *const argassign, *const prexpr,
+        *const inceval,   *const evalinc,   *const deceval,
+        *const evaldec,   *const addvar,    *const subvar,
+        *const mulvar,    *const divvar,    *const modvar,
+        *const pwrvar,    *const arginc,    *const incarg,
+        *const decarg,    *const argdec,    *const addarg,
+        *const subarg,    *const mularg,    *const divarg,
+        *const modarg,    *const pwrarg;
+
+    const Cell *const one;
+    const char *const fmt;
+    typeinfo_cb       printval;
+    const size_t      size,
+                      align;
+    const int         flags;
+    const int         weight;
+};
+
+extern type2inst t2i_c, t2i_s, t2i_i, t2i_l, t2i_f, t2i_d, t2i_str;
 
 extern const Symbol
        *Char,

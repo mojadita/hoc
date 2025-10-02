@@ -15,6 +15,7 @@ config.h
 config.h.in
 tags
 hoc.1
+type2inst.c
 
 ack.s
 age.hoc

@@ -463,12 +463,12 @@ expr: VAR    '=' expr      { $$ = $3;
                                               *res_type  = exp_type;                                         \
                                  const int     op        = $2;                                               \
                                                                                                              \
-                                 if (exp_type->weight < var_type->weight) {                                  \
+                                 if (exp_type->t2i->weight < var_type->t2i->weight) {                        \
                                      res_type = var_type;                                                    \
                                      code_conv_val(exp_type, res_type); /* convert expr to var type */       \
                                  }                                                                           \
                                  CODE_INST_TYP(var_type, _eval, var);   /* variable evaluation */            \
-                                 if (var_type->weight < exp_type->weight) {                                  \
+                                 if (var_type->t2i->weight < exp_type->t2i->weight) {                        \
                                      code_conv_val(var_type, res_type); /* convert var to expr type */       \
                                  }                                                                           \
                                  CODE_INST(swap);                       /* swap them */                      \
@@ -670,7 +670,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
                               }
                               bool type_was_converted = code_conv_val($2->typref, expr_type);
                               CODE_INST_TYP(expr_type, constpush);
-                              CODE_INST_TYP(expr_type, constpush, expr_type->one);
+                              CODE_INST_TYP(expr_type, constpush, expr_type->t2i->one);
                               CODE_INST_TYP(expr_type, add);
                               if (type_was_converted) {
                                   CODE_INST(dupl);
@@ -727,7 +727,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
 
 function
     : FUNCTION              { push_sub_call_stack($1);
-                              CODE_INST(spadd, -$1->typref->size); /* PUSH espacio para el */
+                              CODE_INST(spadd, -$1->typref->t2i->size); /* PUSH espacio para el */
                             }                                      /* valor a retornar */
     ;
 
@@ -738,7 +738,6 @@ arglist_opt
 
 arglist
     : arglist ',' expr      { $$ = $1 + 1;
-                              printf("$$ = %ld, lineno = %d\n", $$, lineno);
                               Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
                                   execerror("%s accepts only %d parameters\n",
@@ -852,7 +851,7 @@ formal_arglist
                                     UQ_ARGUMS_INCRMNT);
                               Symbol *sym = register_local_var($4, $3);
                               subr->argums[subr->argums_len++] = sym;
-                              subr->size_args += $3->size;
+                              subr->size_args += $3->t2i->size;
                               $$ = $1 + 1;
                             }
     | TYPE lvar_valid_ident {
@@ -864,7 +863,7 @@ formal_arglist
                                     UQ_ARGUMS_INCRMNT);
                               Symbol *sym = register_local_var($2, $1);
                               subr->argums[subr->argums_len++] = sym;
-                              subr->size_args += $1->size;
+                              subr->size_args += $1->t2i->size;
                               $$ = 1;
                             }
     ;
@@ -991,22 +990,18 @@ OpRel code_unpatched_op(int op)
 
 const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
 {
-    assert(exp1->typ == Integer || exp1->typ == Long || exp1->typ == Double || exp1->typ == Float);
-    assert(exp2->typ == Integer || exp2->typ == Long || exp2->typ == Double || exp2->typ == Float);;
+    assert(exp1->typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
+    assert(exp2->typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
 
-    printf("exp1.typ = %s, op = <%s-%d>, exp2.typ = %s\n",
-        exp1->typ->name, yyname[op->op], op->op, exp2->typ->name);
-
-    if (exp1->typ->weight == exp2->typ->weight)
+    if (exp1->typ->t2i->weight == exp2->typ->t2i->weight)
         return exp1->typ;
 
-    assert(exp1->typ->weight > 0 && exp2->typ->weight > 0);
-
-    if (exp1->typ->weight > exp2->typ->weight) {
+    if (exp1->typ->t2i->weight > exp2->typ->t2i->weight) { /* greater */
         code_conv_val(exp2->typ, exp1->typ);
         return exp1->typ;
     }
 
+    /* less */
     PT(">>> begin PATCHING CODE @ [%04lx]\n", op->cel - prog);
     Cell *saved_progp = progp;
     progp             = op->cel;

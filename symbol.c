@@ -170,13 +170,13 @@ void list_all_symbols(Symbol *from)
         switch (sym->type) {
         case LVAR:
             printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->t2i->size);
             printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
             printf_ncols(UQ_COL5_SYMBS, "value %.5lg",     *getarg(sym->offset));
             break;
         case VAR:
             printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->size);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->t2i->size);
             printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
             printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
             break;
@@ -207,9 +207,9 @@ void list_variables(Symbol *from)
     {
         /*   1 fila para cada simbolo e informacion del simbolo  */
         char workplace[100];
-        if (sym && sym->typref && sym->typref->fmt) {
+        if (sym && sym->typref && sym->typref->t2i->fmt) {
             snprintf(workplace, sizeof workplace,
-                CYAN " %s" ANSI_END, sym->typref->fmt);
+                CYAN " %s" ANSI_END, sym->typref->t2i->fmt);
         }
 
         switch (sym->type) {
