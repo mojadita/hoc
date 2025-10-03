@@ -666,6 +666,10 @@ op_exp
     ;
 
 prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " undefined", $1); }
+    | '(' TYPE ')' expr     { $$.cel = $4.cel;
+                              $$.typ = $2;
+                              code_conv_val($4.typ, $2);
+                            }
     | '(' expr ')'          { $$ = $2; }
     | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
                               $$.typ = Float;
