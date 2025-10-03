@@ -24,19 +24,20 @@
 #include "cell.h"
 #include "symbol.h"
 #include "instr.h"
+#include "lex.h"
 
 typedef struct var_decl_list_s {
-    Cell         *start;   /* codigo de inicializacion de la
-                            * secuencia de inicializadores */
-    const Symbol *typref;  /* tipo de la lista de variables */
+    Cell         *start;          /* codigo de inicializacion de la
+                                   * secuencia de inicializadores */
+    const Symbol *type_decl;      /* tipo de la lista de variables */
 } var_decl_list;
 
 typedef struct var_init_s {
     const char   *name;
-    Cell         *start;   /* posicion absoluta de la variable
-                            * en memoria (variables globales) */
-    const Symbol *typref;  /* tipo de la expression que calcula
-                            * el codigo de inicializacion */
+    Cell         *start;          /* posicion absoluta de la variable
+                                   * en memoria (variables globales) */
+    const Symbol *type_expr_init; /* tipo de la expression que calcula
+                                   * el codigo de inicializacion */
 } var_init;
 
 typedef struct expr_s {
@@ -45,8 +46,8 @@ typedef struct expr_s {
 } Expr;
 
 typedef struct OpRel_s {
-    Cell         *cel;
-    int           op;
+    Cell         *start;
+    token         tok;
 } OpRel;
 
 #include "hoc.tab.h"

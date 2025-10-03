@@ -15,7 +15,7 @@ struct token {
     size_t      len;  /* longitud */
     int         lin,  /* linea de comienzo */
                 col;  /* columna de comienzo */
-    int         tok;  /* tipo de token */
+    int         id;  /* tipo de token */
 };
 
 const token *get_last_token(

@@ -8,6 +8,7 @@
  */
 
 #include <assert.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "hoc.h"
@@ -78,6 +79,16 @@ static char *deescape(char *in);
 
 %}
 
+hex         (0[xX][0-9a-fA-F]*)
+oct         (0[0-7]*)
+dec         ([1-9][0-9]*)
+dbl         (([0-9]+\.|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?)
+chr         ([^\n\\]|\\[\\\"\'abfnrtv]|\\[0-7]{1,3}|\\[xX][0-9a-fA-F]{2})
+
+suf         [hHlL]?
+flt         [fF]?
+sufd        {flt}?
+
 %option noyywrap
 %x COMMENT
 
@@ -87,44 +98,134 @@ static char *deescape(char *in);
 \t            {  col_no += UQ_TAB_SIZE; col_no -= col_no % UQ_TAB_SIZE; }
 \\\n          {  col_no = 1; lineno++; }
 
-0[xX][0-9a-fA-F]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
-                col_no += yyleng;
-                /* numero entero hex */
-                sscanf(yytext, "%lx", &yylval.num);
-                P("integer %ld (%d)\n", yylval.num, INTEGER);
+{hex}{suf}    {
 
-                return INTEGER;
+                /* numero entero hex */
+#define INTEGER_BASE(_base)  do {                                       \
+                    char *p;                                            \
+                    int   tok = INTEGER;                                \
+                                                                        \
+                    yylval.num = strtoul(yytext, &p, _base);            \
+                                                                        \
+                    switch (toupper(*p)) {                              \
+                                                                        \
+                    case 'L':                                           \
+                        P("integer %ldL (%d)\n", yylval.num, LONG);     \
+                        tok = LONG; break;                              \
+                                                                        \
+                    case 'H':                                           \
+                        P("integer %ldH (%d)\n", yylval.num, SHORT);    \
+                        tok = SHORT; break;                             \
+                                                                        \
+                    default:                                            \
+                        P("integer %ld (%d)\n", yylval.num, INTEGER);   \
+                        break;                                          \
+                    }                                                   \
+                                                                        \
+                    add_token(tok, lineno, col_no, yyleng, yytext);     \
+                    col_no += yyleng;                                   \
+                                                                        \
+                    return tok;                                         \
+                                                                        \
+                } while (0)
+
+                INTEGER_BASE(16);
+
               }   /* Un numero integer (hex) */
 
-0[0-7]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
-                col_no += yyleng;
-                /* numero entero octal */
-                sscanf(yytext, "%lo", &yylval.num);
-                P("integer %ld (%d)\n", yylval.num, INTEGER);
-
-                return INTEGER;
+{oct}{suf}  {
+                INTEGER_BASE(8);
               }   /* Un numero integer (octal) */
 
-[1-9][0-9]* {
-                add_token(INTEGER, lineno, col_no, yyleng, yytext);
-                col_no += yyleng;
-                /* numero entero decimal */
-                sscanf(yytext, "%ld", &yylval.num);
-                P("integer %ld (%d)\n", yylval.num, INTEGER);
-
-                return INTEGER;
+{dec}{suf}  {
+                INTEGER_BASE(10);
               }   /* Un numero integer (decimal) */
+'{chr}'     {
+                char *p     = yytext + 1;
+                int   c;
 
-([0-9]+\.|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)? {
-                add_token(NUMBER, lineno, col_no, yyleng, yytext);
+                yylval.num  = 0;
+                switch (c = *p++) {
+                case '\\':  /* estado IN_BACKSLASH */
+                    switch (c = *p++) {
+                    case '\"': yylval.num = '\"'; break;
+                    case '\'': yylval.num = '\''; break;
+                    case '\\': yylval.num = '\\'; break;
+                    case 'a':  yylval.num = '\a'; break;
+                    case 'b':  yylval.num = '\b'; break;
+                    case 'f':  yylval.num = '\f'; break;
+                    case 'n':  yylval.num = '\n'; break;
+                    case 'r':  yylval.num = '\r'; break;
+                    case 't':  yylval.num = '\t'; break;
+                    case 'v':  yylval.num = '\v'; break;
+                    case 'x':
+                        for (int i = 0; i < 2; i++) {
+                            switch (c = tolower(*p++)) {
+                            case '0': case '1': case '2': case '3':
+                            case '4': case '5': case '6': case '7':
+                            case '8': case '9':
+                                yylval.num *= 16;
+                                yylval.num += c - '0';
+                                break;
+                            case 'a': case 'b':
+                            case 'c': case 'd': case 'e': case 'f':
+                                yylval.num <<= 4;
+                                yylval.num |= c - 'a' + 10;
+                                break;
+                           } /* switch */
+                        } /* for */
+                        break;
+                    case '0': case '1': case '2': case '3':
+                    case '4': case '5': case '6': case '7':
+                        yylval.num = c - '0';
+                        for (int i = 0; i < 2; i++) {
+                            switch(c = *p++) {
+                            case '0': case '1': case '2': case '3':
+                            case '4': case '5': case '6': case '7':
+                                yylval.num *= 8;
+                                yylval.num += c - '0';
+                                continue;
+                            } /* switch */
+                            break;
+                        } /* for */
+                        break;
+                    } /* switch */
+                    break;
+                default:
+                    yylval.num = c;
+                } /* switch */
+
+                P("char 0x%02x (%d)\n", yylval.num, CHAR);
+
+                add_token(CHAR, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
-                /* numero en punto flotante */
-                sscanf(yytext, "%lf", &yylval.val);
-                P("number %.15lg (%d)\n", yylval.val, NUMBER);
 
-                return NUMBER;
+                return CHAR;
+            }
+
+{dbl}{sufd} {
+                /* numero en punto flotante */
+                char *p;
+                int   tok = DOUBLE;
+
+                yylval.val = strtod(yytext, &p);
+
+                switch (toupper(*p)) {
+                case 'F':
+                    P("float %.8g (%d)\n", yylval.val, FLOAT);
+                    tok = FLOAT;
+                    break;
+
+                default:
+                    P("double %.15lg (%d)\n", yylval.val, DOUBLE);
+                    break;
+                }
+
+                add_token(tok, lineno, col_no, yyleng, yytext);
+                col_no += yyleng;
+
+                return tok;
+
               }   /* Un numero punto flotante  */
 
 "/*"          { /* comienzo de un comentario */
@@ -204,72 +305,72 @@ static char *deescape(char *in);
         }
 
 ">="    { P("operador %s (%d)\n", yytext, GE);
-            add_token(GE, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(GE, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return GE;  }
 "<="    { P("operador %s (%d)\n", yytext, LE);
-            add_token(LE, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(LE, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return LE;  }
 "=="    { P("operador %s (%d)\n", yytext, EQ);
-            add_token(EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return EQ;  }
 "!="    { P("operador %s (%d)\n", yytext, NE);
-            add_token(NE, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(NE, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return NE;  }
 "&&"    { P("operador %s (%d)\n", yytext, AND);
-            add_token(AND, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(AND, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return AND; }
 "||"    { P("operador %s (%d)\n", yytext, OR);
-            add_token(OR, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(OR, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return OR;  }
 "^^"    { P("operador %s (%d)\n", yytext, EXP);
-            add_token(EXP, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(EXP, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return EXP; }
 
 "++"    { P("operador %s (%d)\n", yytext, PLS_PLS);
-            add_token(EXP, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(EXP, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return PLS_PLS; }
 
 "--"    { P("operador %s (%d)\n", yytext, MIN_MIN);
-            add_token(MIN_MIN, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(MIN_MIN, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return MIN_MIN; }
 
 "+="    { P("operador %s (%d)\n", yytext, PLS_EQ);
-            add_token(PLS_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(PLS_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return PLS_EQ; }
 
 "-="    { P("operador %s (%d)\n", yytext, MIN_EQ);
-            add_token(MIN_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(MIN_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return MIN_EQ; }
 
 "*="    { P("operador %s (%d)\n", yytext, MUL_EQ);
-            add_token(MUL_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(MUL_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return MUL_EQ; }
 
 "/="    { P("operador %s (%d)\n", yytext, DIV_EQ);
-            add_token(DIV_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(DIV_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return DIV_EQ; }
 
 "%="    { P("operador %s (%d)\n", yytext, MOD_EQ);
-            add_token(MOD_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(MOD_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return MOD_EQ; }
 
 "^^="   { P("operador %s (%d)\n", yytext, PWR_EQ);
-            add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
-            col_no += yyleng;
+          yylval.tok  = *add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
           return PWR_EQ; }
 
 \n      {
@@ -282,10 +383,11 @@ static char *deescape(char *in);
 
 #.*     ; /* comentario */
 
-.       { P("symbol/operator '%c' (%d)\n",
-                yytext[0], yytext[0]);
-          add_token(yytext[0], lineno, col_no, 1, yytext);
-          col_no += yyleng;
+.       { P("symbol/operator '%c' (%d)\n", yytext[0], yytext[0]);
+
+          yylval.tok  = *add_token(yytext[0], lineno, col_no, 1, yytext);
+          col_no     += yyleng;
+
           return yytext[0];
         }
 
@@ -307,7 +409,7 @@ void reset_add_token(void)
             i < UQ_LAST_TOKENS_SZ;
             i++, last_token++)
     {
-        last_token->tok   = 0;
+        last_token->id    = 0;
         last_token->lin   = 0;
         last_token->col   = 0;
         last_token->len   = 0;
@@ -321,7 +423,7 @@ void reset_add_token(void)
 
 static const token *
 add_token(
-        int         tok,
+        int         id,
         int         lin,
         int         col,
         size_t      len,
@@ -333,7 +435,7 @@ add_token(
     }
     last_token--;
 
-    last_token->tok = tok;
+    last_token->id  = id;
     last_token->lin = lin;
     last_token->col = col;
     last_token->len = len;

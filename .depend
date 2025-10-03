@@ -17,8 +17,8 @@ code.o: code.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
   scope.h hoc.h type2inst.h /usr/include/setjmp.h \
-  /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h hoc.tab.h \
-  math.h
+  /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h lex.h \
+  hoc.tab.h math.h
 do_help.o: do_help.c /usr/include/errno.h /usr/include/sys/cdefs.h \
   /usr/include/stdio.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -47,7 +47,7 @@ error.o: error.c /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
-  scope.h code.h hoc.tab.h error.h
+  scope.h code.h lex.h hoc.tab.h error.h
 init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -63,7 +63,7 @@ init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
-  scope.h code.h hoc.tab.h math.h init.h
+  scope.h code.h lex.h hoc.tab.h math.h init.h
 instr.o: instr.c config.h code.h instr.h /usr/include/stdarg.h \
   /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h \
   /usr/include/sys/cdefs.h /usr/include/sys/_types.h \
@@ -78,7 +78,7 @@ instr.o: instr.c config.h code.h instr.h /usr/include/stdarg.h \
   /usr/include/sys/_timespec.h types.h scope.h hoc.h type2inst.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
   /usr/include/x86/setjmp.h /usr/include/stdio.h \
-  /usr/include/sys/_null.h hoc.tab.h
+  /usr/include/sys/_null.h lex.h hoc.tab.h
 intern.o: intern.c /usr/include/string.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_null.h /usr/include/sys/_types.h \
   /usr/include/machine/_types.h /usr/include/x86/_types.h \
@@ -102,7 +102,7 @@ main.o: main.c /usr/include/getopt.h /usr/include/sys/cdefs.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
-  scope.h code.h hoc.tab.h init.h
+  scope.h code.h lex.h hoc.tab.h init.h
 math.o: math.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/sys/_stdarg.h /usr/include/sys/_types.h \
@@ -134,7 +134,7 @@ reserved_words.o: reserved_words.c /usr/include/stdlib.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
-  scope.h code.h hoc.tab.h reserved_words.h
+  scope.h code.h lex.h hoc.tab.h reserved_words.h
 scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -151,8 +151,8 @@ scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h hoc.h \
   type2inst.h /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h /usr/include/stdio.h hoc.tab.h dynarray.h \
-  intern.h
+  /usr/include/x86/setjmp.h /usr/include/stdio.h lex.h hoc.tab.h \
+  dynarray.h intern.h
 symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -169,7 +169,7 @@ symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h types.h \
-  scope.h code.h hoc.tab.h colors.h
+  scope.h code.h lex.h hoc.tab.h colors.h
 type2inst.o: type2inst.c /usr/include/sys/types.h \
   /usr/include/sys/cdefs.h /usr/include/machine/endian.h \
   /usr/include/x86/endian.h /usr/include/sys/_types.h \
@@ -184,4 +184,4 @@ type2inst.o: type2inst.c /usr/include/sys/types.h \
   cell.h symbol.h types.h config.h scope.h code.h hoc.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
   /usr/include/x86/setjmp.h /usr/include/stdio.h \
-  /usr/include/sys/_null.h hoc.tab.h
+  /usr/include/sys/_null.h lex.h hoc.tab.h

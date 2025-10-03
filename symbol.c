@@ -70,7 +70,11 @@ static struct type2char {
     int   type;
 } tab_types[] = {
     V(ERROR),
-    V(NUMBER),
+    V(CHAR),
+    V(SHORT),
+    V(INTEGER),
+    V(FLOAT),
+    V(DOUBLE),
     V(VAR),
     V(LVAR),
     V(BLTIN0),

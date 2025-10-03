@@ -41,7 +41,7 @@ void yyerror( char * msg );
 static void patch_block(Cell*patch_point);
 static void add_patch_return(Symbol *subr, Cell *patch_point);
 static void patch_returns(const Symbol *subr, Cell *target);
-static OpRel code_unpatched_op(int op);
+static OpRel code_unpatched_op(token op);
 static const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2);
 static bool code_conv_val(const Symbol *t_src, const Symbol *t_dst);
 
@@ -130,17 +130,18 @@ size_t size_lvars = 0;
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
     Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
+    token         tok;   /* tipo asociado a un operador, con todo el token */
     OpRel         opr;  /* tipo del operador relacional. */
 }
 
 %token        ERROR
-%token <val>  NUMBER
+%token <val>  DOUBLE FLOAT
 %token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
 %token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
-%token        OR AND GE LE EQ NE EXP
-%token        PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
-%token <num>  FUNC PROC INTEGER
+%token <tok>  OR AND GE LE EQ NE EXP
+%token <tok>  PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
+%token <num>  FUNC PROC CHAR SHORT INTEGER LONG
 %token        RETURN
 %token <str>  STRING UNDEF
 %token        LIST
@@ -149,11 +150,12 @@ size_t size_lvars = 0;
 %type  <expr> expr expr_or expr_and expr_rel expr_arit term fact prim
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
-%type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist op_assign
+%type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym>  proc_head func_head lvar_definable_ident function procedure
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
+%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign
 %type  <opr>  op_rel op_sum op_mul op_exp
 
 %%
@@ -170,7 +172,7 @@ list: /* empty */
 
     | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list expr  '\n'  { bool expr_type_ne_prev_type = $2.typ != Prev->typref;
+    | list expr  '\n'  { bool expr_type_ne_prev_type = ($2.typ != Prev->typref);
                          if (expr_type_ne_prev_type) {
                             CODE_INST(dupl);
                          }
@@ -182,12 +184,17 @@ list: /* empty */
                          CODE_INST_TYP($2.typ, print);
                          CODE_INST(STOP);  /* para que execute() pare al final */
                          return 1; }
-    | list error '\n' {  yyerrok;
+    | list error error_end {  yyerrok;
                          CODE_INST(STOP);
                          while (get_current_scope()) {
                             end_scope();
                          }
                          return 1; }
+    ;
+
+error_end
+    : '\n'
+    | ';'
     ;
 
 stmt
@@ -309,32 +316,33 @@ gvar_decl_list
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      Symbol *s = register_global_var($3.name, $$.typref);
+                                      Symbol *var = register_global_var(
+                                            $3.name, $$.type_decl);
                                       if ($3.start) {
-                                          code_conv_val($3.typref, $1.typref);
-                                          CODE_INST_TYP($1.typref, assign, s);
+                                          code_conv_val($3.type_expr_init, $$.type_decl);
+                                          CODE_INST_TYP($$.type_decl, assign, var);
                                           CODE_INST(drop);
                                       }
                                     }
-    | TYPE gvar_init                { $$.typref = $1;
-                                      $$.start  = $2.start;
-                                      Symbol *s = register_global_var($2.name, $$.typref);
+    | TYPE gvar_init                { $$.type_decl = $1;
+                                      $$.start     = $2.start;
+                                      Symbol *var  = register_global_var(
+                                            $2.name, $$.type_decl);
                                       if ($2.start) {
-
-                                          code_conv_val($2.typref, $1);
-                                          CODE_INST_TYP($1, assign, s);
+                                          code_conv_val($2.type_expr_init, $$.type_decl);
+                                          CODE_INST_TYP($$.type_decl, assign, var);
                                           CODE_INST(drop);
                                       }
                                     }
     ;
 
 gvar_init
-    : gvar_valid_ident              { $$.name   = $1;
-                                      $$.start  = NULL;
-                                      $$.typref = NULL; }
-    | gvar_valid_ident '=' expr     { $$.name   = $1;
-                                      $$.start  = $3.cel;
-                                      $$.typref = $3.typ; }
+    : gvar_valid_ident              { $$.name           = $1;
+                                      $$.start          = NULL;
+                                      $$.type_expr_init = NULL; }
+    | gvar_valid_ident '=' expr     { $$.name           = $1;
+                                      $$.start          = $3.cel;
+                                      $$.type_expr_init = $3.typ; }
     ;
 
 gvar_valid_ident
@@ -351,34 +359,40 @@ lvar_decl_list
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      Symbol *sym = register_local_var(
-                                            $3.name, $$.typref);
+                                      Symbol *var = register_local_var(
+                                            $3.name, $$.type_decl);
                                       if ($3.start) {
-                                          code_conv_val($3.typref, $1.typref);
-                                          CODE_INST_TYP($1.typref, argassign, sym->offset, sym->name);
+                                          code_conv_val(
+                                                $3.type_expr_init,
+                                                $$.type_decl);
+                                          CODE_INST_TYP($$.type_decl, argassign,
+                                                var->offset, var->name);
                                           CODE_INST(drop);
                                       }
                                     }
 
-    | TYPE lvar_init                { $$.typref = $1;
-                                      $$.start  = $2.start;
-                                      Symbol *sym = register_local_var(
-                                            $2.name, $$.typref);
+    | TYPE lvar_init                { $$.type_decl = $1;
+                                      $$.start     = $2.start;
+                                      Symbol *var  = register_local_var(
+                                            $2.name, $$.type_decl);
                                       if ($2.start) {
-                                          code_conv_val($2.typref, $1);
-                                          CODE_INST_TYP($1, argassign, sym->offset, sym->name);
+                                          code_conv_val(
+                                                $2.type_expr_init,
+                                                $$.type_decl);
+                                          CODE_INST_TYP($$.type_decl, argassign,
+                                                var->offset, var->name);
                                           CODE_INST(drop);
                                       }
                                     }
     ;
 
 lvar_init
-    : lvar_valid_ident          { $$.name   = $1;
-                                  $$.start  = NULL;
-                                  $$.typref = NULL; }
-    | lvar_valid_ident '=' expr { $$.name   = $1;
-                                  $$.start  = $3.cel;
-                                  $$.typref = $3.typ; }
+    : lvar_valid_ident          { $$.name           = $1;
+                                  $$.start          = NULL;
+                                  $$.type_expr_init = NULL; }
+    | lvar_valid_ident '=' expr { $$.name           = $1;
+                                  $$.start          = $3.cel;
+                                  $$.type_expr_init = $3.typ; }
     ;
 
 lvar_valid_ident
@@ -439,7 +453,8 @@ expr: VAR    '=' expr      { $$ = $3;
                            }
     | LVAR   '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
-                             CODE_INST_TYP($1->typref, argassign, $1->offset, $1->name);
+                             CODE_INST_TYP($1->typref, argassign,
+                                    $1->offset, $1->name);
                            }
     | VAR   op_assign expr { $$ = $3;
                              /* LCU: Wed Oct  1 14:44:15 -05 2025
@@ -461,7 +476,7 @@ expr: VAR    '=' expr      { $$ = $3;
                                               *var_type  = var->typref,                                      \
                                               *exp_type  = $3.typ,                                           \
                                               *res_type  = exp_type;                                         \
-                                 const int     op        = $2;                                               \
+                                 const token     op      = $2;                                               \
                                                                                                              \
                                  if (exp_type->t2i->weight < var_type->t2i->weight) {                        \
                                      res_type = var_type;                                                    \
@@ -472,7 +487,7 @@ expr: VAR    '=' expr      { $$ = $3;
                                      code_conv_val(var_type, res_type); /* convert var to expr type */       \
                                  }                                                                           \
                                  CODE_INST(swap);                       /* swap them */                      \
-                                 switch (op) {                                                               \
+                                 switch (op.id) {                                                            \
                                  case PLS_EQ:  CODE_INST_TYP(res_type, add,  $1); break;                     \
                                  case MIN_EQ:  CODE_INST_TYP(res_type, sub,  $1); break;                     \
                                  case MUL_EQ:  CODE_INST_TYP(res_type, mul,  $1); break;                     \
@@ -495,41 +510,40 @@ expr: VAR    '=' expr      { $$ = $3;
                            }
     | LVAR op_assign expr  { $$ = $3;
                              /* LCU: Wed Oct  1 14:51:06 -05 2025
-                              * See above */
+                              * NOTE: See above comment in previous rule*/
                              VAR_OPASSIGN_EXPR(argeval, argassign);
                            }
     | expr_or
     ;
 
 op_assign
-    : PLS_EQ    { $$ = PLS_EQ; }
-    | MIN_EQ    { $$ = MIN_EQ; }
-    | MUL_EQ    { $$ = MUL_EQ; }
-    | DIV_EQ    { $$ = DIV_EQ; }
-    | MOD_EQ    { $$ = MOD_EQ; }
-    | PWR_EQ    { $$ = PWR_EQ; }
+    : PLS_EQ
+    | MIN_EQ
+    | MUL_EQ
+    | DIV_EQ
+    | MOD_EQ
+    | PWR_EQ
     ;
 
 expr_or
     : expr_and or expr_or  { $$.cel = $1.cel;
                              $$.typ = Integer;
                              code_conv_val($3.typ, Integer);
+
                              Cell *saved_progp = progp;
                              progp = $2;
-                             PT(">>> begin patching CODE @ [%04lx]\n",
-                                   progp - prog);
+                             PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
                                  code_conv_val($1.typ, Integer);
                                  CODE_INST(or_else, saved_progp);
-                             PT("<<< end   patching CODE @ [%04lx], "
-                                   "continuing @ [%04lx]\n",
+                             PT("<<< end   patching CODE @ [%04lx], continuing @ [%04lx]\n",
                                    progp - prog, saved_progp - prog);
                              progp = saved_progp;
+
                            }
     | expr_and
     ;
 
-or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
-                                 progp - prog);
+or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n", progp - prog);
                              $$ = CODE_INST(noop); /* para la instruccion de conversion */
                                   CODE_INST(noop); /* para la instruccion or_else */
                              PT("<<< end   inserting unpatched CODE\n"); }
@@ -565,11 +579,11 @@ expr_rel
                               $$.typ = Integer;
                               code_conv_val($2.typ, Integer);
                               CODE_INST(not); }
-    | expr_arit op_rel expr_arit  {
+    | expr_arit op_rel expr_arit {
                               $$.typ = Integer;
                               $$.cel = $1.cel;
                               const Symbol *op_type = check_op_bin(&$1, &$2, &$3);
-                              switch ($2.op) {
+                              switch ($2.tok.id) {
                                   case '<':  CODE_INST_TYP(op_type, lt); break;
                                   case '>':  CODE_INST_TYP(op_type, gt); break;
                                   case  EQ:  CODE_INST_TYP(op_type, eq); break;
@@ -582,17 +596,17 @@ expr_rel
     ;
 
 op_rel
-    : '<'                   { $$ = code_unpatched_op('<'); }
-    | '>'                   { $$ = code_unpatched_op('>'); }
-    | EQ                    { $$ = code_unpatched_op(EQ); }
-    | NE                    { $$ = code_unpatched_op(NE); }
-    | GE                    { $$ = code_unpatched_op(GE); }
-    | LE                    { $$ = code_unpatched_op(LE); }
+    : '<'                   { $$ = code_unpatched_op($1); }
+    | '>'                   { $$ = code_unpatched_op($1); }
+    | EQ                    { $$ = code_unpatched_op($1); }
+    | NE                    { $$ = code_unpatched_op($1); }
+    | GE                    { $$ = code_unpatched_op($1); }
+    | LE                    { $$ = code_unpatched_op($1); }
     ;
 
 expr_arit
     : '+' term              { $$ = $2; }
-    | '-' term              { $$ = $2; CODE_INST(neg);  }
+    | '-' term              { $$ = $2; CODE_INST_TYP($2.typ, neg);  }
     | expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
                                * NOTA 1:
                                * determinar el tipo de la expr_arit, a partir de los
@@ -603,7 +617,7 @@ expr_arit
                                * de $3 */
                               $$.cel = $1.cel;
                               $$.typ = check_op_bin(&$1, &$2, &$3);
-                              switch($2.op) {
+                              switch($2.tok.id) {
                               case '+': CODE_INST_TYP($$.typ, add); break;
                               case '-': CODE_INST_TYP($$.typ, sub); break;
                               }
@@ -612,27 +626,30 @@ expr_arit
     ;
 
 op_sum
-    : '+'                   { $$ = code_unpatched_op('+'); }
-    | '-'                   { $$ = code_unpatched_op('-'); }
+    : '+'                   { $$ = code_unpatched_op($1); }
+    | '-'                   { $$ = code_unpatched_op($1); }
     ;
 
 term
     : term op_mul fact      { /* LCU: Mon Sep 15 12:36:54 -05 2025
                                * ver NOTA 1, arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
-                              switch($2.op) {
+                              switch($2.tok.id) {
                               case '*': CODE_INST_TYP($$.typ, mul);  break;
                               case '/': CODE_INST_TYP($$.typ, divi); break;
-                              case '%': CODE_INST_TYP($$.typ, mod);  break;
+                              case '%': if (!($$.typ->t2i->flags & TYPE_IS_INTEGER))
+                                            execerror("%% only operates on integer"
+                                                  " values");
+                                        CODE_INST_TYP($$.typ, mod);  break;
                               }
                             }
     | fact
     ;
 
 op_mul
-    : '*'                   { $$ = code_unpatched_op('*'); }
-    | '/'                   { $$ = code_unpatched_op('/'); }
-    | '%'                   { $$ = code_unpatched_op('%'); }
+    : '*'                   { $$ = code_unpatched_op($1); }
+    | '/'                   { $$ = code_unpatched_op($1); }
+    | '%'                   { $$ = code_unpatched_op($1); }
     ;
 
 fact: prim op_exp fact      {
@@ -645,16 +662,28 @@ fact: prim op_exp fact      {
     ;
 
 op_exp
-    : EXP                   { $$ = code_unpatched_op(EXP); }
+    : EXP                   { $$ = code_unpatched_op($1); }
     ;
 
 prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " undefined", $1); }
     | '(' expr ')'          { $$ = $2; }
-    | NUMBER                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
+    | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
+                              $$.typ = Float;
+                            }
+    | DOUBLE                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
                               $$.typ = Double;
+                            }
+    | CHAR                  { $$.cel = CODE_INST_TYP(Short, constpush, $1);
+                              $$.typ = Char;
+                            }
+    | SHORT                 { $$.cel = CODE_INST_TYP(Short, constpush, $1);
+                              $$.typ = Short;
                             }
     | INTEGER               { $$.cel = CODE_INST_TYP(Integer, constpush, $1);
                               $$.typ = Integer;
+                            }
+    | LONG                  { $$.cel = CODE_INST_TYP(Long, constpush, $1);
+                              $$.typ = Long;
                             }
 
     | PLS_PLS VAR           { $$.cel = CODE_INST(eval, $2);
@@ -720,15 +749,20 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
     | function mark '(' arglist_opt ')' {
                               $$.cel = $2;
                               $$.typ = $1->typref;
-                              CODE_INST(call, $1);               /* instruction */
+                              if ($4 != $1->argums_len) {
+                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts "
+                                       "%d arguments, passed %d",
+                                       $1->name, $1->argums_len, $4);
+                              }
+                              CODE_INST(call,  $1);            /* instruction */
                               CODE_INST(spadd, $1->size_args);
-                              pop_sub_call_stack(); } /* eliminando argumentos */
+                              pop_sub_call_stack(); }          /* eliminando argumentos */
     ;
 
 function
     : FUNCTION              { push_sub_call_stack($1);
                               CODE_INST(spadd, -$1->typref->t2i->size); /* PUSH espacio para el */
-                            }                                      /* valor a retornar */
+                            }                                           /* valor a retornar */
     ;
 
 arglist_opt
@@ -740,16 +774,18 @@ arglist
     : arglist ',' expr      { $$ = $1 + 1;
                               Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
-                                  execerror("%s accepts only %d parameters\n",
+                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts "
+                                            "only %d parameters, passed %d",
                                             sub_call->name,
-                                            sub_call->argums_len);
+                                            sub_call->argums_len,
+                                            $$);
                               }
                               code_conv_val($3.typ, sub_call->argums[$1]->typref);
                             }
     | expr                  { $$ = 1;
                               Symbol *sub_call = top_sub_call_stack();
                               if (sub_call->argums_len == 0) {
-                                  execerror("%s accepts no parameters",
+                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts no parameters",
                                             sub_call->name);
                               }
                               code_conv_val($1.typ, sub_call->argums[0]->typref);
@@ -976,13 +1012,13 @@ code_conv_val(
     return needs_to_change;
 } /* code_conv_val */
 
-OpRel code_unpatched_op(int op)
+OpRel code_unpatched_op(token tok)
 {
     PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
           progp - prog);
     OpRel ret_val = {
-        .op = op,
-        .cel = CODE_INST(noop),
+        .tok   = tok,
+        .start = CODE_INST(noop),
     };
     PT("<<< end   inserting UNPATCHED CODE\n");
     return ret_val;
@@ -1002,9 +1038,9 @@ const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
     }
 
     /* less */
-    PT(">>> begin PATCHING CODE @ [%04lx]\n", op->cel - prog);
+    PT(">>> begin PATCHING CODE @ [%04lx]\n", op->start - prog);
     Cell *saved_progp = progp;
-    progp             = op->cel;
+    progp             = op->start;
     code_conv_val(exp1->typ, exp2->typ);
     progp             = saved_progp;
     PT("<<< end   PATCHING CODE\n");
