@@ -17,6 +17,8 @@
 #include "instr.h"
 #include "scope.h"
 
+#include "symbolP.h"
+
 #ifndef   UQ_COL1_SYMBS /* { */
 #warning  UQ_COL1_SYMBS should be included in 'config.mk'
 #define   UQ_COL1_SYMBS         (-20)

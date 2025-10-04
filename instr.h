@@ -10,6 +10,7 @@
 #define INSTR_H
 
 #include <stdarg.h>
+#include <sys/types.h>
 
 typedef enum   instr_code_e instr_code;
 typedef struct instr        instr;

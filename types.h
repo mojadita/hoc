@@ -10,6 +10,7 @@
 #include "config.h"
 #include "cell.h"
 #include "instr.h"
+#include "symbol.h"
 
 
 #ifndef   FMT_CHAR  /* { */
@@ -74,6 +75,7 @@ struct type2inst_s {
                       align;
     const int         flags;
     const int         weight;
+    Cell      (*const val2cell)(va_list args);
 };
 
 extern type2inst t2i_c, t2i_s, t2i_i, t2i_l, t2i_f, t2i_d, t2i_str;

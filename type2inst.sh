@@ -53,6 +53,7 @@ type2inst t2i_c = {
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 0,
+	.val2cell = valtocell_c,
 
 $(add_suffix _c)
 
@@ -65,6 +66,7 @@ $(add_suffix _c)
     .align    = 1,
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 5,
+	.val2cell = valtocell_d,
 
 $(add_suffix _d)
 
@@ -77,6 +79,7 @@ $(add_suffix _d)
     .align    = 1,
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 4,
+	.val2cell = valtocell_f,
 
 $(add_suffix _f)
 
@@ -89,6 +92,7 @@ $(add_suffix _f)
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 2,
+	.val2cell = valtocell_i,
 
 $(add_suffix _i)
 
@@ -101,6 +105,7 @@ $(add_suffix _i)
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 3,
+	.val2cell = valtocell_l,
 
 $(add_suffix _l)
 
@@ -113,6 +118,7 @@ $(add_suffix _l)
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 1,
+	.val2cell = valtocell_s,
 
 $(add_suffix _s)
 

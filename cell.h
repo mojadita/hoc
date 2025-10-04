@@ -9,26 +9,5 @@
 
 typedef union Cell_u Cell;
 
-#include "instr.h"
-#include "symbol.h"
-
-/*  Celda de Memoria RAM donde se instala el programa  */
-union Cell_u {
-    struct {
-        instr_code inst:   12;
-        int        param:  20;
-    };
-    char         chr;
-    short        sht;
-    int          inum;
-    long         num;
-    float        flt;
-    double       val;
-    Cell        *cel;
-    Symbol      *sym;
-    const char  *str;
-};
-
-extern Cell prog[];   /* memoria de programa */
 
 #endif /* CELL_H */

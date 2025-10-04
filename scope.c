@@ -14,6 +14,7 @@
 #include "dynarray.h"
 #include "hoc.tab.h"
 #include "intern.h"
+#include "symbolP.h"
 
 #ifndef   UQ_SCOPES_INCRMNT /* { */
 #warning  UQ_SCOPES_INCRMNT should be set in 'config.mk'

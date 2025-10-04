@@ -30,7 +30,7 @@
 #include "code.h"
 #include "types.h"
 
-#include "symbol.h"
+#include "symbolP.h"
 #include "cell.h"
 #include "scope.h"
 
@@ -673,7 +673,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
     | DOUBLE                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
                               $$.typ = Double;
                             }
-    | CHAR                  { $$.cel = CODE_INST_TYP(Short, constpush, $1);
+    | CHAR                  { $$.cel = CODE_INST_TYP(Char,    constpush, $1);
                               $$.typ = Char;
                             }
     | SHORT                 { $$.cel = CODE_INST_TYP(Short, constpush, $1);
@@ -686,30 +686,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
                               $$.typ = Long;
                             }
 
-    | PLS_PLS VAR           { $$.cel = CODE_INST(eval, $2);
-                              const Symbol
-                                  *varb_type = $2->typref,
-                                  *expr_type = NULL;
-                              if (varb_type == Char || varb_type == Short || varb_type == Integer) {
-                                  expr_type = Integer;
-                              } else if (varb_type == Long) {
-                                  expr_type = Long;
-                              } else if (varb_type == Float || varb_type == Double) {
-                                  expr_type = Double;
-                              }
-                              bool type_was_converted = code_conv_val($2->typref, expr_type);
-                              CODE_INST_TYP(expr_type, constpush);
-                              CODE_INST_TYP(expr_type, constpush, expr_type->t2i->one);
-                              CODE_INST_TYP(expr_type, add);
-                              if (type_was_converted) {
-                                  CODE_INST(dupl);
-                                  code_conv_val(expr_type, $2->typref);
-                              }
-                              CODE_INST(assign, $2);
-                              if (type_was_converted) {
-                                  CODE_INST(drop);
-                              }
-                              $$.typ = expr_type;
+    | PLS_PLS VAR           {
                               /* LCU: Mon Sep 29 02:40:18 -05 2025
                                * TODO: voy por aqui. */
                             }

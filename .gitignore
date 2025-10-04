@@ -34,7 +34,6 @@ grep.out
 hardcopy.0
 hash.c
 hash.h
-hashP.h
 history.log
 hoc.core
 hoc.p
@@ -58,7 +57,6 @@ pru36747.hoc
 prueba.hoc
 scope.txt
 sed.out
-symbolP.h
 test/
 triangle.hoc
 y.output

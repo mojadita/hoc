@@ -18,6 +18,7 @@
 #include "reserved_words.h"
 #include "scope.h"
 #include "intern.h"
+#include "symbolP.h"
 
 #ifndef   UQ_LEX_DEBUG
 #warning  UQ_LEX_DEBUG deberia ser configurado en config.mk

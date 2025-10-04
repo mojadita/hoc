@@ -14,12 +14,13 @@
 #include "hoc.h"
 #include "hoc.tab.h"
 #include "math.h"
-#include "cell.h"
+#include "cellP.h"
 #include "code.h"
 #include "scope.h"
 #include "type2inst.h"
 #include "types.h"
 #include "init.h"
+#include "symbolP.h"
 
 double integer(double x);
 double Rand(void);
@@ -159,7 +160,7 @@ void init(void)  /* install constants and built-ins in table */
     {
         Symbol *s = install(p->name, CONST, NULL);
         s->typref = D;
-        s->val = p->cval;
+        s->val = val2cell(D, p->cval);
     }
 
     /* creamos el simbolo prev */
