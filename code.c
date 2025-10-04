@@ -350,7 +350,7 @@ CONSTPUSH(_s, sht,  FMT_SHORT)
         push(res);                                  \
                                                     \
         UPDATE_PC();                                \
-    } /* add##_suff */                              \
+    } /* _nam##_suff */                             \
                                                     \
     void _nam##_suff##_prt(                         \
             const instr    *i,                      \

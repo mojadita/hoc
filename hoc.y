@@ -307,8 +307,6 @@ create_scope
                            }
     ;
 
-
-
 /* DECLARACION DE VARIABLES GLOBALES */
 gvar_decl
     : gvar_decl_list ';'
@@ -450,7 +448,8 @@ stmtlist
     | /* empty */          { $$ = progp; }
     ;
 
-expr: VAR    '=' expr      { $$ = $3;
+expr
+    : VAR    '=' expr      { $$ = $3;
                              code_conv_val($3.typ, $1->typref);
                              CODE_INST_TYP($1->typref, assign, $1);
                            }
@@ -670,6 +669,12 @@ op_exp
 
 prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                                         ANSI_END " undefined", $1); }
+    | '(' TYPE ')' prim     { $$.cel = $4.cel;
+                              $$.typ = $2; /* generamos el tipo del resultado y la
+                                            * posicion de comienzo del codigo. */
+                              code_conv_val($4.typ, $2); /* Insercion del codigo
+                                                          * a ejecutar */
+                            }
     | '(' expr ')'          { $$ = $2; }
     | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
                               $$.typ = Float;
