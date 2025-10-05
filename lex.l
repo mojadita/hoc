@@ -19,6 +19,7 @@
 #include "scope.h"
 #include "intern.h"
 #include "symbolP.h"
+#include "cellP.h"
 
 #ifndef   UQ_LEX_DEBUG
 #warning  UQ_LEX_DEBUG deberia ser configurado en config.mk
@@ -64,7 +65,7 @@
 # define C(     _fmt, ...)
 #endif /* UQ_LEX_COMMENTS    }} */
 
-static const token *
+static token *
 add_token(
         int         tok,
         int         lin,
@@ -101,33 +102,41 @@ sufd        {flt}?
 
 {hex}{suf}    {
 
-                /* numero entero hex */
-#define INTEGER_BASE(_base)  do {                                       \
-                    char *p;                                            \
-                    int   tok = INTEGER;                                \
-                                                                        \
-                    yylval.num = strtoul(yytext, &p, _base);            \
-                                                                        \
-                    switch (toupper(*p)) {                              \
-                                                                        \
-                    case 'L':                                           \
-                        P("integer %ldL (%d)\n", yylval.num, LONG);     \
-                        tok = LONG; break;                              \
-                                                                        \
-                    case 'H':                                           \
-                        P("integer %ldH (%d)\n", yylval.num, SHORT);    \
-                        tok = SHORT; break;                             \
-                                                                        \
-                    default:                                            \
-                        P("integer %ld (%d)\n", yylval.num, INTEGER);   \
-                        break;                                          \
-                    }                                                   \
-                                                                        \
-                    add_token(tok, lineno, col_no, yyleng, yytext);     \
-                    col_no += yyleng;                                   \
-                                                                        \
-                    return tok;                                         \
-                                                                        \
+                 /* numero entero hex */
+#define INTEGER_BASE(_base)  do {                                         \
+                    char *p;                                              \
+                    int   tok = INTEGER;                                  \
+                    Cell  lit;                                            \
+                                                                          \
+                    /* OJO, p se inicializa en esta llamada */            \
+                    lit.num = strtoul(yytext, &p, _base);                 \
+                                                                          \
+                    /* comprobamos el siguiente caracter tras literal */  \
+                    switch (toupper(*p)) {                                \
+                                                                          \
+                    case 'L':                                             \
+                        P("long " FMT_LONG " (%d)\n", lit.num, LONG);     \
+                        tok = LONG; break;                                \
+                                                                          \
+                    case 'H':                                             \
+                        lit.sht = lit.num;                                \
+                        P("short " FMT_SHORT " (%d)\n", lit.sht, SHORT);  \
+                        tok = SHORT; break;                               \
+                                                                          \
+                    default:                                              \
+                        lit.inum = lit.num;                               \
+                        P("integer " FMT_INT " (%d)\n", lit.inum, INTEGER);\
+                        break;                                            \
+                    }                                                     \
+                                                                          \
+                    token *t = add_token(                                 \
+                            tok, lineno, col_no, yyleng, yytext);         \
+                    col_no += yyleng;                                     \
+                                                                          \
+                                                                          \
+                    yylval.lit = lit;                                     \
+                    return tok;                                           \
+                                                                          \
                 } while (0)
 
                 INTEGER_BASE(16);
@@ -142,64 +151,66 @@ sufd        {flt}?
                 INTEGER_BASE(10);
               }   /* Un numero integer (decimal) */
 '{chr}'     {
-                char *p     = yytext + 1;
+                char *p   = yytext + 1;
                 int   c;
+                int dat   = 0;
 
-                yylval.num  = 0;
                 switch (c = *p++) {
                 case '\\':  /* estado IN_BACKSLASH */
                     switch (c = *p++) {
-                    case '\"': yylval.num = '\"'; break;
-                    case '\'': yylval.num = '\''; break;
-                    case '\\': yylval.num = '\\'; break;
-                    case 'a':  yylval.num = '\a'; break;
-                    case 'b':  yylval.num = '\b'; break;
-                    case 'f':  yylval.num = '\f'; break;
-                    case 'n':  yylval.num = '\n'; break;
-                    case 'r':  yylval.num = '\r'; break;
-                    case 't':  yylval.num = '\t'; break;
-                    case 'v':  yylval.num = '\v'; break;
-                    case 'x':
-                        for (int i = 0; i < 2; i++) {
-                            switch (c = tolower(*p++)) {
-                            case '0': case '1': case '2': case '3':
-                            case '4': case '5': case '6': case '7':
-                            case '8': case '9':
-                                yylval.num *= 16;
-                                yylval.num += c - '0';
-                                break;
-                            case 'a': case 'b':
-                            case 'c': case 'd': case 'e': case 'f':
-                                yylval.num <<= 4;
-                                yylval.num |= c - 'a' + 10;
-                                break;
-                           } /* switch */
-                        } /* for */
-                        break;
-                    case '0': case '1': case '2': case '3':
+                    case '\"': dat = '\"'; break;
+                    case '\'': dat = '\''; break;
+                    case '\\': dat = '\\'; break;
+                    case 'a':  dat = '\a'; break;
+                    case 'b':  dat = '\b'; break;
+                    case 'f':  dat = '\f'; break;
+                    case 'n':  dat = '\n'; break;
+                    case 'r':  dat = '\r'; break;
+                    case 't':  dat = '\t'; break;
+                    case 'v':  dat = '\v'; break;
+                    case '0': case '1': case '2': case '3': /* \ooo octal */
                     case '4': case '5': case '6': case '7':
-                        yylval.num = c - '0';
+                        dat = c - '0';
                         for (int i = 0; i < 2; i++) {
                             switch(c = *p++) {
                             case '0': case '1': case '2': case '3':
                             case '4': case '5': case '6': case '7':
-                                yylval.num *= 8;
-                                yylval.num += c - '0';
+                                dat *= 8;
+                                dat += c - '0';
                                 continue;
                             } /* switch */
                             break;
                         } /* for */
                         break;
+                    case 'x':                               /* \xhh hex */
+                        for (int i = 0; i < 2; i++) {
+                            switch (c = tolower(*p++)) {
+                            case '0': case '1': case '2': case '3':
+                            case '4': case '5': case '6': case '7':
+                            case '8': case '9':
+                                dat *= 16;
+                                dat += c - '0';
+                                break;
+                            case 'a': case 'b':
+                            case 'c': case 'd': case 'e': case 'f':
+                                dat <<= 4;
+                                dat |= c - 'a' + 10;
+                                break;
+                           } /* switch */
+                        } /* for */
+                        break;
                     } /* switch */
                     break;
                 default:
-                    yylval.num = c;
+                    dat = c;
                 } /* switch */
 
-                P("char 0x%02x (%d)\n", yylval.num, CHAR);
+                P("char 0x%02x (%d)\n", dat, CHAR);
 
                 add_token(CHAR, lineno, col_no, yyleng, yytext);
                 col_no += yyleng;
+
+                yylval.lit.chr = dat;
 
                 return CHAR;
             }
@@ -209,16 +220,18 @@ sufd        {flt}?
                 char *p;
                 int   tok = DOUBLE;
 
-                yylval.val = strtod(yytext, &p);
+                double lit = strtod(yytext, &p);
 
                 switch (toupper(*p)) {
                 case 'F':
-                    P("float %.8g (%d)\n", yylval.val, FLOAT);
+                    yylval.lit.flt = lit;
                     tok = FLOAT;
+                    P("float " FMT_FLOAT " (%d)\n", yylval.lit.flt, tok);
                     break;
 
                 default:
-                    P("double %.15lg (%d)\n", yylval.val, DOUBLE);
+                    yylval.lit.val = lit;
+                    P("double " FMT_DOUBLE " (%d)\n", yylval.lit.val, tok);
                     break;
                 }
 
@@ -227,7 +240,7 @@ sufd        {flt}?
 
                 return tok;
 
-              }   /* Un numero punto flotante  */
+              } /* Un numero punto flotante  */
 
 "/*"          { /* comienzo de un comentario */
                 BEGIN COMMENT;
@@ -422,7 +435,7 @@ void reset_add_token(void)
 } /* reset_add_token */
 
 
-static const token *
+static token *
 add_token(
         int         id,
         int         lin,

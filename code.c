@@ -293,9 +293,8 @@ void swap_prt(const instr *i, const Cell *pc)
             Cell           *pc,                    \
             va_list         args)                  \
     {                                              \
-        Cell c =  { ._fld = va_arg(args, _typ) };  \
                                                    \
-        progp[1] = c;                              \
+        progp[1] = va_arg(args, Cell);             \
                                                    \
         PRG(" " _fmt, c._fld);                     \
     }
@@ -981,7 +980,7 @@ Symbol *define(
 
 /* se llama al terminar la definicion de una funcion
  * (o prodecimiento) */
-void end_define(Symbol *subr)
+void end_define(const Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
     progbase = progp;     /* next code starts here */
@@ -4169,28 +4168,3 @@ CHG_TYPE(s2i, sht,  FMT_SHORT,  inum, FMT_INT)    /* cast short to int */
 CHG_TYPE(s2l, sht,  FMT_SHORT,  num,  FMT_LONG)   /* cast short to long */
 
 #undef CHG_TYPE
-
-#define VAL2CELL(_suff, _fld, _type)                \
-Cell val2cell##_suff(va_list args)                  \
-{                                                   \
-    Cell ret_val = { ._fld = va_arg(args, _type) }; \
-    return ret_val;                                 \
-} /* val2cell##_suff */
-
-VAL2CELL(_c, chr, int)
-VAL2CELL(_d, val, int)
-VAL2CELL(_f, flt, double)
-VAL2CELL(_i, inum, int)
-VAL2CELL(_l, num, long)
-VAL2CELL(_s, sht, int)
-
-Cell val2cell(Symbol *typ, ...)
-{
-    va_list args;
-    va_start(args, typ);
-    Cell ret_val = typ->t2i->val2cell(args);
-    va_end(args);
-    return ret_val;
-} /* val2cell */
-
-#undef VAL2CELL

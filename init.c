@@ -27,13 +27,13 @@ double Rand(void);
 
 static struct constant { /* constants */
     char *name;
-    double cval;
+    Cell  cval;
 } consts[] = {
-    { "DEG",     180.0/M_PI, },
-    { "E",       M_E, },
-    { "PHI",     1.61803398874989484820, },
-    { "PI",      M_PI, },
-    { "version", UQ_VERSION, },
+    { "DEG",     { .val = 180.0/M_PI }, },
+    { "E",       { .val = M_E }, },
+    { "PHI",     { .val = 1.61803398874989484820 }, },
+    { "PI",      { .val = M_PI }, },
+    { "version", { .val = UQ_VERSION }, },
     { NULL,      0.0, },
 };
 
@@ -160,7 +160,7 @@ void init(void)  /* install constants and built-ins in table */
     {
         Symbol *s = install(p->name, CONST, NULL);
         s->typref = D;
-        s->val = val2cell(D, p->cval);
+        s->val    = p->cval;
     }
 
     /* creamos el simbolo prev */

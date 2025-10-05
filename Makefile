@@ -65,6 +65,7 @@ hoc hoc.out: $(hoc_objs)
 
 type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
+toclean += type2inst.c
 
 ##
 ##  Crear un .c a partir de un .y

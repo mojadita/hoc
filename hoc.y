@@ -31,7 +31,7 @@
 #include "types.h"
 
 #include "symbolP.h"
-#include "cell.h"
+#include "cellP.h"
 #include "scope.h"
 
 void warning( const char *fmt, ...);
@@ -44,6 +44,7 @@ static void patch_returns(const Symbol *subr, Cell *target);
 static OpRel code_unpatched_op(token op);
 static const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2);
 static bool code_conv_val(const Symbol *t_src, const Symbol *t_dst);
+static void patching_subr(const Symbol *subr, Cell *preamb, const char *what);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -125,6 +126,7 @@ size_t size_lvars = 0;
     Symbol       *sym;  /* puntero a simbolo */
     double        val;  /* valor double */
     Cell         *cel;  /* referencia a Cell */
+    Cell          lit;  /* literal */
     unsigned long num;  /* valor entero, para $<num> */
     const char   *str;  /* cadena de caracteres */
     var_decl_list vdl;  /* global var declaration list */
@@ -135,13 +137,14 @@ size_t size_lvars = 0;
 }
 
 %token        ERROR
-%token <val>  DOUBLE FLOAT
+%token <lit>  DOUBLE FLOAT
 %token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
 %token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
 %token <tok>  OR AND GE LE EQ NE EXP
 %token <tok>  PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
-%token <num>  FUNC PROC CHAR SHORT INTEGER LONG
+%token <num>  FUNC PROC
+%token <lit>  CHAR SHORT INTEGER LONG
 %token        RETURN
 %token <str>  STRING UNDEF
 %token        LIST
@@ -665,7 +668,8 @@ op_exp
     : EXP                   { $$ = code_unpatched_op($1); }
     ;
 
-prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " undefined", $1); }
+prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
+                                        ANSI_END " undefined", $1); }
     | '(' expr ')'          { $$ = $2; }
     | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
                               $$.typ = Float;
@@ -685,35 +689,75 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
     | LONG                  { $$.cel = CODE_INST_TYP(Long, constpush, $1);
                               $$.typ = Long;
                             }
+    | VAR                   { $$.cel = CODE_INST_TYP($1->typref, eval,    $1);
+                              $$.typ = $1->typref;
+                            }
+    | LVAR                  { $$.cel = CODE_INST_TYP($1->typref, argeval,
+                                                     $1->offset, $1->name);
+                              $$.typ = $1->typref; }
 
     | PLS_PLS VAR           {
-                              /* LCU: Mon Sep 29 02:40:18 -05 2025
-                               * TODO: voy por aqui. */
+#define INCDEC_PRE(_eval, _op, _assign, ...) do {                     \
+                                  const Symbol                        \
+                                         *var = $2,                   \
+                                         *type = var->typref;         \
+                                  $$.cel = progp;                     \
+                                  $$.typ = type;                      \
+                                                                      \
+                                  CODE_INST_TYP(type, _eval,          \
+                                                ##__VA_ARGS__);       \
+                                  CODE_INST_TYP(type,                 \
+                                                constpush,            \
+                                                type->t2i->one);      \
+                                  CODE_INST_TYP(type, _op);           \
+                                  CODE_INST_TYP(type, _assign,        \
+                                                ##__VA_ARGS__);       \
+                              } while (0)
+
+                              INCDEC_PRE(eval,    add, assign,    var);
+                            }
+    | MIN_MIN VAR           { INCDEC_PRE(eval,    sub, assign,    var); }
+
+    | PLS_PLS LVAR          { INCDEC_PRE(argeval, add, argassign, var->offset, var->name); }
+    | MIN_MIN LVAR          { INCDEC_PRE(argeval, sub, argassign, var->offset, var->name); }
+
+    | VAR     PLS_PLS       {
+#define INCDEC_POST(_eval, _op, _assign, ...) do {                    \
+                                  const Symbol                        \
+                                         *var  = $1,                  \
+                                         *type = var->typref;         \
+                                  $$.cel = progp;                     \
+                                  $$.typ = type;                      \
+                                                                      \
+                                  CODE_INST_TYP(type, _eval,          \
+                                                ##__VA_ARGS__);       \
+                                  CODE_INST(dupl);                    \
+                                  CODE_INST_TYP(type,                 \
+                                                constpush,            \
+                                                type->t2i->one);      \
+                                  CODE_INST_TYP(type, _op);           \
+                                  CODE_INST_TYP(type, _assign,        \
+                                                ##__VA_ARGS__);       \
+                                  CODE_INST(drop);                    \
+                              } while (0)
+
+                              INCDEC_POST(eval,    add, assign,    var);
+                            }
+    | VAR     MIN_MIN       { INCDEC_POST(eval,    sub, assign,    var); }
+
+    | LVAR    PLS_PLS       { INCDEC_POST(argeval, add, argassign,
+                                          var->offset, var->name);
+                            }
+    | LVAR    MIN_MIN       { INCDEC_POST(argeval, sub, argassign,
+                                          var->offset, var->name);
                             }
 
-    | MIN_MIN VAR           { $$.cel = CODE_INST(deceval, $2);
-                              $$.typ = $2->typref; }
-    | VAR     PLS_PLS       { $$.cel = CODE_INST(evalinc, $1);
-                              $$.typ = $1->typref; }
-    | VAR     MIN_MIN       { $$.cel = CODE_INST(evaldec, $1);
-                              $$.typ = $1->typref; }
-    | VAR                   { $$.cel = CODE_INST_TYP($1->typref, eval,    $1);
-                              $$.typ = $1->typref; }
+    | CONST                 { $$.cel = CODE_INST_TYP($1->typref,
+                                                     constpush,
+                                                     $1->val);
+                              $$.typ = $1->typref;
+                            }
 
-    | PLS_PLS LVAR          { $$.cel = CODE_INST(incarg,  $2->offset, $2->name);
-                              $$.typ = $2->typref; }
-    | MIN_MIN LVAR          { $$.cel = CODE_INST(decarg,  $2->offset, $2->name);
-                              $$.typ = $2->typref; }
-    | LVAR    PLS_PLS       { $$.cel = CODE_INST(arginc,  $1->offset, $1->name);
-                              $$.typ = $1->typref; }
-    | LVAR    MIN_MIN       { $$.cel = CODE_INST(argdec,  $1->offset, $1->name);
-                              $$.typ = $1->typref; }
-    | LVAR                  { $$.cel = CODE_INST_TYP(
-                                     $1->typref, argeval, $1->offset, $1->name);
-                              $$.typ = $1->typref; }
-
-    | CONST                 { $$.cel = CODE_INST_TYP($1->typref, constpush, $1->val);
-                              $$.typ = $1->typref; }
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }
     | BLTIN1 '(' expr ')'   { $$.cel = $3.cel;
@@ -727,7 +771,8 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s" ANSI_END " u
                               $$.cel = $2;
                               $$.typ = $1->typref;
                               if ($4 != $1->argums_len) {
-                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts "
+                                  execerror(" " BRIGHT GREEN "%s"
+                                       ANSI_END " accepts "
                                        "%d arguments, passed %d",
                                        $1->name, $1->argums_len, $4);
                               }
@@ -751,7 +796,8 @@ arglist
     : arglist ',' expr      { $$ = $1 + 1;
                               Symbol *sub_call = top_sub_call_stack();
                               if ($$ > sub_call->argums_len) {
-                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts "
+                                  execerror(" " BRIGHT GREEN "%s"
+                                            ANSI_END " accepts "
                                             "only %d parameters, passed %d",
                                             sub_call->name,
                                             sub_call->argums_len,
@@ -762,7 +808,9 @@ arglist
     | expr                  { $$ = 1;
                               Symbol *sub_call = top_sub_call_stack();
                               if (sub_call->argums_len == 0) {
-                                  execerror(" " BRIGHT GREEN "%s" ANSI_END " accepts no parameters",
+                                  execerror(" " BRIGHT GREEN "%s"
+                                            ANSI_END " accepts no"
+                                            " parameters",
                                             sub_call->name);
                               }
                               code_conv_val($1.typ, sub_call->argums[0]->typref);
@@ -770,44 +818,13 @@ arglist
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
-
                               /* PARCHEO DE CODIGO */
-                              scope *cs = get_root_scope();
-                              if (cs->base_offset + cs->size > size_lvars) {
-                                  size_lvars = cs->base_offset + cs->size;
-                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
-                              }
-                              patch_returns($1, progp); /* parcheamos todos los RETURN del
-                                                         * block */
-                              patch_block($5);          /* parcheamos el spadd, 0 de preamb */
-
-                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(pop_fp);
-                              CODE_INST(ret);
-                              end_scope();
-                              end_define($1);
-                              indef = NULL;
-                              P("FIN DEFINICION PROCEDIMIENTO\n");
+                              patching_subr($1, $5, "PROCEDIMIENTO");
                             }
 
     | func_head '(' formal_arglist_opt ')' preamb block {
-
                               /* PARCHEO DE CODIGO */
-                              scope *cs = get_root_scope();
-                              if (cs->base_offset + cs->size > size_lvars) {
-                                  size_lvars = cs->base_offset + cs->size;
-                                  PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
-                              }
-                              patch_returns($1, progp);
-                              patch_block($5);
-
-                              /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
-                              CODE_INST(pop_fp);
-                              CODE_INST(ret);
-                              end_scope();
-                              end_define($1);
-                              indef = NULL;
-                              P("FIN DEFINICION FUNCION\n");
+                              patching_subr($1, $5, "FUNCION");
                             }
     ;
 
@@ -902,6 +919,30 @@ func_head
     ;
 
 %%
+
+void patching_subr(
+        const Symbol *subr,
+        Cell         *preamb,
+        const char *what)
+{
+    scope *cs = get_root_scope();
+
+    if (cs->base_offset + cs->size > size_lvars) {
+      size_lvars = cs->base_offset + cs->size;
+      PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
+    }
+    patch_returns(subr, progp); /* parcheamos todos los RETURN del
+                                 * block */
+    patch_block(preamb);        /* parcheamos el spadd, 0 de preamb */
+
+    /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+    CODE_INST(pop_fp);
+    CODE_INST(ret);
+    end_scope();
+    end_define(subr);
+    indef = NULL;
+    P("FIN DEFINICION %s\n", what);
+} /* patching_subr */
 
 /* en una llamada a funcion/procedimiento, almacena el simbolo a
  * llamar para tener acceso a la lista de argumentos del proc/func

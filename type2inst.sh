@@ -31,100 +31,87 @@ cat <<EOF_b549d7fa-9e0c-11f0-9aa0-0023ae68f329
  */
 
 #include <sys/types.h>
+#include <stdlib.h>
 
-#include "type2inst.h"
+#include "types.h"
 #include "instr.h"
-
-static const Cell
-    one_c   = { .chr = 1 },
-    one_d   = { .val = 1.0 },
-    one_f   = { .flt = 1.0F },
-    one_i   = { .inum = 1 },
-    one_l   = { .num = 1L },
-    one_s   = { .sht = 1 },
-    one_str = { .str = "1" };
+#include "cellP.h"
 
 type2inst t2i_c = {
 
-    .one      = &one_c,
+    .one      = { .chr = 1 },
     .fmt      = "0x%02hhx",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 0,
-	.val2cell = valtocell_c,
 
 $(add_suffix _c)
 
 }, t2i_d = {
 
-    .one      = &one_d,
+    .one      = { .val = 1.0 },
     .fmt      = "%.12lg",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 5,
-	.val2cell = valtocell_d,
 
 $(add_suffix _d)
 
 }, t2i_f = {
 
-    .one      = &one_f,
+    .one      = { .flt = 1.0F },
     .fmt      = "%.7g",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 4,
-	.val2cell = valtocell_f,
 
 $(add_suffix _f)
 
 }, t2i_i = {
 
-    .one      = &one_i,
+    .one      = { .inum = 1 },
     .fmt      = "%i",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 2,
-	.val2cell = valtocell_i,
 
 $(add_suffix _i)
 
 }, t2i_l = {
 
-    .one      = &one_l,
+    .one      = { .num = 1L },
     .fmt      = "%li",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 3,
-	.val2cell = valtocell_l,
 
 $(add_suffix _l)
 
 },  t2i_s = {
 
-    .one      = &one_s,
+    .one      = { .sht = 1 },
     .fmt      = "0x%04hx",
     .printval = NULL,
     .size     = 1,
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 1,
-	.val2cell = valtocell_s,
 
 $(add_suffix _s)
 
 },  t2i_str = {
 
-    .one      = &one_str,
+    .one      = { .str = "one" },
     .fmt      = "%s",
     .printval = NULL,
     .size     = 1,

@@ -34,7 +34,7 @@ Symbol *define(
         int         type,
         Symbol     *typref,
         Cell       *entry_point);
-void  end_define(Symbol   *subr);     /* housekeeping after function definition */
+void  end_define(const Symbol *subr); /* housekeeping after function definition */
 int   stacksize(void);                /* return the stack size */
 
 Cell *getarg(int arg);                /* return a pointer to argument */

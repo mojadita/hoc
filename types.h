@@ -8,7 +8,7 @@
 #define TYPES_H_9fc2bf3a_9d19_11f0_8203_0023ae68f329
 
 #include "config.h"
-#include "cell.h"
+#include "cellP.h"
 #include "instr.h"
 #include "symbol.h"
 
@@ -68,14 +68,13 @@ struct type2inst_s {
         *const subarg,    *const mularg,    *const divarg,
         *const modarg,    *const pwrarg;
 
-    const Cell *const one;
+    const Cell        one;
     const char *const fmt;
     typeinfo_cb       printval;
     const size_t      size,
                       align;
     const int         flags;
     const int         weight;
-    Cell      (*const val2cell)(va_list args);
 };
 
 extern type2inst t2i_c, t2i_s, t2i_i, t2i_l, t2i_f, t2i_d, t2i_str;

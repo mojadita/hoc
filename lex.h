@@ -8,6 +8,8 @@
 #ifndef LEX_H
 #define LEX_H
 
+#include "cellP.h"
+
 typedef struct token token;
 
 struct token {
@@ -15,7 +17,7 @@ struct token {
     size_t      len;  /* longitud */
     int         lin,  /* linea de comienzo */
                 col;  /* columna de comienzo */
-    int         id;  /* tipo de token */
+    int         id;   /* tipo de token */
 };
 
 const token *get_last_token(
