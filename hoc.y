@@ -577,11 +577,7 @@ and : AND                   {
     ;
 
 expr_rel
-    : '!' expr_rel          { $$.cel = $2.cel;
-                              $$.typ = Integer;
-                              code_conv_val($2.typ, Integer);
-                              CODE_INST(not); }
-    | expr_arit op_rel expr_arit {
+    : expr_arit op_rel expr_arit {
                               $$.typ = Integer;
                               $$.cel = $1.cel;
                               const Symbol *op_type = check_op_bin(&$1, &$2, &$3);
@@ -700,6 +696,10 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
     | LVAR                  { $$.cel = CODE_INST_TYP($1->typref, argeval,
                                                      $1->offset, $1->name);
                               $$.typ = $1->typref; }
+    | '!' prim              { $$.cel = $2.cel;
+                              $$.typ = Integer;
+                              code_conv_val($2.typ, Integer);
+                              CODE_INST(not); }
 
     | PLS_PLS VAR           {
 #define INCDEC_PRE(_eval, _op, _assign, ...) do {                     \

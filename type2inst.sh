@@ -13,7 +13,7 @@ DATE="$(LANG=C date)"
 YEAR="$(LANG=C date +%Y)"
 
 add_suffix() {
-    grep "INST([a-zA-Z_][_A-Za-z0-9]*${1}," \
+    grep "^INST([a-zA-Z_][_A-Za-z0-9]*${1}," \
          instrucciones.h \
     | sed -e "s/INST(\([a-zA-Z_][_A-Za-z0-9]*\)${1},.*/    .\1        = instruction_set + INST_\1${1},/"
 }

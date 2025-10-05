@@ -4,7 +4,7 @@
 # configured values.  The script is a filter, reads its standard input
 # and writes to standard output, so maintainance is simpler.
 
-sed -Ee '/^[ 	]*(#.*)?$/d' \
-     -e 's"^[ 	]*([A-Za-z_][A-Za-z0-9_]*)[ 	]*\??=[ 	]*(.*)$"-e '\''s\"@\1@\"\2\"g'\''"'
+sed -Ee '/^[	 ]*(#.*)?$/d' \
+     -e 's"^[	 ]*([A-Za-z_][A-Za-z0-9_]*)[	 ]*\??=[	 ]*(.*)$"-e '\''s\"@\1@\"\2\"g'\''"'
 
 echo
