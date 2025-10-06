@@ -109,7 +109,7 @@ Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion
  * llamar para tener acceso a la lista de argumentos del proc/func
  * y poder chequear al vuelo los tipos de estos y las expresiones
  * que se le pasan. */
-static Symbol *top_sub_call_stack();
+static Symbol *top_sub_call_stack(void);
 static void push_sub_call_stack(Symbol *sym);
 static void pop_sub_call_stack(void);
 
@@ -142,6 +142,8 @@ size_t size_lvars = 0;
 %token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
 %token <tok>  OR AND GE LE EQ NE EXP
+%token <tok>  BIT_AND_EQ BIT_OR_EQ BIT_XOR_EQ
+%token <tok>  SHIFT_LEFT SHIFT_LEFT_EQ SHIFT_RIGHT SHIFT_RIGHT_EQ
 %token <tok>  PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num>  FUNC PROC
 %token <lit>  CHAR SHORT INTEGER LONG
@@ -149,8 +151,9 @@ size_t size_lvars = 0;
 %token <str>  STRING UNDEF
 %token        LIST
 %token <sym>  TYPE
-%type  <cel>  stmt cond stmtlist
-%type  <expr> expr expr_or expr_and expr_rel expr_arit term fact prim
+%type  <cel>  stmt cond stmtlist bitop
+%type  <expr> expr expr_or expr_and expr_bitor expr_bitand expr_bitxor expr_shift
+%type  <expr> expr_rel expr_arit term fact prim
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
@@ -158,7 +161,7 @@ size_t size_lvars = 0;
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
-%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign
+%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign '&' '|' '^' '~'
 %type  <opr>  op_rel op_sum op_mul op_exp
 
 %%
@@ -294,6 +297,7 @@ stmt
 
 procedure
     : PROCEDURE            { push_sub_call_stack($1); }
+    ;
 
 create_scope
     :  /* empty */         { scope *sc = start_scope();
@@ -552,7 +556,7 @@ or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n"
     ;
 
 expr_and
-    : expr_rel and expr_and { $$.cel = $1.cel;
+    : expr_bitor and expr_and { $$.cel = $1.cel;
                               $$.typ = Integer;
                               code_conv_val($3.typ, Integer);
                               Cell *saved_progp = progp;
@@ -564,7 +568,7 @@ expr_and
                                       "continuing @ [%04lx]\n",
                                       progp - prog, saved_progp - prog);
                               progp = saved_progp; }
-    | expr_rel
+    | expr_bitor
     ;
 
 and : AND                   {
@@ -574,6 +578,61 @@ and : AND                   {
                                    CODE_INST(noop);
                               PT("<<< end   inserting unpatched CODE\n");
                             }
+    ;
+
+expr_bitor
+    : expr_bitor bitop '|' expr_bitxor {
+
+#define BITOP(_inst)          do {                                          \
+                                  const Symbol *left_type = $1.typ,         \
+                                               *right_type = $4.typ;        \
+                                  $$.cel = $1.cel;                          \
+                                  $$.typ = Integer;                         \
+                                  Cell *saved_progp = progp;                \
+                                  progp = $2;                               \
+                                  PT(">>> begin PATCHING CODE @ [%04lx]\n", \
+                                          progp - prog);                    \
+                                  code_conv_val($1.typ, Integer);           \
+                                  PT("<<< end   PATCHING CODE\n");          \
+                                  code_conv_val($4.typ, Integer);           \
+                                  CODE_INST(_inst);                         \
+                              } while (0)
+
+                              BITOP(bit_or);
+                            }
+    | expr_bitxor
+    ;
+
+expr_bitxor
+    : expr_bitxor bitop '^' expr_bitand {
+                              BITOP(bit_xor);
+                            }
+    | expr_bitand
+    ;
+
+expr_bitand
+    : expr_bitand bitop '&' expr_shift {
+                              BITOP(bit_and);
+                            }
+    | expr_shift
+    ;
+
+bitop
+    :  /* empty */          { PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
+                                      progp - prog);
+                              $$ = CODE_INST(noop);
+                              PT("<<< end inserting UNPATCHED CODE\n");
+                            }
+    ;
+
+expr_shift
+    : expr_shift bitop SHIFT_LEFT expr_rel {
+                              BITOP(bit_shl);
+                            }
+    | expr_shift bitop SHIFT_RIGHT expr_rel {
+                              BITOP(bit_shr);
+                            }
+    | expr_rel
     ;
 
 expr_rel

@@ -347,6 +347,16 @@ sufd        {flt}?
           col_no     += yyleng;
           return EXP; }
 
+"<<"    { P("operador %s (%d)\n", yytext, SHIFT_LEFT);
+          yylval.tok  = *add_token(SHIFT_LEFT, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return SHIFT_LEFT; }
+
+">>"    { P("operador %s (%d)\n", yytext, SHIFT_RIGHT);
+          yylval.tok  = *add_token(SHIFT_RIGHT, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return SHIFT_RIGHT; }
+
 "++"    { P("operador %s (%d)\n", yytext, PLS_PLS);
           yylval.tok  = *add_token(EXP, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
@@ -386,6 +396,31 @@ sufd        {flt}?
           yylval.tok  = *add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return PWR_EQ; }
+
+"|="   { P("operador %s (%d)\n", yytext, BIT_OR_EQ);
+          yylval.tok  = *add_token(BIT_OR_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return BIT_OR_EQ; }
+
+"&="   { P("operador %s (%d)\n", yytext, BIT_AND_EQ);
+          yylval.tok  = *add_token(BIT_AND_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return BIT_AND_EQ; }
+
+"^="   { P("operador %s (%d)\n", yytext, BIT_XOR_EQ);
+          yylval.tok  = *add_token(BIT_XOR_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return BIT_XOR_EQ; }
+
+"<<="   { P("operador %s (%d)\n", yytext, SHIFT_LEFT_EQ);
+          yylval.tok  = *add_token(SHIFT_LEFT_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return SHIFT_LEFT_EQ; }
+
+">>="   { P("operador %s (%d)\n", yytext, SHIFT_RIGHT_EQ);
+          yylval.tok  = *add_token(SHIFT_RIGHT_EQ, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          return SHIFT_RIGHT_EQ; }
 
 \n      {
             add_token('\n', lineno, col_no, 2, "\\n");
