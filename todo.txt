@@ -82,19 +82,23 @@
   Es importante notar que actualmente solo las funciones <argeval> y
   <argassign> estan definidas con una sola celda.
 
-* Crear infraestructura para chequear que el numero y tipos de argumentos
+* Sun Oct  5 14:48:25 -05 2025
+  Crear infraestructura para chequear que el numero y tipos de argumentos
   concuerdan con el numero y tipos de las expresiones que se montan en la
   pila para llamar a una funcion.  Esto sera necesario despues para
   a;adir instrucciones de conversion de tipos si estos no concuerdan con
   los tipos de los valores esperados por la funcion.
 
-* usar tipos. Implementar los tipos 'int' y 'double', etc.
+* Sun Oct  5 14:48:19 -05 2025
+  usar tipos. Implementar los tipos 'int' y 'double', etc.
   Esto requiere, ademas de mantener el puntero a la celda de memoria donde
   comienza (o hay que parchear codigo) que se retorna en el tipo <cel>, a;adir
   un campo que haga referencia al tipo devuelto por una expresion, para asi
   insertar codigo de conversion de tipos o emitir los errores correspondientes.
   La informacion de tipos es estatica (no cambia durante la ejecucion de un
   programa) y puede ser calculada durante el analisis.
+
+* implementar operadores de bits |, &, ^, <<, >>, |=, &=, ^=, <<=, >>= y ~.
   
 * traducir a ensamblador 'de verdad'.  Aun esta por definir como se realizara
   esta tarea.... parece que la opcion mas apropiada pueda ser la de llamar
