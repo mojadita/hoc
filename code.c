@@ -1150,3 +1150,23 @@ CHG_TYPE(s2i, sht,  FMT_SHORT,  inum, FMT_INT)    /* cast short to int */
 CHG_TYPE(s2l, sht,  FMT_SHORT,  num,  FMT_LONG)   /* cast short to long */
 
 #undef CHG_TYPE
+
+
+#define BIT_OPER( _suff, _symb_opr )                              \
+        void bit_##_suff( const instr *i )                        \
+        {                                                         \
+            UPDATE_PC();                                          \
+        }                                                         \
+                                                                  \
+        void bit_##_suff##_prt( const instr *i, const Cell *pc )  \
+        {                                                         \
+            PR("\n");                                             \
+        }
+
+BIT_OPER( or, "|" )   /* operador OR de bits */
+BIT_OPER( xor, "^" )  /* operador XOR de bits */
+BIT_OPER( and, "&" )  /* operador AND de bits */
+BIT_OPER( shl, << )   /* operador << de bits */
+BIT_OPER( shr, >> )   /* operador >> de bits */
+
+#undef BIT_OPER
