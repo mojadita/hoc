@@ -13,9 +13,9 @@ COPYRIGHT_YEARS          ?= 2024-2025
 PROGRAM_NAME_UC          ?= HOC
 AUTHOR_CORP              ?= LUIS COLORADO SISTEMAS S.L.U.
 AUTHOR_SITE              ?= https://github.com/mojadita/$(PACKAGE)
-UQ_VERSION               ?= 10.0
+UQ_VERSION               ?= 11.0
 VERSION                  ?= $(UQ_VERSION)
-VERSION_DATE             ?= Sun Oct  5 14:37:38 -05 2025
+VERSION_DATE             ?= Tue Oct  7 11:37:09 -05 2025
 OPERATING_SYSTEM         ?= UNIX
 
 prefix                   ?= /usr/local
@@ -35,7 +35,7 @@ UQ_HOC_DEBUG             ?=  0
 UQ_HOC_TRACE_PATCHING    ?=  0
 UQ_LEX_DEBUG             ?=  0
 UQ_LEX_COMMENTS          ?=  0
-UQ_CODE_DEBUG_EXEC       ?=  1
+UQ_CODE_DEBUG_EXEC       ?=  0
 UQ_CODE_DEBUG_PROG       ?=  0
 UQ_DEBUG_STACK           ?=  0
 
