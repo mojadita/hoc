@@ -153,7 +153,7 @@ size_t size_lvars = 0;
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist bitop
 %type  <expr> expr expr_or expr_and expr_bitor expr_bitand expr_bitxor expr_shift
-%type  <expr> expr_rel expr_arit term fact prim
+%type  <expr> expr_rel expr_arit term fact prim expr_bltin
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
@@ -477,7 +477,7 @@ expr
                               * $<n> arguments are made in yacc, breaking the
                               * context of what gets substituted.
                               */
-#define VAR_OPASSIGN_EXPR(_eval, _assign) do {                                                       \
+#define VAR_OPASSIGN_EXPR(_eval, _assign, ...) do {                                                  \
                                  const Symbol *var       = $1,                                       \
                                               *var_type  = var->typref,                              \
                                               *exp_type  = $3.typ,                                   \
@@ -487,7 +487,7 @@ expr
                                  $$.typ = var_type;                                                  \
                                                                                                      \
                                  code_conv_val(exp_type, var_type);   /* convert expr to var type */ \
-                                 CODE_INST_TYP(var_type, _eval, var); /* variable evaluation */      \
+                                 CODE_INST_TYP(var_type, _eval, ##__VA_ARGS__); /* variable evaluation */ \
                                  CODE_INST(swap);                     /* swap them */                \
                                  switch (op.id) {                                                    \
                                  case PLS_EQ:          CODE_INST_TYP(res_type, add,  var); break;    \
@@ -502,14 +502,14 @@ expr
                                  case BIT_XOR_EQ:      CODE_INST(bit_xor,            var); break;    \
                                  case BIT_AND_EQ:      CODE_INST(bit_and,            var); break;    \
                                  } /* switch */                                                      \
-                                 CODE_INST_TYP(var_type, _assign, $1);    /* assign to variable */   \
+                                 CODE_INST_TYP(var_type, _assign, ##__VA_ARGS__); /* assign to variable */ \
                              } while (0) /* VAR_OPASSIGN_EXPR */
 
-                             VAR_OPASSIGN_EXPR(eval, assign);
+                             VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
     | LVAR op_assign expr  { /* LCU: Wed Oct  1 14:51:06 -05 2025
                               * NOTE: See above comment in previous rule*/
-                             VAR_OPASSIGN_EXPR(argeval, argassign);
+                             VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
     | VAR bitop_assign expr {
                              if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
@@ -517,7 +517,7 @@ expr
                                            ": must be integral type\n",
                                            $2.lex, $1->name);
                              }
-                             VAR_OPASSIGN_EXPR(eval, assign);
+                             VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
     | LVAR bitop_assign expr {
                              if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
@@ -525,7 +525,7 @@ expr
                                            ": must be integral type\n",
                                            $2.lex, $1->name);
                              }
-                             VAR_OPASSIGN_EXPR(argeval, argassign);
+                             VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
     | expr_or
     ;
@@ -848,10 +848,10 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
 
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }
-    | BLTIN1 '(' expr ')'   { $$.cel = $3.cel;
+    | BLTIN1 '(' expr_bltin ')'   { $$.cel = $3.cel;
                               $$.typ = $1->typref;
                               CODE_INST(bltin1, $1); }
-    | BLTIN2 '(' expr ',' expr ')'
+    | BLTIN2 '(' expr_bltin ',' expr_bltin ')'
                             { $$.cel = $3.cel;
                               $$.typ = $1->typref;
                               CODE_INST(bltin2, $1); }
@@ -868,6 +868,8 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               CODE_INST(spadd, $1->size_args);
                               pop_sub_call_stack(); }          /* eliminando argumentos */
     ;
+
+expr_bltin: expr { code_conv_val($1.typ, Double); }
 
 function
     : FUNCTION              { push_sub_call_stack($1);

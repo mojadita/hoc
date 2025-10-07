@@ -98,7 +98,10 @@
   La informacion de tipos es estatica (no cambia durante la ejecucion de un
   programa) y puede ser calculada durante el analisis.
 
-* implementar operadores de bits |, &, ^, <<, >>, |=, &=, ^=, <<=, >>= y ~.
+* Tue Oct  7 12:32:40 -05 2025
+  implementar operadores de bits |, &, ^, <<, >>, |=, &=, ^=, <<=, >>= y ~.
+
+* hacer una implemntacion modular para los builtin.
   
 * traducir a ensamblador 'de verdad'.  Aun esta por definir como se realizara
   esta tarea.... parece que la opcion mas apropiada pueda ser la de llamar
