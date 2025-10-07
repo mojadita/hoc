@@ -161,7 +161,7 @@ size_t size_lvars = 0;
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
-%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign '&' '|' '^' '~'
+%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign bitop_assign '&' '|' '^' '~'
 %type  <opr>  op_rel op_sum op_mul op_exp
 
 %%
@@ -477,46 +477,54 @@ expr
                               * $<n> arguments are made in yacc, breaking the
                               * context of what gets substituted.
                               */
-#define VAR_OPASSIGN_EXPR(_eval, _assign) do {                                                               \
-                                 const Symbol *var       = $1,                                               \
-                                              *var_type  = var->typref,                                      \
-                                              *exp_type  = $3.typ,                                           \
-                                              *res_type  = exp_type;                                         \
-                                 const token     op      = $2;                                               \
-                                                                                                             \
-                                 if (exp_type->t2i->weight < var_type->t2i->weight) {                        \
-                                     res_type = var_type;                                                    \
-                                     code_conv_val(exp_type, res_type); /* convert expr to var type */       \
-                                 }                                                                           \
-                                 CODE_INST_TYP(var_type, _eval, var);   /* variable evaluation */            \
-                                 if (var_type->t2i->weight < exp_type->t2i->weight) {                        \
-                                     code_conv_val(var_type, res_type); /* convert var to expr type */       \
-                                 }                                                                           \
-                                 CODE_INST(swap);                       /* swap them */                      \
-                                 switch (op.id) {                                                            \
-                                 case PLS_EQ:  CODE_INST_TYP(res_type, add,  $1); break;                     \
-                                 case MIN_EQ:  CODE_INST_TYP(res_type, sub,  $1); break;                     \
-                                 case MUL_EQ:  CODE_INST_TYP(res_type, mul,  $1); break;                     \
-                                 case DIV_EQ:  CODE_INST_TYP(res_type, divi, $1); break;                     \
-                                 case MOD_EQ:  CODE_INST_TYP(res_type, mod,  $1); break;                     \
-                                 case PWR_EQ:  CODE_INST_TYP(res_type, pwr,  $1); break;                     \
-                                 } /* switch */                                                              \
-                                 bool different_types = (res_type != var_type);                              \
-                                 if (different_types) {                   /* if variable type != expr type */\
-                                     CODE_INST(dupl);                     /* duplicate result */             \
-                                     code_conv_val(res_type, var_type);   /* convert back to variable type */\
-                                 }                                                                           \
-                                 CODE_INST_TYP(var_type, _assign, $1);    /* assign to variable */           \
-                                 if (different_types) {                   /* ... and drop */                 \
-                                     CODE_INST(drop);     /**/                                               \
-                                 }                                                                           \
+#define VAR_OPASSIGN_EXPR(_eval, _assign) do {                                                       \
+                                 const Symbol *var       = $1,                                       \
+                                              *var_type  = var->typref,                              \
+                                              *exp_type  = $3.typ,                                   \
+                                              *res_type  = exp_type;                                 \
+                                 const token   op        = $2;                                       \
+                                 $$.cel = $3.cel;                                                    \
+                                 $$.typ = var_type;                                                  \
+                                                                                                     \
+                                 code_conv_val(exp_type, var_type);   /* convert expr to var type */ \
+                                 CODE_INST_TYP(var_type, _eval, var); /* variable evaluation */      \
+                                 CODE_INST(swap);                     /* swap them */                \
+                                 switch (op.id) {                                                    \
+                                 case PLS_EQ:          CODE_INST_TYP(res_type, add,  var); break;    \
+                                 case MIN_EQ:          CODE_INST_TYP(res_type, sub,  var); break;    \
+                                 case MUL_EQ:          CODE_INST_TYP(res_type, mul,  var); break;    \
+                                 case DIV_EQ:          CODE_INST_TYP(res_type, divi, var); break;    \
+                                 case MOD_EQ:          CODE_INST_TYP(res_type, mod,  var); break;    \
+                                 case PWR_EQ:          CODE_INST_TYP(res_type, pwr,  var); break;    \
+                                 case SHIFT_LEFT_EQ:   CODE_INST(bit_shl,            var); break;    \
+                                 case SHIFT_RIGHT_EQ:  CODE_INST(bit_shr,            var); break;    \
+                                 case BIT_OR_EQ:       CODE_INST(bit_or,             var); break;    \
+                                 case BIT_XOR_EQ:      CODE_INST(bit_xor,            var); break;    \
+                                 case BIT_AND_EQ:      CODE_INST(bit_and,            var); break;    \
+                                 } /* switch */                                                      \
+                                 CODE_INST_TYP(var_type, _assign, $1);    /* assign to variable */   \
                              } while (0) /* VAR_OPASSIGN_EXPR */
 
                              VAR_OPASSIGN_EXPR(eval, assign);
                            }
-    | LVAR op_assign expr  { $$ = $3;
-                             /* LCU: Wed Oct  1 14:51:06 -05 2025
+    | LVAR op_assign expr  { /* LCU: Wed Oct  1 14:51:06 -05 2025
                               * NOTE: See above comment in previous rule*/
+                             VAR_OPASSIGN_EXPR(argeval, argassign);
+                           }
+    | VAR bitop_assign expr {
+                             if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
+                                 execerror("cannot %s operate to " BRIGHT GREEN "%s" ANSI_END
+                                           ": must be integral type\n",
+                                           $2.lex, $1->name);
+                             }
+                             VAR_OPASSIGN_EXPR(eval, assign);
+                           }
+    | LVAR bitop_assign expr {
+                             if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
+                                 execerror("cannot %s operate to " BRIGHT GREEN "%s" ANSI_END
+                                           ": must be integral type\n",
+                                           $2.lex, $1->name);
+                             }
                              VAR_OPASSIGN_EXPR(argeval, argassign);
                            }
     | expr_or
@@ -529,6 +537,14 @@ op_assign
     | DIV_EQ
     | MOD_EQ
     | PWR_EQ
+    ;
+
+bitop_assign
+    : SHIFT_LEFT_EQ
+    | SHIFT_RIGHT_EQ
+    | BIT_OR_EQ
+    | BIT_XOR_EQ
+    | BIT_AND_EQ
     ;
 
 expr_or
@@ -584,16 +600,17 @@ expr_bitor
     : expr_bitor bitop '|' expr_bitxor {
 
 #define BITOP(_inst)          do {                                          \
-                                  const Symbol *left_type = $1.typ,         \
-                                               *right_type = $4.typ;        \
                                   $$.cel = $1.cel;                          \
                                   $$.typ = Integer;                         \
+                                  const Symbol *left_type  = $1.typ,        \
+                                               *right_type = $4.typ;        \
                                   Cell *saved_progp = progp;                \
                                   progp = $2;                               \
                                   PT(">>> begin PATCHING CODE @ [%04lx]\n", \
                                           progp - prog);                    \
                                   code_conv_val($1.typ, Integer);           \
                                   PT("<<< end   PATCHING CODE\n");          \
+                                  progp = saved_progp;                      \
                                   code_conv_val($4.typ, Integer);           \
                                   CODE_INST(_inst);                         \
                               } while (0)
@@ -662,9 +679,7 @@ op_rel
     ;
 
 expr_arit
-    : '+' term              { $$ = $2; }
-    | '-' term              { $$ = $2; CODE_INST_TYP($2.typ, neg);  }
-    | expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
+    : expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
                                * NOTA 1:
                                * determinar el tipo de la expr_arit, a partir de los
                                * tipos de $1 y $3. En caso de que los tipos sean
@@ -755,10 +770,19 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
     | LVAR                  { $$.cel = CODE_INST_TYP($1->typref, argeval,
                                                      $1->offset, $1->name);
                               $$.typ = $1->typref; }
-    | '!' prim              { $$.cel = $2.cel;
-                              $$.typ = Integer;
-                              code_conv_val($2.typ, Integer);
-                              CODE_INST(not); }
+    | '!' prim              {
+#define NEG_OP(_inst)         do {        /* { */                  \
+                                  $$.cel = $2.cel;                 \
+                                  $$.typ = Integer;                \
+                                  code_conv_val($2.typ, Integer);  \
+                                  CODE_INST(_inst);                \
+                              } while (0)
+
+                              NEG_OP(not);
+                            }
+    | '~' prim              { NEG_OP(bit_not); }
+    | '+' prim              { $$ = $2; }
+    | '-' prim              { $$ = $2; CODE_INST_TYP($2.typ, neg);  }
 
     | PLS_PLS VAR           {
 #define INCDEC_PRE(_eval, _op, _assign, ...) do {                     \

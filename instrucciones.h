@@ -52,11 +52,12 @@ INST(neg_f,1)
 INST(neg_i,1)
 INST(neg_l,1)
 INST(neg_s,1)
-INST(bit_or,1)
-INST(bit_xor,1)
-INST(bit_and,1)
-INST(bit_shl,1)
-INST(bit_shr,1)
+INST(bit_or,1)                                 /* or de bits */
+INST(bit_xor,1)                                /* or exclusiva de bits */
+INST(bit_and,1)                                /* and de bits */
+INST(bit_shl,1)                                /* despl. bits a la izquierda */
+INST(bit_shr,1)                                /* despl. bits a la derecha */
+INST(bit_not,1)                                /* complementa los bits de un entero */
 INST(pwr_c,1)                                  /* calcula Y ^^ X */
 INST(pwr_d,1)
 INST(pwr_f,1)

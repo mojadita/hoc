@@ -455,7 +455,40 @@ RELOP(ne, _i, inum, !=,  FMT_INT)
 RELOP(ne, _l, num,  !=,  FMT_LONG)
 RELOP(ne, _s, sht,  !=,  FMT_SHORT)
 
-#undef OP  /* } */
+#undef RELOP  /* } */
+
+#define BIT_OPER( _name,  _op )       /* {{ */          \
+        void _name(const instr *i)                      \
+        {                                               \
+            Cell p2  = pop(),                           \
+                 p1  = pop(),                           \
+                 res = { .inum = p1.inum _op p2.inum }; \
+                                                        \
+            P_TAIL(": "    FMT_INT                      \
+                    " %s " FMT_INT                      \
+                    " -> " FMT_INT,                     \
+                    p1.inum,                            \
+                    #_op,                               \
+                    p2.inum, res.inum);                 \
+            push(res);                                  \
+                                                        \
+            UPDATE_PC();                                \
+        } /* _name */                                   \
+                                                        \
+        void _name##_prt(                               \
+                const instr    *i,                      \
+                const Cell     *pc)                     \
+        {                                               \
+            PR("\n");                                   \
+        } /* _name##_prt                 }{ */
+
+BIT_OPER( bit_or,  | )    /* operador OR  de bits  */
+BIT_OPER( bit_xor, ^ )    /* operador XOR de bits */
+BIT_OPER( bit_and, & )    /* operador AND de bits */
+BIT_OPER( bit_shl, << )   /* operador <<  de bits  */
+BIT_OPER( bit_shr, >> )   /* operador >>  de bits  */
+
+#undef BIT_OPER /*                       }} */
 
 #define MOD(_suff, _fld, _fmt) /* { */                 \
     void mod##_suff(const instr *i)                    \
@@ -485,32 +518,33 @@ MOD(_f, val, FMT_FLOAT)
 #undef MOD /*                     } */
 
 #define UNARY_LOP(_name, _suff, _fld, _res, _op, _fmt) /* { */    \
-    void _name##_suff(const instr *i)       \
-    {                                     \
-        Cell d   = pop(),                 \
-             res = { ._res = _op d._fld };\
-                                          \
-        P_TAIL(": " #_op " " _fmt " -> " _fmt,   \
-                d._fld, res._fld);        \
-        push(res);                        \
-                                          \
-        UPDATE_PC();                      \
-    } /* _name##_suff */                    \
-                                          \
-    void _name##_suff##_prt(const instr *i, \
-            const Cell *pc)               \
-    {                                     \
-        PR("\n");                         \
+    void _name##_suff(const instr *i)          \
+    {                                          \
+        Cell d   = pop(),                      \
+             res = { ._res = _op d._fld };     \
+                                               \
+        P_TAIL(": " #_op " " _fmt " -> " _fmt, \
+                d._fld, res._fld);             \
+        push(res);                             \
+                                               \
+        UPDATE_PC();                           \
+    } /* _name##_suff */                       \
+                                               \
+    void _name##_suff##_prt(const instr *i,    \
+            const Cell *pc)                    \
+    {                                          \
+        PR("\n");                              \
     } /* _name##_suff##_prt         }{ */
 
-UNARY_LOP(neg, _c, chr,  chr,  -, FMT_CHAR) /* change sign top element on stack */
-UNARY_LOP(neg, _d, val,  val,  -, FMT_DOUBLE)
-UNARY_LOP(neg, _f, flt,  flt,  -, FMT_FLOAT)
-UNARY_LOP(neg, _i, inum, inum, -, FMT_INT)
-UNARY_LOP(neg, _l, num,  num,  -, FMT_LONG)
-UNARY_LOP(neg, _s, sht,  sht,  -, FMT_SHORT)
+UNARY_LOP(neg, _c,  chr,  chr,  -, FMT_CHAR) /* change sign top element on stack */
+UNARY_LOP(neg, _d,  val,  val,  -, FMT_DOUBLE)
+UNARY_LOP(neg, _f,  flt,  flt,  -, FMT_FLOAT)
+UNARY_LOP(neg, _i,  inum, inum, -, FMT_INT)
+UNARY_LOP(neg, _l,  num,  num,  -, FMT_LONG)
+UNARY_LOP(neg, _s,  sht,  sht,  -, FMT_SHORT)
 
-UNARY_LOP(not,,    inum, inum, !, FMT_INT)
+UNARY_LOP(not,,     inum, inum, !, FMT_INT)  /* logical not */
+UNARY_LOP(bit_not,, inum, inum, ~, FMT_INT)  /* bitwise not */
 
 #undef NEG /*                     } */
 
@@ -1150,23 +1184,3 @@ CHG_TYPE(s2i, sht,  FMT_SHORT,  inum, FMT_INT)    /* cast short to int */
 CHG_TYPE(s2l, sht,  FMT_SHORT,  num,  FMT_LONG)   /* cast short to long */
 
 #undef CHG_TYPE
-
-
-#define BIT_OPER( _suff, _symb_opr )                              \
-        void bit_##_suff( const instr *i )                        \
-        {                                                         \
-            UPDATE_PC();                                          \
-        }                                                         \
-                                                                  \
-        void bit_##_suff##_prt( const instr *i, const Cell *pc )  \
-        {                                                         \
-            PR("\n");                                             \
-        }
-
-BIT_OPER( or, "|" )   /* operador OR de bits */
-BIT_OPER( xor, "^" )  /* operador XOR de bits */
-BIT_OPER( and, "&" )  /* operador AND de bits */
-BIT_OPER( shl, << )   /* operador << de bits */
-BIT_OPER( shr, >> )   /* operador >> de bits */
-
-#undef BIT_OPER
