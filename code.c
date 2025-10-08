@@ -294,7 +294,7 @@ void swap_prt(const instr *i, const Cell *pc)
             va_list         args)                  \
     {                                              \
                                                    \
-        progp[1] = va_arg(args, Cell);             \
+        Cell c = progp[1] = va_arg(args, Cell);   \
                                                    \
         PRG(" " _fmt, c._fld);                     \
     }
