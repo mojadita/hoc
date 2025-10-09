@@ -439,7 +439,12 @@ item: STRING               { $$ = CODE_INST(prstr, $1); }
     ;
 
 cond: '(' expr ')'         { $$ = $2.cel;
-                             code_conv_val($2.typ, Integer); }
+                             if ($2.typ != Integer) {
+                                 CODE_INST_TYP($2.typ, constpush,
+                                               $2.typ->t2i->zero);
+                                 CODE_INST_TYP($2.typ, ne);
+                             }
+                           }
     ;
 
 mark: /* empty */          { $$ = progp; }
@@ -656,14 +661,14 @@ expr_rel
     : expr_arit op_rel expr_arit {
                               $$.typ = Integer;
                               $$.cel = $1.cel;
-                              const Symbol *op_type = check_op_bin(&$1, &$2, &$3);
+                              check_op_bin(&$1, &$2, &$3);
                               switch ($2.tok.id) {
-                                  case '<':  CODE_INST_TYP(op_type, lt); break;
-                                  case '>':  CODE_INST_TYP(op_type, gt); break;
-                                  case  EQ:  CODE_INST_TYP(op_type, eq); break;
-                                  case  NE:  CODE_INST_TYP(op_type, ne); break;
-                                  case  GE:  CODE_INST_TYP(op_type, ge); break;
-                                  case  LE:  CODE_INST_TYP(op_type, le); break;
+                                  case '<':  CODE_INST_TYP(Integer, lt); break;
+                                  case '>':  CODE_INST_TYP(Integer, gt); break;
+                                  case  EQ:  CODE_INST_TYP(Integer, eq); break;
+                                  case  NE:  CODE_INST_TYP(Integer, ne); break;
+                                  case  GE:  CODE_INST_TYP(Integer, ge); break;
+                                  case  LE:  CODE_INST_TYP(Integer, le); break;
                               } /* switch */
                             }
     | expr_arit

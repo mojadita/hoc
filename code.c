@@ -399,8 +399,8 @@ OP(mod, _s, chr,  %, FMT_SHORT)
              p1  = pop(),                           \
              res = { .inum = p1._fld _op p2._fld }; \
                                                     \
-        P_TAIL(": " _fmt " %s " _fmt " -> " _fmt,   \
-                p1._fld, #_op, p2._fld, res._fld);  \
+        P_TAIL(": " _fmt " %s " _fmt " -> " FMT_INT,\
+                p1._fld, #_op, p2._fld, res.inum);  \
         push(res);                                  \
                                                     \
         UPDATE_PC();                                \

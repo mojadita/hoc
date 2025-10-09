@@ -40,6 +40,7 @@ cat <<EOF_b549d7fa-9e0c-11f0-9aa0-0023ae68f329
 type2inst t2i_c = {
 
     .one      = { .chr = 1 },
+    .zero     = { .chr = 0 },
     .fmt      = "0x%02hhx",
     .printval = NULL,
     .size     = 1,
@@ -52,6 +53,7 @@ $(add_suffix _c)
 }, t2i_d = {
 
     .one      = { .val = 1.0 },
+    .zero     = { .val = 0.0 },
     .fmt      = "%.12lg",
     .printval = NULL,
     .size     = 1,
@@ -64,6 +66,7 @@ $(add_suffix _d)
 }, t2i_f = {
 
     .one      = { .flt = 1.0F },
+    .zero     = { .flt = 0.0F },
     .fmt      = "%.7g",
     .printval = NULL,
     .size     = 1,
@@ -76,6 +79,7 @@ $(add_suffix _f)
 }, t2i_i = {
 
     .one      = { .inum = 1 },
+    .zero     = { .inum = 0 },
     .fmt      = "%i",
     .printval = NULL,
     .size     = 1,
@@ -88,6 +92,7 @@ $(add_suffix _i)
 }, t2i_l = {
 
     .one      = { .num = 1L },
+    .zero     = { .num = 0L },
     .fmt      = "%li",
     .printval = NULL,
     .size     = 1,
@@ -100,6 +105,7 @@ $(add_suffix _l)
 },  t2i_s = {
 
     .one      = { .sht = 1 },
+    .zero     = { .sht = 0 },
     .fmt      = "0x%04hx",
     .printval = NULL,
     .size     = 1,
@@ -112,6 +118,7 @@ $(add_suffix _s)
 },  t2i_str = {
 
     .one      = { .str = "one" },
+    .zero     = { .str = NULL },
     .fmt      = "%s",
     .printval = NULL,
     .size     = 1,

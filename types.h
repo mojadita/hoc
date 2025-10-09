@@ -68,7 +68,8 @@ struct type2inst_s {
         *const subarg,    *const mularg,    *const divarg,
         *const modarg,    *const pwrarg;
 
-    const Cell        one;
+    const Cell        one,
+                      zero;
     const char *const fmt;
     typeinfo_cb       printval;
     const size_t      size,
