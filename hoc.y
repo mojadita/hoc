@@ -151,7 +151,7 @@ size_t size_lvars = 0;
 %token <str>  STRING UNDEF
 %token        LIST
 %token <sym>  TYPE
-%type  <cel>  stmt cond stmtlist bitop
+%type  <cel>  stmt cond stmtlist
 %type  <expr> expr expr_or expr_and expr_bitor expr_bitand expr_bitxor expr_shift
 %type  <expr> expr_rel expr_arit term fact prim expr_bltin
 %type  <cel>  mark
@@ -162,7 +162,7 @@ size_t size_lvars = 0;
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
 %type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign bitop_assign '&' '|' '^' '~'
-%type  <opr>  op_rel op_sum op_mul op_exp
+%type  <opr>  op_rel op_sum op_mul op_exp binop_bitor binop_bitxor binop_bitand binop_shift
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -440,11 +440,16 @@ item: STRING               { $$ = CODE_INST(prstr, $1); }
     ;
 
 cond: '(' expr ')'         { $$ = $2.cel;
-                             if ($2.typ != Integer) {
-                                 CODE_INST_TYP($2.typ, constpush,
-                                               $2.typ->t2i->zero);
-                                 CODE_INST_TYP($2.typ, ne);
-                             }
+
+#define TOBOOL(_arg)         do {                                        \
+                                 if (_arg.typ != Integer) {              \
+                                     CODE_INST_TYP(_arg.typ, constpush,  \
+                                                   _arg.typ->t2i->zero); \
+                                     CODE_INST_TYP(_arg.typ, ne);        \
+                                 }                                       \
+                             } while (0)
+
+                             TOBOOL($2);
                            }
     ;
 
@@ -496,17 +501,17 @@ expr
                                  CODE_INST_TYP(var_type, _eval, ##__VA_ARGS__); /* variable evaluation */ \
                                  CODE_INST(swap);                     /* swap them */                \
                                  switch (op.id) {                                                    \
-                                 case PLS_EQ:          CODE_INST_TYP(res_type, add,  var); break;    \
-                                 case MIN_EQ:          CODE_INST_TYP(res_type, sub,  var); break;    \
-                                 case MUL_EQ:          CODE_INST_TYP(res_type, mul,  var); break;    \
-                                 case DIV_EQ:          CODE_INST_TYP(res_type, divi, var); break;    \
-                                 case MOD_EQ:          CODE_INST_TYP(res_type, mod,  var); break;    \
-                                 case PWR_EQ:          CODE_INST_TYP(res_type, pwr,  var); break;    \
-                                 case SHIFT_LEFT_EQ:   CODE_INST(bit_shl,            var); break;    \
-                                 case SHIFT_RIGHT_EQ:  CODE_INST(bit_shr,            var); break;    \
-                                 case BIT_OR_EQ:       CODE_INST(bit_or,             var); break;    \
-                                 case BIT_XOR_EQ:      CODE_INST(bit_xor,            var); break;    \
-                                 case BIT_AND_EQ:      CODE_INST(bit_and,            var); break;    \
+                                 case PLS_EQ:          CODE_INST_TYP(res_type, add,     var); break; \
+                                 case MIN_EQ:          CODE_INST_TYP(res_type, sub,     var); break; \
+                                 case MUL_EQ:          CODE_INST_TYP(res_type, mul,     var); break; \
+                                 case DIV_EQ:          CODE_INST_TYP(res_type, divi,    var); break; \
+                                 case MOD_EQ:          CODE_INST_TYP(res_type, mod,     var); break; \
+                                 case PWR_EQ:          CODE_INST_TYP(res_type, pwr,     var); break; \
+                                 case SHIFT_LEFT_EQ:   CODE_INST_TYP(res_type, bit_shl, var); break; \
+                                 case SHIFT_RIGHT_EQ:  CODE_INST_TYP(res_type, bit_shr, var); break; \
+                                 case BIT_OR_EQ:       CODE_INST_TYP(res_type, bit_or,  var); break; \
+                                 case BIT_XOR_EQ:      CODE_INST_TYP(res_type, bit_xor, var); break; \
+                                 case BIT_AND_EQ:      CODE_INST_TYP(res_type, bit_and, var); break; \
                                  } /* switch */                                                      \
                                  CODE_INST_TYP(var_type, _assign, ##__VA_ARGS__); /* assign to variable */ \
                              } while (0) /* VAR_OPASSIGN_EXPR */
@@ -518,19 +523,24 @@ expr
                              VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
     | VAR bitop_assign expr {
-                             if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
-                                 execerror("cannot %s operate to " BRIGHT GREEN "%s" ANSI_END
-                                           ": must be integral type\n",
-                                           $2.lex, $1->name);
-                             }
+
+#define VAR_NOT_FLOATING_POINT(_var)                                                 \
+                                 do {                                                \
+                                     if (   _var->typref->t2i->flags                 \
+                                            & TYPE_IS_FLOATING_POINT)                \
+                                     {                                               \
+                                         execerror("cannot %s operate to "           \
+                                                BRIGHT GREEN "%s" ANSI_END           \
+                                                ": must be integral type (is %s)\n", \
+                                                $2.lex, $1->name, $1->typref->name); \
+                                     }                                               \
+                                 }while (0)
+
+                             VAR_NOT_FLOATING_POINT($1);
                              VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
     | LVAR bitop_assign expr {
-                             if ($1->typref->t2i->flags & TYPE_IS_FLOATING_POINT) {
-                                 execerror("cannot %s operate to " BRIGHT GREEN "%s" ANSI_END
-                                           ": must be integral type\n",
-                                           $2.lex, $1->name);
-                             }
+                             VAR_NOT_FLOATING_POINT($1);
                              VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
     | expr_or
@@ -554,122 +564,147 @@ bitop_assign
     ;
 
 expr_or
-    : expr_and or expr_or  { $$.cel = $1.cel;
-                             $$.typ = Integer;
-                             code_conv_val($3.typ, Integer);
+    : expr_and or expr_or  {
 
-                             Cell *saved_progp = progp;
-                             progp = $2;
-                             PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
-                                 code_conv_val($1.typ, Integer);
-                                 CODE_INST(or_else, saved_progp);
-                             PT("<<< end   patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                   progp - prog, saved_progp - prog);
-                             progp = saved_progp;
+#define BOOLEAN_OP(_inst)    do {                                          \
+                                 $$.cel = $1.cel;                          \
+                                 $$.typ = Integer;                         \
+                                 TOBOOL($3);                               \
+                                                                           \
+                                 Cell *saved_progp = progp;                \
+                                 progp = $2;                               \
+                                 PT(">>> begin patching CODE @ "           \
+                                        "[%04lx]\n", progp - prog);        \
+                                     TOBOOL($1);                           \
+                                     CODE_INST(_inst, saved_progp);        \
+                                 PT("<<< end   patching CODE @ [%04lx], "  \
+                                    "continuing @ [%04lx]\n",              \
+                                       progp - prog, saved_progp - prog);  \
+                                 progp = saved_progp;                      \
+                             } while (0)
 
+                             /* See definition of this macro above */
+                             BOOLEAN_OP(or_else);
                            }
     | expr_and
     ;
 
-or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n", progp - prog);
-                             $$ = CODE_INST(noop); /* para la instruccion de conversion */
+/* LCU: Thu Oct  9 10:48:45 -05 2025
+ * TODO: voy por aqui. */
+or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+                                    progp - prog);
+                             $$ = CODE_INST(noop); /* para la instruccion constpush 0 */
+                                  CODE_INST(noop); /* para la instruction ne */
                                   CODE_INST(noop); /* para la instruccion or_else */
-                             PT("<<< end   inserting unpatched CODE\n"); }
+                             PT("<<< end   inserting unpatched CODE\n");
+                           }
     ;
 
 expr_and
-    : expr_bitor and expr_and { $$.cel = $1.cel;
-                              $$.typ = Integer;
-                              code_conv_val($3.typ, Integer);
-                              Cell *saved_progp = progp;
-                              progp = $2;
-                              PT(">>> begin patching CODE @ [%04lx]\n", progp - prog);
-                                  code_conv_val($1.typ, Integer);
-                                  CODE_INST(and_then, saved_progp);
-                              PT("<<< end   patching CODE @ [%04lx], "
-                                      "continuing @ [%04lx]\n",
-                                      progp - prog, saved_progp - prog);
-                              progp = saved_progp; }
+    : expr_bitor and expr_and {
+                             /* See definition of this macro above,
+                              * in 'expr_or' */
+                             BOOLEAN_OP(and_then);
+                           }
     | expr_bitor
     ;
 
-and : AND                   {
-                              PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
-                                      progp - prog);
-                              $$ = CODE_INST(noop);
-                                   CODE_INST(noop);
-                              PT("<<< end   inserting unpatched CODE\n");
-                            }
+and : AND                  { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
+                                     progp - prog);
+                             $$ = CODE_INST(noop); /* para la instruccion constpush 0 */
+                                  CODE_INST(noop); /* para la instruction ne */
+                                  CODE_INST(noop); /* para la instruccion and_then */
+                             PT("<<< end   inserting unpatched CODE\n");
+                           }
     ;
 
 expr_bitor
-    : expr_bitor bitop '|' expr_bitxor {
+    : expr_bitor binop_bitor expr_bitxor {
 
-#define BITOP(_inst)          do {                                          \
-                                  $$.cel = $1.cel;                          \
-                                  $$.typ = Integer;                         \
-                                  const Symbol *left_type  = $1.typ,        \
-                                               *right_type = $4.typ;        \
-                                  Cell *saved_progp = progp;                \
-                                  progp = $2;                               \
-                                  PT(">>> begin PATCHING CODE @ [%04lx]\n", \
-                                          progp - prog);                    \
-                                  code_conv_val($1.typ, Integer);           \
-                                  PT("<<< end   PATCHING CODE\n");          \
-                                  progp = saved_progp;                      \
-                                  code_conv_val($4.typ, Integer);           \
-                                  CODE_INST(_inst);                         \
+#define BITOP()               do {                                       \
+                                  const Symbol *left_type  = $1.typ,     \
+                                               *right_type = $3.typ;     \
+                                                                         \
+                                  if (     left_type->t2i->flags         \
+                                                & TYPE_IS_FLOATING_POINT \
+                                        || right_type->t2i->flags        \
+                                                & TYPE_IS_FLOATING_POINT)\
+                                  {                                      \
+                                      execerror("%s %s %s not "          \
+                                                "allowed, must be "      \
+                                                "integral",              \
+                                                left_type->name,         \
+                                                $2.tok.lex,              \
+                                                right_type->name);       \
+                                  }                                      \
+                                                                         \
+                                  $$.cel = $1.cel;                       \
+                                  $$.typ = check_op_bin(&$1, &$2, &$3);  \
                               } while (0)
 
-                              BITOP(bit_or);
+                              BITOP();
+                              CODE_INST_TYP($$.typ, bit_or);
                             }
     | expr_bitxor
     ;
 
+binop_bitor
+    : '|'                   { $$ = code_unpatched_op($1); }
+    ;
+
 expr_bitxor
-    : expr_bitxor bitop '^' expr_bitand {
-                              BITOP(bit_xor);
+    : expr_bitxor binop_bitxor expr_bitand {
+                              BITOP();
+                              CODE_INST_TYP($$.typ, bit_xor);
                             }
     | expr_bitand
     ;
 
+binop_bitxor
+    : '^'                   { $$ = code_unpatched_op($1); }
+    ;
+
 expr_bitand
-    : expr_bitand bitop '&' expr_shift {
-                              BITOP(bit_and);
+    : expr_bitand binop_bitand expr_shift {
+                              BITOP();
+                              CODE_INST_TYP($$.typ, bit_and);
                             }
     | expr_shift
     ;
 
-bitop
-    :  /* empty */          { PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
-                                      progp - prog);
-                              $$ = CODE_INST(noop);
-                              PT("<<< end inserting UNPATCHED CODE\n");
-                            }
+binop_bitand
+    : '&'                   { $$ = code_unpatched_op($1); }
     ;
 
+
 expr_shift
-    : expr_shift bitop SHIFT_LEFT expr_rel {
-                              BITOP(bit_shl);
-                            }
-    | expr_shift bitop SHIFT_RIGHT expr_rel {
-                              BITOP(bit_shr);
+    : expr_shift binop_shift expr_rel {
+                              BITOP();
+                              switch ($2.tok.id) {
+                              case SHIFT_LEFT:   CODE_INST_TYP($$.typ, bit_shl); break;
+                              case SHIFT_RIGHT:  CODE_INST_TYP($$.typ, bit_shr); break;
+                              } /* switch */
                             }
     | expr_rel
+    ;
+
+binop_shift
+    : SHIFT_LEFT            { $$ = code_unpatched_op($1); }
+    | SHIFT_RIGHT           { $$ = code_unpatched_op($1); }
     ;
 
 expr_rel
     : expr_arit op_rel expr_arit {
                               $$.typ = Integer;
                               $$.cel = $1.cel;
-                              check_op_bin(&$1, &$2, &$3);
+                              const Symbol *type = check_op_bin(&$1, &$2, &$3);
                               switch ($2.tok.id) {
-                                  case '<':  CODE_INST_TYP(Integer, lt); break;
-                                  case '>':  CODE_INST_TYP(Integer, gt); break;
-                                  case  EQ:  CODE_INST_TYP(Integer, eq); break;
-                                  case  NE:  CODE_INST_TYP(Integer, ne); break;
-                                  case  GE:  CODE_INST_TYP(Integer, ge); break;
-                                  case  LE:  CODE_INST_TYP(Integer, le); break;
+                                  case '<':  CODE_INST_TYP(type, lt); break;
+                                  case '>':  CODE_INST_TYP(type, gt); break;
+                                  case  EQ:  CODE_INST_TYP(type, eq); break;
+                                  case  NE:  CODE_INST_TYP(type, ne); break;
+                                  case  GE:  CODE_INST_TYP(type, ge); break;
+                                  case  LE:  CODE_INST_TYP(type, le); break;
                               } /* switch */
                             }
     | expr_arit
@@ -776,21 +811,33 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
     | LVAR                  { $$.cel = CODE_INST_TYP($1->typref, argeval,
                                                      $1->offset, $1->name);
                               $$.typ = $1->typref; }
-    | '!' prim              {
-#define NEG_OP(_inst)         do {        /* { */                  \
-                                  $$.cel = $2.cel;                 \
-                                  $$.typ = Integer;                \
-                                  code_conv_val($2.typ, Integer);  \
-                                  CODE_INST(_inst);                \
-                              } while (0)
-
-                              NEG_OP(not);
+    | '!' prim              { $$.cel = $2.cel;
+                              $$.typ = Integer;
+                              if ($2.typ != Integer) {
+                                  CODE_INST_TYP($2.typ,
+                                                constpush,
+                                                $2.typ->t2i->zero);
+                                  CODE_INST_TYP($2.typ, eq);
+                              } else { /* $2.typ == Integer */
+                                  CODE_INST(not);
+                              }
                             }
-    | '~' prim              { NEG_OP(bit_not); }
+    | '~' prim              { if ($2.typ->t2i->flags
+                                      & TYPE_IS_FLOATING_POINT)
+                              {
+                                  execerror("%s type cannot be used with "
+                                            "operator %s, use a cast",
+                                            $2.typ->name, $1.lex);
+                              }
+                              $$.cel = $2.cel;
+                              $$.typ = $2.typ;
+                              CODE_INST_TYP($2.typ, bit_not);
+                            }
     | '+' prim              { $$ = $2; }
     | '-' prim              { $$ = $2; CODE_INST_TYP($2.typ, neg);  }
 
     | PLS_PLS VAR           {
+
 #define INCDEC_PRE(_eval, _op, _assign, ...) do {                     \
                                   const Symbol                        \
                                          *var = $2,                   \
@@ -816,6 +863,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
     | MIN_MIN LVAR          { INCDEC_PRE(argeval, sub, argassign, var->offset, var->name); }
 
     | VAR     PLS_PLS       {
+
 #define INCDEC_POST(_eval, _op, _assign, ...) do {                    \
                                   const Symbol                        \
                                          *var  = $1,                  \

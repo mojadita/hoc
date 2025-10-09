@@ -52,12 +52,30 @@ INST(neg_f,1)
 INST(neg_i,1)
 INST(neg_l,1)
 INST(neg_s,1)
-INST(bit_or,1)                                 /* or de bits */
-INST(bit_xor,1)                                /* or exclusiva de bits */
-INST(bit_and,1)                                /* and de bits */
-INST(bit_shl,1)                                /* despl. bits a la izquierda */
-INST(bit_shr,1)                                /* despl. bits a la derecha */
-INST(bit_not,1)                                /* complementa los bits de un entero */
+INST(bit_or_c,1)                               /* or de bits */
+INST(bit_or_i,1)
+INST(bit_or_l,1)
+INST(bit_or_s,1)
+INST(bit_xor_c,1)                              /* or exclusiva de bits */
+INST(bit_xor_i,1)
+INST(bit_xor_l,1)
+INST(bit_xor_s,1)
+INST(bit_and_c,1)                              /* and de bits */
+INST(bit_and_i,1)
+INST(bit_and_l,1)
+INST(bit_and_s,1)
+INST(bit_shl_c,1)                              /* despl. bits a la izquierda */
+INST(bit_shl_i,1)
+INST(bit_shl_l,1)
+INST(bit_shl_s,1)
+INST(bit_shr_c,1)                              /* despl. bits a la derecha */
+INST(bit_shr_i,1)
+INST(bit_shr_l,1)
+INST(bit_shr_s,1)
+INST(bit_not_c,1)                              /* complementa los bits de un entero */
+INST(bit_not_i,1)
+INST(bit_not_l,1)
+INST(bit_not_s,1)
 INST(pwr_c,1)                                  /* calcula Y ^^ X */
 INST(pwr_d,1)
 INST(pwr_f,1)

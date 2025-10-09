@@ -462,36 +462,51 @@ RELOP(ne, _s, sht,  !=,  FMT_SHORT)
 
 #undef RELOP  /* } */
 
-#define BIT_OPER( _name,  _op )       /* {{ */          \
-        void _name(const instr *i)                      \
-        {                                               \
-            Cell p2  = pop(),                           \
-                 p1  = pop(),                           \
-                 res = { .inum = p1.inum _op p2.inum }; \
-                                                        \
-            P_TAIL(": "    FMT_INT                      \
-                    " %s " FMT_INT                      \
-                    " -> " FMT_INT,                     \
-                    p1.inum,                            \
-                    #_op,                               \
-                    p2.inum, res.inum);                 \
-            push(res);                                  \
-                                                        \
-            UPDATE_PC();                                \
-        } /* _name */                                   \
-                                                        \
-        void _name##_prt(                               \
-                const instr    *i,                      \
-                const Cell     *pc)                     \
-        {                                               \
-            PR("\n");                                   \
-        } /* _name##_prt                 }{ */
+#define BIT_OPER( _name, _suff, _fld, _op, _fmt ) /* {{ */ \
+        void _name##_suff(const instr *i)                  \
+        {                                                  \
+            Cell p2  = pop(),                              \
+                 p1  = pop(),                              \
+                 res = { ._fld = p1._fld _op p2._fld };    \
+                                                           \
+            P_TAIL(": "    _fmt                            \
+                    " %s " _fmt                            \
+                    " -> " _fmt,                           \
+                    p1._fld,                               \
+                    #_op,                                  \
+                    p2._fld, res._fld);                    \
+            push(res);                                     \
+                                                           \
+            UPDATE_PC();                                   \
+        } /* _name##_suff */                               \
+                                                           \
+        void _name##_suff##_prt(                           \
+                const instr    *i,                         \
+                const Cell     *pc)                        \
+        {                                                  \
+            PR("\n");                                      \
+        } /* _name##_suff##_prt                 }{ */
 
-BIT_OPER( bit_or,  | )    /* operador OR  de bits  */
-BIT_OPER( bit_xor, ^ )    /* operador XOR de bits */
-BIT_OPER( bit_and, & )    /* operador AND de bits */
-BIT_OPER( bit_shl, << )   /* operador <<  de bits  */
-BIT_OPER( bit_shr, >> )   /* operador >>  de bits  */
+BIT_OPER( bit_or,  _c, chr,  |,  FMT_CHAR )  /* operador OR  de bits  */
+BIT_OPER( bit_or,  _i, inum, |,  FMT_INT )
+BIT_OPER( bit_or,  _l, num,  |,  FMT_LONG )
+BIT_OPER( bit_or,  _s, sht,  |,  FMT_SHORT )
+BIT_OPER( bit_xor, _c, chr,  ^,  FMT_CHAR )  /* operador XOR de bits */
+BIT_OPER( bit_xor, _i, inum, ^,  FMT_INT )
+BIT_OPER( bit_xor, _l, num,  ^,  FMT_LONG )
+BIT_OPER( bit_xor, _s, sht,  ^,  FMT_SHORT )
+BIT_OPER( bit_and, _c, chr,  &,  FMT_CHAR )  /* operador AND de bits */
+BIT_OPER( bit_and, _i, inum, &,  FMT_INT )
+BIT_OPER( bit_and, _l, num,  &,  FMT_LONG )
+BIT_OPER( bit_and, _s, sht,  &,  FMT_SHORT )
+BIT_OPER( bit_shl, _c, chr,  <<, FMT_CHAR )  /* operador <<  de bits  */
+BIT_OPER( bit_shl, _i, inum, <<, FMT_INT )
+BIT_OPER( bit_shl, _l, num,  <<, FMT_LONG )
+BIT_OPER( bit_shl, _s, sht,  <<, FMT_SHORT )
+BIT_OPER( bit_shr, _c, chr,  >>, FMT_CHAR )  /* operador >>  de bits  */
+BIT_OPER( bit_shr, _i, inum, >>, FMT_INT )
+BIT_OPER( bit_shr, _l, num,  >>, FMT_LONG )
+BIT_OPER( bit_shr, _s, sht,  >>, FMT_SHORT )
 
 #undef BIT_OPER /*                       }} */
 
@@ -548,8 +563,12 @@ UNARY_LOP(neg, _i,  inum, inum, -, FMT_INT)
 UNARY_LOP(neg, _l,  num,  num,  -, FMT_LONG)
 UNARY_LOP(neg, _s,  sht,  sht,  -, FMT_SHORT)
 
-UNARY_LOP(not,,     inum, inum, !, FMT_INT)  /* logical not */
-UNARY_LOP(bit_not,, inum, inum, ~, FMT_INT)  /* bitwise not */
+UNARY_LOP(not,,       inum, inum, !, FMT_INT)  /* logical not */
+
+UNARY_LOP(bit_not,_c, chr,  chr,  ~, FMT_CHAR)  /* bitwise not */
+UNARY_LOP(bit_not,_i, inum, inum, ~, FMT_INT)
+UNARY_LOP(bit_not,_l, num,  num,  ~, FMT_LONG)
+UNARY_LOP(bit_not,_s, sht,  sht,  ~, FMT_SHORT)
 
 #undef NEG /*                     } */
 
@@ -818,33 +837,37 @@ void bltin2_prt(const instr *i, const Cell *pc)
     PR("%s\n", pc[1].sym->help);
 }
 
-#define AND_THEN_OR_ELSE(_name, _suff, _fld, _op, _ops, _fmt) /* { */\
-    void _name##_suff(const instr *i)            \
-    {                                            \
-        Cell        d  = top();                  \
-        const char *op = d._fld ? " drop;" : ""; \
-                                                 \
-        if (_op d._fld) {                        \
-            pop();                               \
-            UPDATE_PC();                         \
-        } else {                                 \
-            pc = prog + pc[0].param;             \
-        }                                        \
-                                                 \
-        P_TAIL(": " _fmt " " #_ops               \
-            " %s -> [%04lx]",                    \
-            d._fld, op, pc - prog);              \
-    } /* _name##_suff */                         \
-                                                 \
-    void _name##_suff##_prt(                     \
-            const instr *i,                      \
-            const Cell  *pc)                     \
-    {                                            \
-        PR("[%04x]\n", pc[0].param);             \
-    } /* _name##_suff##_prt                                      }{*/
+#define AND_THEN_OR_ELSE(_name, _fld, _op, _operation) /* { */\
+    void _name(const instr *i)                                \
+    {                                                         \
+        Cell        d      = top();                           \
+        int         result = _op d._fld;                      \
+        const char *op     = result ? "drop, " : "";          \
+                                                              \
+        if (result) {                                         \
+            pop();                                            \
+            UPDATE_PC();                                      \
+        } else {                                              \
+            pc = prog + pc[0].param;                          \
+        }                                                     \
+                                                              \
+        P_TAIL(": " FMT_INT " " #_operation                   \
+            " -> %s[%04lx]",                                  \
+            d._fld,                                           \
+            op,                                               \
+            pc - prog);                                       \
+                                                              \
+    } /* _name */                                             \
+                                                              \
+    void _name##_prt(                                         \
+            const instr *i,                                   \
+            const Cell  *pc)                                  \
+    {                                                         \
+        PR("[%04x]\n", pc[0].param);                          \
+    } /* _name##_prt                       }{*/
 
-AND_THEN_OR_ELSE(and_then,, inum, , "&&", FMT_INT)
-AND_THEN_OR_ELSE(or_else,,  val, !, "||", FMT_DOUBLE)
+AND_THEN_OR_ELSE(and_then, inum, ,   &&)
+AND_THEN_OR_ELSE(or_else,  inum, !,  ||)
 
 #undef AND_THEN_OR_ELSE /*                                       } */
 

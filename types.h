@@ -58,15 +58,10 @@ struct type2inst_s {
         *const neg,       *const pwr,       *const eval,
         *const assign,    *const print,     *const ge,
         *const le,        *const gt,        *const lt,
-        *const eq,        *const ne,        *const not,
-        *const argeval,   *const argassign, *const prexpr,
-        *const inceval,   *const evalinc,   *const deceval,
-        *const evaldec,   *const addvar,    *const subvar,
-        *const mulvar,    *const divvar,    *const modvar,
-        *const pwrvar,    *const arginc,    *const incarg,
-        *const decarg,    *const argdec,    *const addarg,
-        *const subarg,    *const mularg,    *const divarg,
-        *const modarg,    *const pwrarg;
+        *const eq,        *const ne,        *const argeval,
+        *const argassign, *const prexpr,    *const bit_not,
+        *const bit_or,    *const bit_xor,   *const bit_and,
+        *const bit_shl,   *const bit_shr;
 
     const Cell        one,
                       zero;
