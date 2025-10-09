@@ -12,8 +12,6 @@
 
 #define NELEM(_arr) (sizeof _arr / sizeof _arr[0])
 
-#define STOP     NULL
-
 /* LCU: Mon Mar 24 12:23:36 -05 2025
  * ARRAY con las definiciones de todas las instrucciones.
  * Este array contiene una entrada por cada instruccion,

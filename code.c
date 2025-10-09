@@ -201,20 +201,25 @@ void execute(Cell *p) /* run the machine */
 {
     EXEC(BRIGHT YELLOW "BEGIN [%04lx], fp=[%04lx], "
             "sp=[%04lx], varbase=[%04lx], stacksize=%d" ANSI_END "\n",
-            (p - prog), fp - prog, sp - prog, varbase - prog, stacksize());
-    for (   pc = p;
-            pc->inst != INST_STOP;
-        )
-    {
-        const instr *ins = instruction_set + pc->inst;
-        EXEC("[%04lx]: <%02x> %s", pc - prog, ins->code_id, ins->name);
-        ins->exec(ins);
+            (p - prog), fp - prog,
+            sp - prog, varbase - prog, stacksize());
+    pc = p;
+    const instr *instruction = NULL,
+                *STOP        = instruction_set + INST_STOP;
+    do {
+        instruction = instruction_set + pc->inst;
+
+        EXEC("[%04lx]: <%02x> %s",
+                pc - prog,
+                instruction->code_id,
+                instruction->name);
+        instruction->exec(instruction);
 #if       UQ_DEBUG_STACK /* { */
         P_TAIL(", fp=[%04lx], sp=[%04lx], ss=%d",
                 fp - prog, sp - prog, stacksize());
 #endif /* UQ_DEBUG_STACK    } */
         P_TAIL("\n");
-    }
+    } while(instruction != STOP);
     EXEC(BRIGHT YELLOW "END [%04lx], fp=[%04lx], "
             "sp=[%04lx], stacksize=%d" ANSI_END "\n",
             (pc - prog), fp - prog, sp - prog, stacksize());
@@ -1033,7 +1038,7 @@ void if_f_goto(const instr *i) /* jump if false */
         ? pc + i->n_cells
         : prog + pc[0].param;
 
-    P_TAIL(": -> [%04x]", pc[0].param);
+    P_TAIL(": -> [%04lx]", pc - prog);
 }
 
 void if_f_goto_prt(const instr *i, const Cell *pc)

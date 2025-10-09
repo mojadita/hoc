@@ -132,7 +132,7 @@ size_t size_lvars = 0;
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
     Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
-    token         tok;   /* tipo asociado a un operador, con todo el token */
+    token         tok;  /* tipo asociado a un operador, con todo el token */
     OpRel         opr;  /* tipo del operador relacional. */
 }
 
@@ -204,7 +204,8 @@ error_end
     ;
 
 stmt
-    : expr        ';'      { $$ = $1.cel;
+    : ';'                  { $$ = progp; } /* null statement */
+    | expr        ';'      { $$ = $1.cel;
                              CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE),
                                       "return;");
