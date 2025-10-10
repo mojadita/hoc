@@ -2,8 +2,8 @@
 /* default associativity */
 func int default( \
         int a, int b, int c, int d,      \
-        int e, int f, int g, int h,      \
-        int i, int j, int k, int l,      \
+        double e, int f, int g, int h,      \
+        int i, int j, float k, int l,      \
         int m)          {                \
     return a && b && c && d || e || f || \
            g || h && i && j || k || l || m;
@@ -11,9 +11,9 @@ func int default( \
 
 /* left associativity */
 func int left_asoc(                          \
-        int a, int b, int c, int d,          \
+        int a, int b, double c, int d,          \
         int e, int f, int g, int h,          \
-        int i, int j, int k, int l,          \
+        int i, int j, float k, int l,          \
         int m)          {                    \
     return (((((((((a&&b)&&c)&&d)||e)||f)||g)\
            ||((h&&i)&&j))||k)||l)||m;
@@ -21,9 +21,9 @@ func int left_asoc(                          \
 
 /* right associativity */
 func int right_asoc(                     \
-        int a, int b, int c, int d,      \
+        int a, int b, int c, double d,      \
         int e, int f, int g, int h,      \
-        int i, int j, int k, int l,      \
+        int i, float j, int k, int l,      \
         int m)         {                 \
     return (a&&(b&&(c&&d)))||(e||(f||(g \
            ||((h&&(i&&j))||(k||(l||m))))));
@@ -48,7 +48,7 @@ proc pepe() {
                             while (a6 < 2) {
                                 int a7 = 0;
                                 while (a7 < 2) {
-                                    int a8 = 0;
+                                    float a8 = 0;
                                     while (a8 < 2) {
                                         int a9 = 0;
                                         while (a9 < 2) {

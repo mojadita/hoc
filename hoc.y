@@ -276,7 +276,9 @@ stmt
     | procedure mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              CODE_INST(call, $1);             /* instruction */
-                             CODE_INST(spadd, $1->size_args); /* pop arguments */
+                             if ($1->size_args) {
+                                 CODE_INST(spadd, $1->size_args); /* pop arguments */
+                             }
                              pop_sub_call_stack();
                            }
 
@@ -529,7 +531,6 @@ expr
     | VAR   op_assign expr { $$ = $3;
 
 /* LCU: Wed Oct  1 14:44:15 -05 2025
- * LBL: 3fe7aaea_a5c9_11f0_b8f1_0023ae68f329
  * The next code is encoded as a macro, as it
  * is repeated below, for the next rule, but
  * changing the parameters associated to the
@@ -541,6 +542,7 @@ expr
  * in the C code (after the substitution of the
  * $<n> arguments are made in yacc, breaking the
  * context of what gets substituted.
+ * LBL: 3fe7aaea_a5c9_11f0_b8f1_0023ae68f329
  */
 #define VAR_OPASSIGN_EXPR(_eval, _assign, ...) /* { */                          \
         do {                                                                    \
@@ -575,7 +577,7 @@ expr
                            }
 
     | LVAR op_assign expr  { /* LCU: Wed Oct  1 14:51:06 -05 2025
-                              * see REF 2d1da078_a5c8_11f0_9c7c_0023ae68f329
+                              * see REF 3fe7aaea_a5c9_11f0_b8f1_0023ae68f329
                               * above, for a definition */
                              VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
@@ -597,6 +599,9 @@ expr
             }                                               \
         }while (0) /* VAR_NOT_FLOATING_POINT  } */
 
+                             /* LCU: Fri Oct 10 14:15:44 EEST 2025
+                              * See 37dac12e_a5ca_11f0_9c26_0023ae68f329
+                              * for a definition of this macro */
                              VAR_NOT_FLOATING_POINT($1);
                              VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
@@ -631,13 +636,14 @@ expr_or
     : expr_or_left or expr_or  {
 
 /* LCU: Fri Oct 10 14:19:02 EEST 2025
- * LBL: f121b1fa_a5cb_11f0_9912_0023ae68f329
  * Macro to insert to-patch code for a boolean operator.
  * The macro inserts THREE noop instructions to allow
  * space for a 'constpush' zero and 'eq' evaluation (if needed),
  * and then, an 'and_then' or 'or_else' instruction.  It
  * is used in boolean left operators to binary '&&' and
- * '||' operators. */
+ * '||' operators.
+ * LBL: f121b1fa_a5cb_11f0_9912_0023ae68f329
+ */
 #define BOOLEAN_OP(_inst)       /* { */               \
         do {                                          \
             $$.cel = $1.cel;                          \
@@ -671,13 +677,14 @@ expr_or_left
 or  : OR                   {
 
 /* LCU: Fri Oct 10 14:35:42 EEST 2025
- * LBL: 5c908960_a5cd_11f0_a7a8_0023ae68f329
  * Macro to insert to-patch code for a boolean operator.
  * The macro inserts THREE noop instructions to allow
  * space for a 'constpush' zero and 'eq' evaluation (if needed),
  * and then, an 'and_then' or 'or_else' instruction.  It
  * is used in boolean left operators to binary '&&' and
- * '||' operators. */
+ * '||' operators.
+ * LBL: 5c908960_a5cd_11f0_a7a8_0023ae68f329
+ */
 #define INSERT_PATCHABLE_NOOP() /* { */                                 \
         do {                                                            \
             PT(">>> begin inserting unpatched CODE @ [%04lx]\n",        \
@@ -851,9 +858,7 @@ term
                               switch($2.tok.id) {
                               case '*': CODE_INST_TYP($$.typ, mul);  break;
                               case '/': CODE_INST_TYP($$.typ, divi); break;
-                              case '%': if (!($$.typ->t2i->flags & TYPE_IS_INTEGER))
-                                            execerror("%% only operates on integer"
-                                                  " values");
+                              case '%': BITOP();
                                         CODE_INST_TYP($$.typ, mod);  break;
                               }
                             }
@@ -957,6 +962,9 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                           ##__VA_ARGS__);       \
         } while (0) /* INCDEC_PRE                } */
 
+                              /* See definition of this macro in
+                               * REF: 6a8b4aa6_a5d1_11f0_a355_0023ae68f329
+                               * avobe.  */
                               INCDEC_PRE(eval,    add, assign,    var);
                             }
     | MIN_MIN VAR           {
@@ -1039,6 +1047,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                             { $$.cel = $3.cel;
                               $$.typ = $1->typref;
                               CODE_INST(bltin2, $1); }
+
     | function mark '(' arglist_opt ')' {
                               $$.cel = $2;
                               $$.typ = $1->typref;
@@ -1201,8 +1210,9 @@ void patching_subr(
 {
     scope *cs = get_root_scope();
 
-    if (cs->base_offset + cs->size > size_lvars) {
-      size_lvars = cs->base_offset + cs->size;
+    int scope_size = cs->base_offset + cs->size;
+    if (scope_size > size_lvars) {
+      size_lvars = scope_size;
       PT("*** UPDATING size_lvars TO %zd\n", size_lvars);
     }
     patch_returns(subr, progp); /* parcheamos todos los RETURN del
@@ -1349,7 +1359,7 @@ void patch_block(Cell*patch_point)
         PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
         CODE_INST(spadd, -size_lvars);
         PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
-        progp = saved_progp;
+        progp             = saved_progp;
         CODE_INST(spadd, size_lvars);
         size_lvars = 0;
     }

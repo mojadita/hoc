@@ -101,10 +101,15 @@ double integer(double x)
     return (int) x;
 }
 
-long fast_pwr_l(long x, unsigned e)
+long fast_pwr_l(long x, int e)
 {
     unsigned mask;
-    assert(x != 0.0 || e != 0);
+
+    if (x == 0.0 || e < 0)
+		execerror("x(%li) ^^ y(%i) must "
+			"have x != 0 and y >= 0 or "
+			"use floating point",
+			x, e);
 
     for (mask = 1; mask <= e; mask <<= 1)
         continue;
