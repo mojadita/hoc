@@ -383,17 +383,40 @@ OP(mul, _i, inum, *, FMT_INT)
 OP(mul, _l, num,  *, FMT_LONG)
 OP(mul, _s, chr,  *, FMT_SHORT)
 
-OP(divi, _c, chr,  /, FMT_CHAR)
-OP(divi, _d, val,  /, FMT_DOUBLE)
-OP(divi, _f, flt,  /, FMT_FLOAT)
-OP(divi, _i, inum, /, FMT_INT)
-OP(divi, _l, num,  /, FMT_LONG)
-OP(divi, _s, chr,  /, FMT_SHORT)
+#define OP_DIVI_MOD(_nam, _suff, _fld, _op, _fmt) /* { */    \
+    void _nam##_suff(const instr *i)                \
+    {                                               \
+        Cell p2  = pop();                           \
+        if (!p2._fld)                               \
+            execerror(" Division por 0");           \
+        Cell p1  = pop(),                           \
+             res = { ._fld = p1._fld _op p2._fld }; \
+                                                    \
+        P_TAIL(": " _fmt " %s " _fmt " -> " _fmt,   \
+                p1._fld, #_op, p2._fld, res._fld);  \
+        push(res);                                  \
+                                                    \
+        UPDATE_PC();                                \
+    } /* _nam##_suff */                             \
+                                                    \
+    void _nam##_suff##_prt(                         \
+            const instr    *i,                      \
+            const Cell     *pc)                     \
+    {                                               \
+        PR("\n");                                   \
+    } /* _nam##_suff##_prt         }{ */
 
-OP(mod, _c, chr,  %, FMT_CHAR) /* multiply two elements on stack (only integers) */
-OP(mod, _l, num,  %, FMT_LONG)
-OP(mod, _i, inum, %, FMT_INT)
-OP(mod, _s, chr,  %, FMT_SHORT)
+OP_DIVI_MOD(divi, _c, chr,  /, FMT_CHAR)
+OP_DIVI_MOD(divi, _d, val,  /, FMT_DOUBLE)
+OP_DIVI_MOD(divi, _f, flt,  /, FMT_FLOAT)
+OP_DIVI_MOD(divi, _i, inum, /, FMT_INT)
+OP_DIVI_MOD(divi, _l, num,  /, FMT_LONG)
+OP_DIVI_MOD(divi, _s, chr,  /, FMT_SHORT)
+
+OP_DIVI_MOD(mod, _c, chr,  %, FMT_CHAR) /* multiply two elements on stack (only integers) */
+OP_DIVI_MOD(mod, _l, num,  %, FMT_LONG)
+OP_DIVI_MOD(mod, _i, inum, %, FMT_INT)
+OP_DIVI_MOD(mod, _s, chr,  %, FMT_SHORT)
 
 #undef OP  /* } */
 
