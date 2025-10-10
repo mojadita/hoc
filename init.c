@@ -160,7 +160,7 @@ void init(void)  /* install constants and built-ins in table */
     {
         Symbol *s = install(p->name, CONST, NULL);
         s->typref = D;
-        s->val    = p->cval;
+        s->cel    = p->cval;
     }
 
     /* creamos el simbolo prev */

@@ -8,8 +8,6 @@
  * License: BSD.
  */
 
-#define YYDEBUG 1
-
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -153,7 +151,7 @@ size_t size_lvars = 0;
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist
 %type  <expr> expr expr_or expr_and expr_bitor expr_bitand expr_bitxor expr_shift
-%type  <expr> expr_rel expr_arit term fact prim expr_bltin
+%type  <expr> expr_rel expr_arit term fact prim expr_bltin expr_and_left expr_or_left
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
@@ -318,27 +316,66 @@ gvar_decl
     ;
 
 gvar_decl_list
-    : gvar_decl_list ',' gvar_init  { $$ = $1;
+    : gvar_decl_list ',' gvar_init  {
+
+/* LCU: Fri Oct 10 13:35:32 EEST 2025
+ * LBL: ea69df38_a5c4_11f0_a46c_0023ae68f329
+ * local/global variable registration and
+ * coding of initialization code on
+ * initialization expressions. This serves
+ * here, and below, in the places marqued
+ * REF: ... */
+#define DO_VAR_REGISTRATION(        /* { */  \
+        _type_decl,                          \
+        _f_to_call,                          \
+        _name,                               \
+        _type_expr_init,                     \
+        _start,                              \
+        ...)                                 \
+    do {                                     \
+        Symbol *var = _f_to_call(            \
+                _name, _type_decl);          \
+        if (_start) {                        \
+            code_conv_val(                   \
+                    _type_expr_init,         \
+                    _type_decl);             \
+            CODE_INST_TYP(_type_decl,        \
+                    ##__VA_ARGS__);          \
+            CODE_INST(drop);                 \
+        }                                    \
+    } while (0) /* DO_VAR_REGISTRATION } */
+
+                                      $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      Symbol *var = register_global_var(
-                                            $3.name, $$.type_decl);
-                                      if ($3.start) {
-                                          code_conv_val($3.type_expr_init, $$.type_decl);
-                                          CODE_INST_TYP($$.type_decl, assign, var);
-                                          CODE_INST(drop);
-                                      }
+
+                                      /* see macro definition in
+                                       * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+                                       * above */
+                                      DO_VAR_REGISTRATION(
+                                            $$.type_decl,
+                                            register_global_var,
+                                            $3.name,
+                                            $3.type_expr_init,
+                                            $3.start,
+                                            assign,
+                                            var);
                                     }
     | TYPE gvar_init                { $$.type_decl = $1;
                                       $$.start     = $2.start;
-                                      Symbol *var  = register_global_var(
-                                            $2.name, $$.type_decl);
-                                      if ($2.start) {
-                                          code_conv_val($2.type_expr_init, $$.type_decl);
-                                          CODE_INST_TYP($$.type_decl, assign, var);
-                                          CODE_INST(drop);
-                                      }
+
+                                      /* see macro definition in
+                                       * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+                                       * above */
+                                      DO_VAR_REGISTRATION(
+                                            $$.type_decl,
+                                            register_global_var,
+                                            $2.name,
+                                            $2.type_expr_init,
+                                            $2.start,
+                                            assign,
+                                            var);
                                     }
     ;
 
@@ -361,34 +398,42 @@ lvar_decl :  lvar_decl_list ';'
     ;
 
 lvar_decl_list
-    : lvar_decl_list ',' lvar_init  { $$ = $1;
+    : lvar_decl_list ',' lvar_init  {
+
+                                      $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
                                       }
-                                      Symbol *var = register_local_var(
-                                            $3.name, $$.type_decl);
-                                      if ($3.start) {
-                                          code_conv_val(
-                                                $3.type_expr_init,
-                                                $$.type_decl);
-                                          CODE_INST_TYP($$.type_decl, argassign,
-                                                var->offset, var->name);
-                                          CODE_INST(drop);
-                                      }
+
+                                      /* see macro definition in
+                                       * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+                                       * above */
+                                      DO_VAR_REGISTRATION(
+                                            $$.type_decl,
+                                            register_local_var,
+                                            $3.name,
+                                            $3.type_expr_init,
+                                            $3.start,
+                                            argassign,
+                                            var->offset,
+                                            var->name);
                                     }
 
     | TYPE lvar_init                { $$.type_decl = $1;
                                       $$.start     = $2.start;
-                                      Symbol *var  = register_local_var(
-                                            $2.name, $$.type_decl);
-                                      if ($2.start) {
-                                          code_conv_val(
-                                                $2.type_expr_init,
-                                                $$.type_decl);
-                                          CODE_INST_TYP($$.type_decl, argassign,
-                                                var->offset, var->name);
-                                          CODE_INST(drop);
-                                      }
+
+                                      /* see macro definition in
+                                       * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+                                       * above */
+                                      DO_VAR_REGISTRATION(
+                                            $$.type_decl,
+                                            register_local_var,
+                                            $2.name,
+                                            $2.type_expr_init,
+                                            $2.start,
+                                            argassign,
+                                            var->offset,
+                                            var->name);
                                     }
     ;
 
@@ -414,7 +459,7 @@ lvar_definable_ident
 do  :  /* empty */         {
                              PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
-                             $$ = CODE_INST(if_f_goto, prog);
+                                 $$ = CODE_INST(if_f_goto, prog);
                              PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                            }
@@ -423,7 +468,7 @@ do  :  /* empty */         {
 else:  ELSE                {
                              PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
-                             $$ = CODE_INST(Goto, prog);
+                                 $$ = CODE_INST(Goto, prog);
                              PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
                                      progp - prog);
                            }
@@ -441,15 +486,23 @@ item: STRING               { $$ = CODE_INST(prstr, $1); }
 
 cond: '(' expr ')'         { $$ = $2.cel;
 
-#define TOBOOL(_arg)         do {                                        \
-                                 if (_arg.typ != Integer) {              \
-                                     CODE_INST_TYP(_arg.typ, constpush,  \
-                                                   _arg.typ->t2i->zero); \
-                                     CODE_INST_TYP(_arg.typ, ne);        \
-                                 }                                       \
-                             } while (0)
+/* LCU: Fri Oct 10 13:58:51 EEST 2025
+ * LBL: 2d1da078_a5c8_11f0_9c7c_0023ae68f329
+ * macro to encode converting non-Integer types
+ * to an Integer boolean result */
+#define TOBOOL(_type) /*      { */           \
+    do {                                     \
+        if (_type != Integer) {              \
+            CODE_INST_TYP(_type, constpush,  \
+                          _type->t2i->zero); \
+            CODE_INST_TYP(_type, ne);        \
+        }                                    \
+    } while (0) /* TOBOOL    } */
 
-                             TOBOOL($2);
+                             /* see macro definition in
+                              * REF: 2d1da078_a5c8_11f0_9c7c_0023ae68f329
+                              */
+                             TOBOOL($2.typ);
                            }
     ;
 
@@ -474,72 +527,83 @@ expr
                                     $1->offset, $1->name);
                            }
     | VAR   op_assign expr { $$ = $3;
-                             /* LCU: Wed Oct  1 14:44:15 -05 2025
-                              *
-                              * The next code is encoded as a macro, as it
-                              * is repeated below, for the next rule, but
-                              * changing the parameters associated to the
-                              * eval/assign vs the argeval/argassign
-                              * instructions respectively.
-                              *
-                              * NOTE: do not move this macro definition from
-                              * this place, as the macro substitution is made
-                              * in the C code (after the substitution of the
-                              * $<n> arguments are made in yacc, breaking the
-                              * context of what gets substituted.
-                              */
-#define VAR_OPASSIGN_EXPR(_eval, _assign, ...) do {                                                  \
-                                 const Symbol *var       = $1,                                       \
-                                              *var_type  = var->typref,                              \
-                                              *exp_type  = $3.typ,                                   \
-                                              *res_type  = exp_type;                                 \
-                                 const token   op        = $2;                                       \
-                                 $$.cel = $3.cel;                                                    \
-                                 $$.typ = var_type;                                                  \
-                                                                                                     \
-                                 code_conv_val(exp_type, var_type);   /* convert expr to var type */ \
-                                 CODE_INST_TYP(var_type, _eval, ##__VA_ARGS__); /* variable evaluation */ \
-                                 CODE_INST(swap);                     /* swap them */                \
-                                 switch (op.id) {                                                    \
-                                 case PLS_EQ:          CODE_INST_TYP(res_type, add,     var); break; \
-                                 case MIN_EQ:          CODE_INST_TYP(res_type, sub,     var); break; \
-                                 case MUL_EQ:          CODE_INST_TYP(res_type, mul,     var); break; \
-                                 case DIV_EQ:          CODE_INST_TYP(res_type, divi,    var); break; \
-                                 case MOD_EQ:          CODE_INST_TYP(res_type, mod,     var); break; \
-                                 case PWR_EQ:          CODE_INST_TYP(res_type, pwr,     var); break; \
-                                 case SHIFT_LEFT_EQ:   CODE_INST_TYP(res_type, bit_shl, var); break; \
-                                 case SHIFT_RIGHT_EQ:  CODE_INST_TYP(res_type, bit_shr, var); break; \
-                                 case BIT_OR_EQ:       CODE_INST_TYP(res_type, bit_or,  var); break; \
-                                 case BIT_XOR_EQ:      CODE_INST_TYP(res_type, bit_xor, var); break; \
-                                 case BIT_AND_EQ:      CODE_INST_TYP(res_type, bit_and, var); break; \
-                                 } /* switch */                                                      \
-                                 CODE_INST_TYP(var_type, _assign, ##__VA_ARGS__); /* assign to variable */ \
-                             } while (0) /* VAR_OPASSIGN_EXPR */
+
+/* LCU: Wed Oct  1 14:44:15 -05 2025
+ * LBL: 3fe7aaea_a5c9_11f0_b8f1_0023ae68f329
+ * The next code is encoded as a macro, as it
+ * is repeated below, for the next rule, but
+ * changing the parameters associated to the
+ * eval/assign vs the argeval/argassign
+ * instructions respectively.
+ *
+ * NOTE: do not move this macro definition from
+ * this place, as the macro substitution is made
+ * in the C code (after the substitution of the
+ * $<n> arguments are made in yacc, breaking the
+ * context of what gets substituted.
+ */
+#define VAR_OPASSIGN_EXPR(_eval, _assign, ...) /* { */                          \
+        do {                                                                    \
+            const Symbol *var       = $1,                                       \
+                         *var_type  = var->typref,                              \
+                         *exp_type  = $3.typ,                                   \
+                         *res_type  = exp_type;                                 \
+            const token   op        = $2;                                       \
+            $$.cel = $3.cel;                                                    \
+            $$.typ = var_type;                                                  \
+                                                                                \
+            code_conv_val(exp_type, var_type);   /* convert expr to var type */ \
+            CODE_INST_TYP(var_type, _eval, ##__VA_ARGS__); /* variable evaluation */ \
+            CODE_INST(swap);                     /* swap them */                \
+            switch (op.id) {                                                    \
+            case PLS_EQ:          CODE_INST_TYP(res_type, add,     var); break; \
+            case MIN_EQ:          CODE_INST_TYP(res_type, sub,     var); break; \
+            case MUL_EQ:          CODE_INST_TYP(res_type, mul,     var); break; \
+            case DIV_EQ:          CODE_INST_TYP(res_type, divi,    var); break; \
+            case MOD_EQ:          CODE_INST_TYP(res_type, mod,     var); break; \
+            case PWR_EQ:          CODE_INST_TYP(res_type, pwr,     var); break; \
+            case SHIFT_LEFT_EQ:   CODE_INST_TYP(res_type, bit_shl, var); break; \
+            case SHIFT_RIGHT_EQ:  CODE_INST_TYP(res_type, bit_shr, var); break; \
+            case BIT_OR_EQ:       CODE_INST_TYP(res_type, bit_or,  var); break; \
+            case BIT_XOR_EQ:      CODE_INST_TYP(res_type, bit_xor, var); break; \
+            case BIT_AND_EQ:      CODE_INST_TYP(res_type, bit_and, var); break; \
+            } /* switch */                                                      \
+            CODE_INST_TYP(var_type, _assign, ##__VA_ARGS__); /* assign to variable */ \
+        } while (0) /* VAR_OPASSIGN_EXPR          } */
 
                              VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
+
     | LVAR op_assign expr  { /* LCU: Wed Oct  1 14:51:06 -05 2025
-                              * NOTE: See above comment in previous rule*/
+                              * see REF 2d1da078_a5c8_11f0_9c7c_0023ae68f329
+                              * above, for a definition */
                              VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
     | VAR bitop_assign expr {
 
-#define VAR_NOT_FLOATING_POINT(_var)                                                 \
-                                 do {                                                \
-                                     if (   _var->typref->t2i->flags                 \
-                                            & TYPE_IS_FLOATING_POINT)                \
-                                     {                                               \
-                                         execerror("cannot %s operate to "           \
-                                                BRIGHT GREEN "%s" ANSI_END           \
-                                                ": must be integral type (is %s)\n", \
-                                                $2.lex, $1->name, $1->typref->name); \
-                                     }                                               \
-                                 }while (0)
+/* LCU: Fri Oct 10 14:13:36 EEST 2025
+ * LBL: 37dac12e_a5ca_11f0_9c26_0023ae68f329
+ * macro to forbid an operation when floating point data is
+ * given to an operator */
+#define VAR_NOT_FLOATING_POINT(_var)       /* { */          \
+        do {                                                \
+            if (   _var->typref->t2i->flags                 \
+                   & TYPE_IS_FLOATING_POINT)                \
+            {                                               \
+                execerror("cannot %s operate to "           \
+                       BRIGHT GREEN "%s" ANSI_END           \
+                       ": must be integral type (is %s)\n", \
+                       $2.lex, $1->name, $1->typref->name); \
+            }                                               \
+        }while (0) /* VAR_NOT_FLOATING_POINT  } */
 
                              VAR_NOT_FLOATING_POINT($1);
                              VAR_OPASSIGN_EXPR(eval, assign, var);
                            }
     | LVAR bitop_assign expr {
+                             /* LCU: Fri Oct 10 14:15:44 EEST 2025
+                              * See 37dac12e_a5ca_11f0_9c26_0023ae68f329
+                              * for a definition of this macro */
                              VAR_NOT_FLOATING_POINT($1);
                              VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
                            }
@@ -564,83 +628,118 @@ bitop_assign
     ;
 
 expr_or
-    : expr_and or expr_or  {
+    : expr_or_left or expr_or  {
 
-#define BOOLEAN_OP(_inst)    do {                                          \
-                                 $$.cel = $1.cel;                          \
-                                 $$.typ = Integer;                         \
-                                 TOBOOL($3);                               \
-                                                                           \
-                                 Cell *saved_progp = progp;                \
-                                 progp = $2;                               \
-                                 PT(">>> begin patching CODE @ "           \
-                                        "[%04lx]\n", progp - prog);        \
-                                     TOBOOL($1);                           \
-                                     CODE_INST(_inst, saved_progp);        \
-                                 PT("<<< end   patching CODE @ [%04lx], "  \
-                                    "continuing @ [%04lx]\n",              \
-                                       progp - prog, saved_progp - prog);  \
-                                 progp = saved_progp;                      \
-                             } while (0)
+/* LCU: Fri Oct 10 14:19:02 EEST 2025
+ * LBL: f121b1fa_a5cb_11f0_9912_0023ae68f329
+ * Macro to insert to-patch code for a boolean operator.
+ * The macro inserts THREE noop instructions to allow
+ * space for a 'constpush' zero and 'eq' evaluation (if needed),
+ * and then, an 'and_then' or 'or_else' instruction.  It
+ * is used in boolean left operators to binary '&&' and
+ * '||' operators. */
+#define BOOLEAN_OP(_inst)       /* { */               \
+        do {                                          \
+            $$.cel = $1.cel;                          \
+            $$.typ = Integer;                         \
+            TOBOOL($3.typ);                           \
+                                                      \
+            Cell *saved_progp = progp;                \
+            progp = $2;                               \
+            PT(">>> begin patching CODE @ "           \
+                   "[%04lx]\n", progp - prog);        \
+                CODE_INST(_inst, saved_progp);        \
+            PT("<<< end   patching CODE @ [%04lx], "  \
+               "continuing @ [%04lx]\n",              \
+                  progp - prog, saved_progp - prog);  \
+            progp = saved_progp;                      \
+        } while (0)  /* BOOLEAN_OP } */
 
-                             /* See definition of this macro above */
+                             /* See definition of this macro in
+                              * REF: f121b1fa_a5cb_11f0_9912_0023ae68f329
+                              * above.
+                              */
                              BOOLEAN_OP(or_else);
                            }
     | expr_and
     ;
 
-/* LCU: Thu Oct  9 10:48:45 -05 2025
- * TODO: voy por aqui. */
-or  : OR                   { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
-                                    progp - prog);
-                             $$ = CODE_INST(noop); /* para la instruccion constpush 0 */
-                                  CODE_INST(noop); /* para la instruction ne */
-                                  CODE_INST(noop); /* para la instruccion or_else */
-                             PT("<<< end   inserting unpatched CODE\n");
+expr_or_left
+    : expr_and             { TOBOOL($1.typ); }
+    ;
+
+or  : OR                   {
+
+/* LCU: Fri Oct 10 14:35:42 EEST 2025
+ * LBL: 5c908960_a5cd_11f0_a7a8_0023ae68f329
+ * Macro to insert to-patch code for a boolean operator.
+ * The macro inserts THREE noop instructions to allow
+ * space for a 'constpush' zero and 'eq' evaluation (if needed),
+ * and then, an 'and_then' or 'or_else' instruction.  It
+ * is used in boolean left operators to binary '&&' and
+ * '||' operators. */
+#define INSERT_PATCHABLE_NOOP() /* { */                                 \
+        do {                                                            \
+            PT(">>> begin inserting unpatched CODE @ [%04lx]\n",        \
+                    progp - prog);                                      \
+            $$ = CODE_INST(noop); /* para la instruccion and_then */    \
+            PT("<<< end   inserting unpatched CODE\n");                 \
+        } while (0)  /* INSERT_PATCHABLE_NOOP } */
+
+                             /* See definition of this macro in
+                              * REF 5c908960_a5cd_11f0_a7a8_0023ae68f329
+                              * above */
+                             INSERT_PATCHABLE_NOOP();
                            }
     ;
 
 expr_and
-    : expr_bitor and expr_and {
-                             /* See definition of this macro above,
-                              * in 'expr_or' */
+    : expr_and_left and expr_and {
+                             /* See definition of this macro in
+                              * REF: f121b1fa_a5cb_11f0_9912_0023ae68f329
+                              * above.
+                              */
                              BOOLEAN_OP(and_then);
                            }
     | expr_bitor
     ;
 
-and : AND                  { PT(">>> begin inserting unpatched CODE @ [%04lx]\n",
-                                     progp - prog);
-                             $$ = CODE_INST(noop); /* para la instruccion constpush 0 */
-                                  CODE_INST(noop); /* para la instruction ne */
-                                  CODE_INST(noop); /* para la instruccion and_then */
-                             PT("<<< end   inserting unpatched CODE\n");
+expr_and_left
+    : expr_bitor           { TOBOOL($1.typ); }
+    ;
+
+and : AND                  {
+                             /* See definition of this macro in
+                              * REF 5c908960_a5cd_11f0_a7a8_0023ae68f329
+                              * above */
+                             INSERT_PATCHABLE_NOOP();
                            }
     ;
 
 expr_bitor
     : expr_bitor binop_bitor expr_bitxor {
 
-#define BITOP()               do {                                       \
-                                  const Symbol *left_type  = $1.typ,     \
-                                               *right_type = $3.typ;     \
-                                                                         \
-                                  if (     left_type->t2i->flags         \
-                                                & TYPE_IS_FLOATING_POINT \
-                                        || right_type->t2i->flags        \
-                                                & TYPE_IS_FLOATING_POINT)\
-                                  {                                      \
-                                      execerror("%s %s %s not "          \
-                                                "allowed, must be "      \
-                                                "integral",              \
-                                                left_type->name,         \
-                                                $2.tok.lex,              \
-                                                right_type->name);       \
-                                  }                                      \
-                                                                         \
-                                  $$.cel = $1.cel;                       \
-                                  $$.typ = check_op_bin(&$1, &$2, &$3);  \
-                              } while (0)
+#define BITOP()               /* { */              \
+        do {                                       \
+            const Symbol *left_type  = $1.typ,     \
+                         *right_type = $3.typ;     \
+                                                   \
+            if (     left_type->t2i->flags         \
+                          & TYPE_IS_FLOATING_POINT \
+                  || right_type->t2i->flags        \
+                          & TYPE_IS_FLOATING_POINT)\
+            {                                      \
+                execerror("%s %s %s not "          \
+                          "allowed, must be "      \
+                          "integral",              \
+                          left_type->name,         \
+                          $2.tok.lex,              \
+                          right_type->name);       \
+            }                                      \
+                                                   \
+            $$.cel = $1.cel;                       \
+            $$.typ = check_op_bin(&$1, &$2, &$3);  \
+        } while (0)  /* BITOP    }  */
 
                               BITOP();
                               CODE_INST_TYP($$.typ, bit_or);
@@ -721,7 +820,7 @@ op_rel
 
 expr_arit
     : expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
-                               * NOTA 1:
+                               * LBL: 9966c546_a5cf_11f0_b8f9_0023ae68f329
                                * determinar el tipo de la expr_arit, a partir de los
                                * tipos de $1 y $3. En caso de que los tipos sean
                                * distintos, generar codigo para converti el tipo de
@@ -744,8 +843,10 @@ op_sum
     ;
 
 term
-    : term op_mul fact      { /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver NOTA 1, arriba. */
+    : term op_mul fact      {
+                              /* LCU: Mon Sep 15 12:36:54 -05 2025
+                               * ver 9966c546_a5cf_11f0_b8f9_0023ae68f329,
+                               * arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.tok.id) {
                               case '*': CODE_INST_TYP($$.typ, mul);  break;
@@ -767,7 +868,8 @@ op_mul
 
 fact: prim op_exp fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver NOTA 1, arriba. */
+                               * ver 9966c546_a5cf_11f0_b8f9_0023ae68f329,
+                               * arriba. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               CODE_INST_TYP($$.typ, pwr);
                             }
@@ -813,14 +915,8 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               $$.typ = $1->typref; }
     | '!' prim              { $$.cel = $2.cel;
                               $$.typ = Integer;
-                              if ($2.typ != Integer) {
-                                  CODE_INST_TYP($2.typ,
-                                                constpush,
-                                                $2.typ->t2i->zero);
-                                  CODE_INST_TYP($2.typ, eq);
-                              } else { /* $2.typ == Integer */
-                                  CODE_INST(not);
-                              }
+                              TOBOOL($2.typ);
+                              CODE_INST(not);
                             }
     | '~' prim              { if ($2.typ->t2i->flags
                                       & TYPE_IS_FLOATING_POINT)
@@ -834,69 +930,103 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               CODE_INST_TYP($2.typ, bit_not);
                             }
     | '+' prim              { $$ = $2; }
-    | '-' prim              { $$ = $2; CODE_INST_TYP($2.typ, neg);  }
+    | '-' prim              { $$ = $2;
+                              CODE_INST_TYP($2.typ, neg);  }
 
     | PLS_PLS VAR           {
 
-#define INCDEC_PRE(_eval, _op, _assign, ...) do {                     \
-                                  const Symbol                        \
-                                         *var = $2,                   \
-                                         *type = var->typref;         \
-                                  $$.cel = progp;                     \
-                                  $$.typ = type;                      \
-                                                                      \
-                                  CODE_INST_TYP(type, _eval,          \
-                                                ##__VA_ARGS__);       \
-                                  CODE_INST_TYP(type,                 \
-                                                constpush,            \
-                                                type->t2i->one);      \
-                                  CODE_INST_TYP(type, _op);           \
-                                  CODE_INST_TYP(type, _assign,        \
-                                                ##__VA_ARGS__);       \
-                              } while (0)
+/* LCU: Fri Oct 10 15:04:03 EEST 2025
+ * LBL: 6a8b4aa6_a5d1_11f0_a355_0023ae68f329
+ * Next macro codes the pre increment/decrement operators on
+ * global/local variables. */
+#define INCDEC_PRE(_eval, _op, _assign, ...) /*  { */ \
+        do {                                    \
+            const Symbol                        \
+                   *var  = $2,                  \
+                   *type = var->typref;         \
+            $$.cel = progp;                     \
+            $$.typ = type;                      \
+                                                \
+            CODE_INST_TYP(type, _eval,          \
+                          ##__VA_ARGS__);       \
+            CODE_INST_TYP(type,                 \
+                          constpush,            \
+                          type->t2i->one);      \
+            CODE_INST_TYP(type, _op);           \
+            CODE_INST_TYP(type, _assign,        \
+                          ##__VA_ARGS__);       \
+        } while (0) /* INCDEC_PRE                } */
 
                               INCDEC_PRE(eval,    add, assign,    var);
                             }
-    | MIN_MIN VAR           { INCDEC_PRE(eval,    sub, assign,    var); }
-
-    | PLS_PLS LVAR          { INCDEC_PRE(argeval, add, argassign, var->offset, var->name); }
-    | MIN_MIN LVAR          { INCDEC_PRE(argeval, sub, argassign, var->offset, var->name); }
+    | MIN_MIN VAR           {
+                              /* See definition of this macro in
+                               * REF: 6a8b4aa6_a5d1_11f0_a355_0023ae68f329
+                               * avobe.  */
+                              INCDEC_PRE(eval,    sub, assign,    var); }
+    | PLS_PLS LVAR          {
+                              /* See definition of this macro in
+                               * REF: 6a8b4aa6_a5d1_11f0_a355_0023ae68f329
+                               * avobe.  */
+                              INCDEC_PRE(argeval, add, argassign, var->offset, var->name); }
+    | MIN_MIN LVAR          {
+                              /* See definition of this macro in
+                               * REF: 6a8b4aa6_a5d1_11f0_a355_0023ae68f329
+                               * avobe.  */
+                              INCDEC_PRE(argeval, sub, argassign, var->offset, var->name); }
 
     | VAR     PLS_PLS       {
 
-#define INCDEC_POST(_eval, _op, _assign, ...) do {                    \
-                                  const Symbol                        \
-                                         *var  = $1,                  \
-                                         *type = var->typref;         \
-                                  $$.cel = progp;                     \
-                                  $$.typ = type;                      \
-                                                                      \
-                                  CODE_INST_TYP(type, _eval,          \
-                                                ##__VA_ARGS__);       \
-                                  CODE_INST(dupl);                    \
-                                  CODE_INST_TYP(type,                 \
-                                                constpush,            \
-                                                type->t2i->one);      \
-                                  CODE_INST_TYP(type, _op);           \
-                                  CODE_INST_TYP(type, _assign,        \
-                                                ##__VA_ARGS__);       \
-                                  CODE_INST(drop);                    \
-                              } while (0)
+/* LCU: Fri Oct 10 15:12:47 EEST 2025
+ * LBL: 814c1152_a5d2_11f0_bf28_0023ae68f329
+ * Next macro codes the post increment/decrement operators on
+ * global/local variables. */
+#define INCDEC_POST(_eval, _op, _assign, ...) /* { */ \
+        do {                               \
+            const Symbol                   \
+                   *var  = $1,             \
+                   *type = var->typref;    \
+            $$.cel = progp;                \
+            $$.typ = type;                 \
+                                           \
+            CODE_INST_TYP(type, _eval,     \
+                          ##__VA_ARGS__);  \
+            CODE_INST(dupl);               \
+            CODE_INST_TYP(type,            \
+                          constpush,       \
+                          type->t2i->one); \
+            CODE_INST_TYP(type, _op);      \
+            CODE_INST_TYP(type, _assign,   \
+                          ##__VA_ARGS__);  \
+            CODE_INST(drop);               \
+        } while (0) /* INCDEC_POST               } */
 
+                              /* See definition of this macro in
+                               * REF: 814c1152_a5d2_11f0_bf28_0023ae68f329
+                               * avobe.  */
                               INCDEC_POST(eval,    add, assign,    var);
                             }
-    | VAR     MIN_MIN       { INCDEC_POST(eval,    sub, assign,    var); }
 
-    | LVAR    PLS_PLS       { INCDEC_POST(argeval, add, argassign,
-                                          var->offset, var->name);
-                            }
-    | LVAR    MIN_MIN       { INCDEC_POST(argeval, sub, argassign,
-                                          var->offset, var->name);
-                            }
+    | VAR     MIN_MIN       { /* See definition of this macro in
+                               * REF: 814c1152_a5d2_11f0_bf28_0023ae68f329
+                               * avobe.  */
+                              INCDEC_POST(eval,    sub, assign,    var); }
+
+    | LVAR    PLS_PLS       { /* See definition of this macro in
+                               * REF: 814c1152_a5d2_11f0_bf28_0023ae68f329
+                               * avobe.  */
+                              INCDEC_POST(argeval, add, argassign,
+                                          var->offset, var->name); }
+
+    | LVAR    MIN_MIN       { /* See definition of this macro in
+                               * REF: 814c1152_a5d2_11f0_bf28_0023ae68f329
+                               * avobe.  */
+                              INCDEC_POST(argeval, sub, argassign,
+                                          var->offset, var->name); }
 
     | CONST                 { $$.cel = CODE_INST_TYP($1->typref,
                                                      constpush,
-                                                     $1->val);
+                                                     $1->cel);
                               $$.typ = $1->typref;
                             }
 

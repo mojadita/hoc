@@ -187,7 +187,7 @@ void list_all_symbols(Symbol *from)
             printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
             break;
         case CONST:
-            printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->val);
+            printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->cel.val);
             break;
         case BLTIN0: case BLTIN1: case BLTIN2:
             printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);

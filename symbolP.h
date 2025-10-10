@@ -24,7 +24,7 @@ struct Symbol_s {                         /* Symbol table entry */
     const Symbol  *typref;                /* ref al tipo de la
                                            * variable/func/builtin... */
     union {
-        Cell       val;                   /* si el tipo es CONST */
+        Cell       cel;                   /* si el tipo es CONST */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
