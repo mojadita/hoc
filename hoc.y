@@ -519,16 +519,36 @@ stmtlist
     ;
 
 expr
-    : VAR    '=' expr      { $$ = $3;
-                             code_conv_val($3.typ, $1->typref);
-                             CODE_INST_TYP($1->typref, assign, $1);
+    : VAR    '=' expr      {
+
+#define VAR_ASSIGN_EXPR(_exp_type, _var_type, ...) /* { */ \
+        do {                                           \
+            code_conv_val(_exp_type, _var_type);       \
+            CODE_INST_TYP(_var_type, ##__VA_ARGS__);   \
+        } while (0) /* VAR_ASSIGN_EXPR                } */
+
+                             $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+
+                             VAR_ASSIGN_EXPR(
+                                     $3.typ,
+                                     $1->typref,
+                                     assign,
+                                     $1);
                            }
-    | LVAR   '=' expr      { $$ = $3;
-                             code_conv_val($3.typ, $1->typref);
-                             CODE_INST_TYP($1->typref, argassign,
-                                    $1->offset, $1->name);
+    | LVAR   '=' expr      {
+                             $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+
+                             VAR_ASSIGN_EXPR(
+                                     $3.typ,
+                                     $1->typref,
+                                     argassign,
+                                     $1->offset,
+                                     $1->name);
                            }
-    | VAR   op_assign expr { $$ = $3;
+
+    | VAR   op_assign expr {
 
 /* LCU: Wed Oct  1 14:44:15 -05 2025
  * The next code is encoded as a macro, as it
@@ -549,12 +569,10 @@ expr
             const Symbol *var       = $1,                                       \
                          *var_type  = var->typref,                              \
                          *exp_type  = $3.typ,                                   \
-                         *res_type  = exp_type;                                 \
+                         *res_type  = var_type;                                 \
             const token   op        = $2;                                       \
-            $$.cel = $3.cel;                                                    \
-            $$.typ = var_type;                                                  \
                                                                                 \
-            code_conv_val(exp_type, var_type);   /* convert expr to var type */ \
+            code_conv_val(exp_type, var_type); /* convert expr to var type */   \
             CODE_INST_TYP(var_type, _eval, ##__VA_ARGS__); /* variable evaluation */ \
             CODE_INST(swap);                     /* swap them */                \
             switch (op.id) {                                                    \
@@ -573,13 +591,27 @@ expr
             CODE_INST_TYP(var_type, _assign, ##__VA_ARGS__); /* assign to variable */ \
         } while (0) /* VAR_OPASSIGN_EXPR          } */
 
-                             VAR_OPASSIGN_EXPR(eval, assign, var);
+                             $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+
+                             VAR_OPASSIGN_EXPR(
+                                     eval,
+                                     assign,
+                                     var);
                            }
 
-    | LVAR op_assign expr  { /* LCU: Wed Oct  1 14:51:06 -05 2025
+    | LVAR op_assign expr  {
+                             $$.cel = $3.cel;
+                             $$.typ = $1->typref;
+
+                             /* LCU: Wed Oct  1 14:51:06 -05 2025
                               * see REF 3fe7aaea_a5c9_11f0_b8f1_0023ae68f329
                               * above, for a definition */
-                             VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
+                             VAR_OPASSIGN_EXPR(
+                                     argeval,
+                                     argassign,
+                                     var->offset,
+                                     var->name);
                            }
     | VAR bitop_assign expr {
 
@@ -603,14 +635,21 @@ expr
                               * See 37dac12e_a5ca_11f0_9c26_0023ae68f329
                               * for a definition of this macro */
                              VAR_NOT_FLOATING_POINT($1);
-                             VAR_OPASSIGN_EXPR(eval, assign, var);
+                             VAR_OPASSIGN_EXPR(
+                                     eval,
+                                     assign,
+                                     var);
                            }
     | LVAR bitop_assign expr {
                              /* LCU: Fri Oct 10 14:15:44 EEST 2025
                               * See 37dac12e_a5ca_11f0_9c26_0023ae68f329
                               * for a definition of this macro */
                              VAR_NOT_FLOATING_POINT($1);
-                             VAR_OPASSIGN_EXPR(argeval, argassign, var->offset, var->name);
+                             VAR_OPASSIGN_EXPR(
+                                     argeval,
+                                     argassign,
+                                     var->offset,
+                                     var->name);
                            }
     | expr_or
     ;
@@ -895,26 +934,19 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                             }
     | '(' expr ')'          { $$ = $2; }
     | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
-                              $$.typ = Float;
-                            }
+                              $$.typ = Float; }
     | DOUBLE                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
-                              $$.typ = Double;
-                            }
+                              $$.typ = Double; }
     | CHAR                  { $$.cel = CODE_INST_TYP(Char,    constpush, $1);
-                              $$.typ = Char;
-                            }
+                              $$.typ = Char; }
     | SHORT                 { $$.cel = CODE_INST_TYP(Short, constpush, $1);
-                              $$.typ = Short;
-                            }
+                              $$.typ = Short; }
     | INTEGER               { $$.cel = CODE_INST_TYP(Integer, constpush, $1);
-                              $$.typ = Integer;
-                            }
+                              $$.typ = Integer; }
     | LONG                  { $$.cel = CODE_INST_TYP(Long, constpush, $1);
-                              $$.typ = Long;
-                            }
+                              $$.typ = Long; }
     | VAR                   { $$.cel = CODE_INST_TYP($1->typref, eval,    $1);
-                              $$.typ = $1->typref;
-                            }
+                              $$.typ = $1->typref; }
     | LVAR                  { $$.cel = CODE_INST_TYP($1->typref, argeval,
                                                      $1->offset, $1->name);
                               $$.typ = $1->typref; }
@@ -1040,7 +1072,8 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
 
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
                               $$.typ = $1->typref; }
-    | BLTIN1 '(' expr_bltin ')'   { $$.cel = $3.cel;
+    | BLTIN1 '(' expr_bltin ')' {
+                              $$.cel = $3.cel;
                               $$.typ = $1->typref;
                               CODE_INST(bltin1, $1); }
     | BLTIN2 '(' expr_bltin ',' expr_bltin ')'
@@ -1053,9 +1086,9 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               $$.typ = $1->typref;
                               if ($4 != $1->argums_len) {
                                   execerror(" " BRIGHT GREEN "%s"
-                                       ANSI_END " accepts "
-                                       "%d arguments, passed %d",
-                                       $1->name, $1->argums_len, $4);
+                                            ANSI_END " accepts "
+                                            "%d arguments, passed %d",
+                                            $1->name, $1->argums_len, $4);
                               }
                               CODE_INST(call,  $1);            /* instruction */
                               CODE_INST(spadd, $1->size_args);
@@ -1066,8 +1099,10 @@ expr_bltin: expr { code_conv_val($1.typ, Double); }
 
 function
     : FUNCTION              { push_sub_call_stack($1);
-                              CODE_INST(spadd, -$1->typref->t2i->size); /* PUSH espacio para el */
-                            }                                           /* valor a retornar */
+
+                              /* PUSH espacio para el valor a retornar */
+                              CODE_INST(spadd, -$1->typref->t2i->size);
+                            }
     ;
 
 arglist_opt

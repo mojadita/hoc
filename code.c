@@ -388,7 +388,7 @@ OP(mul, _s, chr,  *, FMT_SHORT)
     {                                               \
         Cell p2  = pop();                           \
         if (!p2._fld)                               \
-            execerror(" Division por 0");           \
+            execerror("Division por 0");            \
         Cell p1  = pop(),                           \
              res = { ._fld = p1._fld _op p2._fld }; \
                                                     \

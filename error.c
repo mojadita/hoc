@@ -42,7 +42,7 @@ void vwarning(const char *fmt, va_list args)
     vfprintf(stderr, fmt, args);
     fprintf(stderr,  " cerca de la linea %d\n", lineno);
     */
-    printf(BRIGHT YELLOW "\n%s:" ANSI_END, progname);
+    printf(BRIGHT YELLOW "\n%s: " ANSI_END, progname);
     vprintf(fmt, args);
     printf(" " BRIGHT YELLOW "cerca de la linea %d" ANSI_END "\n", lineno);
 } /* vwarning */

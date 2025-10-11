@@ -15,8 +15,8 @@
 /*  Celda de Memoria RAM donde se instala el programa  */
 union Cell_u {
     struct {
-        instr_code inst:   12;
-        int        param:  20;
+        instr_code inst:   8;
+        int        param:  24;
     };
     char         chr;
     short        sht;
