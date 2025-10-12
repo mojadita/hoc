@@ -49,7 +49,10 @@
 
 typedef struct type2inst_s type2inst;
 
-typedef void (*typeinfo_cb)(const Symbol *type, Cell value);
+typedef const char *(*typeinfo_cb)(
+        Cell          value,
+        char         *buff,
+        size_t        buff_sz);
 
 struct type2inst_s {
     const instr
@@ -84,5 +87,12 @@ extern const Symbol
        *Short,
        *String,
        *Prev;
+
+const char * printval_c(Cell value, char *buff, size_t buff_sz);
+const char * printval_d(Cell value, char *buff, size_t buff_sz);
+const char * printval_f(Cell value, char *buff, size_t buff_sz);
+const char * printval_i(Cell value, char *buff, size_t buff_sz);
+const char * printval_l(Cell value, char *buff, size_t buff_sz);
+const char * printval_s(Cell value, char *buff, size_t buff_sz);
 
 #endif /* TYPES_H_9fc2bf3a_9d19_11f0_8203_0023ae68f329 */

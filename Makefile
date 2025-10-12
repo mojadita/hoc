@@ -32,7 +32,7 @@ toinstall     ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
 
 common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
                 reserved_words.o main.o do_help.o instr.o scope.o \
-				intern.o type2inst.o
+				intern.o type2inst.o types.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)

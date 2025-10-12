@@ -16,6 +16,7 @@
 #include "colors.h"
 #include "instr.h"
 #include "scope.h"
+#include "code.h"
 
 #include "symbolP.h"
 
@@ -116,18 +117,33 @@ void list_symbols(void)
                 lookup_type(sym->type));
         */
 
-        /*   80 Col  para 4 columnas en cada fila  */
+        /*   80 Col  para 2 columnas en cada fila  */
         char workspace[80], *s = workspace;
         size_t sz = sizeof workspace;
         int n = snprintf(s, sz, "%s-%s",
             sym->help ? sym->help : sym->name,
             lookup_type(sym->type));
         s += n; sz -= n;
-        if (sym->type == VAR) {
-            snprintf(s, sz, "(%.5lg)", sym->defn->val);
-        }
-        printf(GREEN "%-20s" ANSI_END, workspace);
-        if (++col == 4) {
+        switch(sym->type) {
+            char ws_2[32];
+        case VAR:
+            snprintf(s, sz,
+                     "(%s)",
+                     sym->typref->t2i->printval(
+                            *sym->defn,
+                            ws_2, sizeof ws_2));
+            break;
+
+        case CONST:
+            snprintf(s, sz,
+                     "(%s)",
+                     sym->typref->t2i->printval(
+                            sym->cel,
+                            ws_2, sizeof ws_2));
+            break;
+        } /* switch */
+        printf(GREEN "%-40s" ANSI_END, workspace);
+        if (++col == 2) {
             col = 0;
             puts("");
         }
@@ -154,6 +170,7 @@ int printf_ncols(int ncols, const char *fmt, ...)
     return ret_val;
 }
 
+
 void list_all_symbols(Symbol *from)
 {
     for (   Symbol *sym = from;
@@ -170,34 +187,60 @@ void list_all_symbols(Symbol *from)
 
         /*   1 fila para cada simbolo y 5 col para informacion del simbolo  */
         //printf_ncols(UQ_COL1_SYMBS, "%s/%s:  ", sym->name, lookup_type(sym->type));
+        const Symbol *type = sym->typref;
+
         printf_ncols(45,
                      BRIGHT "%s" RED "/" CYAN "%s:  " ANSI_END,
                      sym->name, lookup_type(sym->type));
-        switch (sym->type) {
+
+        char workplace[64];
+
+        switch(sym->type) {
         case LVAR:
-            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->t2i->size);
-            printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
-            printf_ncols(UQ_COL5_SYMBS, "value %.5lg",     *getarg(sym->offset));
+            type->t2i->printval(
+                    *getarg(sym->offset),
+                    workplace,
+                    sizeof workplace);
             break;
         case VAR:
-            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
-            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     sym->typref->t2i->size);
-            printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
-            printf_ncols(UQ_COL5_SYMBS, "value %.5lg",      sym->defn->val);
+            type->t2i->printval(
+                    *sym->defn,
+                    workplace,
+                    sizeof workplace);
             break;
         case CONST:
-            printf_ncols(UQ_COL2_SYMBS, " value %.5lg",     sym->cel.val);
+            type->t2i->printval(
+                    sym->cel,
+                    workplace,
+                    sizeof workplace);
+            break;
+        };
+
+        switch (sym->type) {
+        case LVAR:
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     type->t2i->size);
+            printf_ncols(UQ_COL4_SYMBS, "offset %d, ",      sym->offset);
+            printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
+            break;
+        case VAR:
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ",     type->t2i->size);
+            printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
+            printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
+            break;
+        case CONST:
+            printf_ncols(UQ_COL2_SYMBS, " value %s",        workplace);
             break;
         case BLTIN0: case BLTIN1: case BLTIN2:
             printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
             break;
         case FUNCTION:
-            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      sym->typref->name);
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
             printf_ncols(UQ_COL3_SYMBS, "argums %zd",       sym->argums_len);
             break;
         case PROCEDURE:
-            printf_ncols(UQ_COL2_SYMBS, "argums %zd",      sym->argums_len);
+            printf_ncols(UQ_COL2_SYMBS, "argums %zd",       sym->argums_len);
             break;
         }
         puts("");
@@ -212,29 +255,51 @@ void list_variables(Symbol *from)
             sym = sym->next)
     {
         /*   1 fila para cada simbolo e informacion del simbolo  */
-        char workplace[100];
+        char workplace[100], workplace_2[32];
         if (sym && sym->typref && sym->typref->t2i->fmt) {
             snprintf(workplace, sizeof workplace,
                 CYAN " %s" ANSI_END, sym->typref->t2i->fmt);
         }
 
         switch (sym->type) {
+
         case LVAR:
+            sym->typref->t2i->printval(
+                    *getarg(sym->offset),
+                    workplace_2,
+                    sizeof workplace_2);
+
             fputs(sep, stdout);
 
             printf_ncols( UQ_BRKPT_WIDTH1,
                     GREEN "%s" ANSI_END "<%+d>",
                     sym->name, sym->offset);
             printf_ncols( UQ_BRKPT_WIDTH2,
-                    workplace, getarg(sym->offset)->val );
+                    "%s",
+                    workplace_2);
             break;
+
         case VAR:
+            sym->typref->t2i->printval(
+                    *sym->defn,
+                    workplace_2,
+                    sizeof workplace_2);
+
             fputs(sep, stdout);
             printf_ncols( UQ_BRKPT_WIDTH1,
-                    GREEN "%s" ANSI_END "{%04lx}",
-                    sym->name, sym->defn - prog);
+                    GREEN "%s" ANSI_END,
+                    sym->name);
             printf_ncols( UQ_BRKPT_WIDTH2,
-                    workplace, sym->defn->val );
+                    "%s",
+                    workplace_2);
+            break;
+
+        case CONST:
+
+            sym->typref->t2i->printval(
+                    sym->cel,
+                    workplace_2,
+                    sizeof workplace_2);
             break;
         }
         sep = "][";
