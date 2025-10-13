@@ -28,7 +28,8 @@ struct Symbol_s {                         /* Symbol table entry */
         double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
         double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
         double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
-        struct {                          /* si el tipo es FUNC, PROC o VAR */
+        struct {                          /* si el tipo es FUNC, PROC o
+                                           * VAR o BLTIN_PROC o BLTIN_FUNC */
             Cell       *defn;             /* donde empieza el codigo de la funcion */
             scope      *main_scope;       /* scope principal */
 
@@ -43,6 +44,8 @@ struct Symbol_s {                         /* Symbol table entry */
 
             int         size_args;        /* tama;o de los argumentos */
             int         size_lvars;       /* tama;o de las variables locales */
+            int         bltin_index;      /* indice del builtin, para los builtins */
+            int         ret_val_offset;   /* offset del valor a retornar */
         };
         struct {                          /* si el tipo es LVAR */
             int         offset;           /* variables locales y argumentos (LVAR),

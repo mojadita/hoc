@@ -6,11 +6,15 @@
  * License: BSD
  */
 
+#include <fcntl.h>
+#include <dlfcn.h>
+#include <dirent.h>
 #include <getopt.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "colors.h"
@@ -36,6 +40,8 @@
 #endif /* UQ_CODE_DEBUG_EXEC    }} */
 
 char *progname;     /* for error messages */
+
+void init_plugins(void);
 
 int parse(void)
 {
@@ -73,6 +79,9 @@ int main(int argc, char *argv[]) /* hoc1 */
     argv += optind;
 
     init();
+
+    init_plugins();
+
     if (argc) {
         for (int i = 0; i < argc; i++) {
             if (strcmp(argv[i], "-") == 0) {
@@ -113,3 +122,57 @@ static void process(FILE *in)
         EXEC("Stack size after execution: %d\n", stacksize());
     }
 } /* process */
+
+void init_plugins(void)
+{
+    DIR *d = opendir(pkglibdir);
+    if (d == NULL) {
+        fprintf(stderr,
+                "directorio %s: %s\n",
+                pkglibdir,
+                strerror(errno));
+        return;
+    }
+
+    struct dirent *file;
+    int dir_fd = dirfd(d);
+
+    while ((file = readdir(d)) != NULL) {
+
+            if (!strcmp(file->d_name, "..") || !strcmp(file->d_name, "."))
+                continue;
+
+            int plugin_fd = openat(dir_fd, file->d_name, O_RDONLY);
+            if (plugin_fd < 0) {
+                fprintf(stderr, "plugin %s/%s: %s\n",
+                    pkglibdir,
+                    file->d_name,
+                    strerror(errno));
+                continue;
+            }
+            void *plugin_so = fdlopen(plugin_fd, RTLD_LAZY);
+            if (plugin_so == NULL) {
+                fprintf(stderr, "plugin %s/%s dlopen: %s\n",
+                    pkglibdir,
+                    file->d_name,
+                    strerror(errno));
+                close(plugin_fd);
+                continue;
+            }
+            int (*plugin_init)(void) = dlsym(plugin_so, "init");
+            if (plugin_init == NULL) {
+                fprintf(stderr, "plugin %s/%s dlsym(\"init\") failed: %s\n",
+                    pkglibdir,
+                    file->d_name,
+                    strerror(errno));
+                dlclose(plugin_so);
+                close(plugin_fd);
+                continue;
+            }
+            int res = plugin_init();
+            fprintf(stderr, "plugin %s/%s cargado satisfactoriamente\n",
+                    pkglibdir,
+                    file->d_name);
+    }
+    fdclosedir(d);
+} /* init_plugins */

@@ -136,7 +136,7 @@ size_t size_lvars = 0;
 
 %token        ERROR
 %token <lit>  DOUBLE FLOAT
-%token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 CONST
+%token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 BLTIN_FUNC BLTIN_PROC CONST
 %token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
 %token <tok>  OR AND GE LE EQ NE EXP
@@ -219,7 +219,7 @@ stmt
                               * cima de la lista de parametros */
                              code_conv_val($2.typ, indef->typref);
                              CODE_INST_TYP(indef->typref, argassign,
-                                       indef->size_args + UQ_SIZE_FP_RETADDR,
+                                       indef->ret_val_offset,
                                        "{RET_VAL} ");
                              CODE_INST(drop);
 
@@ -1179,9 +1179,10 @@ formal_arglist_opt
                                         indef->argums[i]->offset);
                               }
                               if (indef->type == FUNCTION) {
+                                  indef->ret_val_offset = indef->size_args
+                                                        + UQ_SIZE_FP_RETADDR;
                                   PT("+++ RET_VAL offset = %d\n",
-                                            indef->size_args
-                                            + UQ_SIZE_FP_RETADDR);
+                                            indef->ret_val_offset);
                               }
                               get_current_scope()->size = 0;
                               $$ = indef->argums_len;

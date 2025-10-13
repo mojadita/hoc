@@ -16,6 +16,8 @@ OS            != uname -o
 
 WHICH_LEX	  ?= lex.o
 
+.SUFFIXES: .out .so .o .c .l .y
+
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
 
@@ -32,7 +34,7 @@ toinstall     ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
 
 common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
                 reserved_words.o main.o do_help.o instr.o scope.o \
-				intern.o type2inst.o types.o
+				intern.o type2inst.o types.o builtins.o
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
@@ -73,6 +75,10 @@ toclean += type2inst.c
 	$(YACC) -d $<
 	mv -f y.tab.c $@
 	mv -f y.tab.h $*.tab.h
+
+.c.so:
+	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -shared $< -o $@
+
 
 hoc.tab.h: hoc.c
 hoc.1: hoc.1.in config.mk
