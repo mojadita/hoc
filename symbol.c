@@ -80,6 +80,8 @@ static struct type2char {
     V(DOUBLE),
     V(VAR),
     V(LVAR),
+    V(BLTIN_FUNC),
+    V(BLTIN_PROC),
     V(BLTIN0),
     V(BLTIN1),
     V(BLTIN2),
@@ -231,6 +233,23 @@ void list_all_symbols(Symbol *from)
             break;
         case CONST:
             printf_ncols(UQ_COL2_SYMBS, " value %s",        workplace);
+            break;
+        case BLTIN_FUNC:
+        case BLTIN_PROC:
+            printf_ncols(UQ_COL2_SYMBS, " index %d",        sym->bltin_index);
+            printf(" %s %s(",
+                   sym->typref
+                       ? sym->typref->name
+                       : "",
+                   sym->name);
+            const char *sep = "";
+            for (int i = 0; i < sym->argums_len; ++i) {
+                const Symbol *param = sym->argums[i],
+                             *type  = param->typref;
+                printf("%s%s %s", sep, type->name, param->name);
+                sep = ", ";
+            }
+            printf(")");
             break;
         case BLTIN0: case BLTIN1: case BLTIN2:
             printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);

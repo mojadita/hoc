@@ -139,7 +139,8 @@ void init_plugins(void)
 
     while ((file = readdir(d)) != NULL) {
 
-            if (!strcmp(file->d_name, "..") || !strcmp(file->d_name, "."))
+            if (       !strcmp(file->d_name, "..")
+                    || !strcmp(file->d_name, "."))
                 continue;
 
             char plugin_name[1024];

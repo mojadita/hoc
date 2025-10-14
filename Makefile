@@ -48,6 +48,7 @@ common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
+hoc_ldfl       = -Wl,-export-dynamic
 hoc_libs       = -lm 
 toclean       += hoc.o
 
@@ -77,7 +78,7 @@ clean:
 	$(RM) $(toclean)
 
 hoc hoc.out: $(hoc_objs)
-	$(CC) $(LDFLAGS) -o $@ $(hoc_objs) $(hoc_libs)
+	$(CC) $(LDFLAGS) $($@_ldfl) -o $@ $(hoc_objs) $(hoc_libs)
 
 type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
@@ -89,8 +90,6 @@ toclean += type2inst.c
 	$(YACC) -d $<
 	mv -f y.tab.c $@
 	mv -f y.tab.h $*.tab.h
-
-plugin0.pico_cflgs ?= -fPIC
 
 .pico.so:
 	$(LD) $(LDFLAGS) $($@_cflgs) -shared $< -o $@

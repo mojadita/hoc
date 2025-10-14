@@ -42,7 +42,7 @@ register_builtin(
 
     int      ret_val   = builtins_len;
     builtin *bltin     = builtins + builtins_len++;
-    bool is_func       = (type == NULL);
+    bool is_func       = (type != NULL);
 
     bltin->sym = install(
             name,
