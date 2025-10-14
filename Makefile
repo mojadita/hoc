@@ -1,3 +1,10 @@
+# Makefile -- build script for hoc.
+# Author: Luis Colorado <luiscoloradourcola@gmail.com>
+# Date: Tue Oct 14 13:29:59 EEST 2025
+# Copyright: (c) 2025 Luis Colorado.  All rights reserved.
+# License: BSD
+#
+
 ##  nd = No Debugging    db = Debugging
 DEBUG-TYPE    ?= db
 
@@ -17,7 +24,7 @@ OS            != uname -o
 
 WHICH_LEX	  ?= lex.o
 
-.SUFFIXES: .out .so .o .c .l .y
+.SUFFIXES: .out .so .o .pico .c .l .y
 
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
@@ -43,6 +50,7 @@ toclean       += $(common_objs) lex.c
 hoc_objs       = hoc.o $(common_objs)
 hoc_libs       = -lm 
 toclean       += hoc.o
+
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets) $(plugins)
@@ -82,8 +90,12 @@ toclean += type2inst.c
 	mv -f y.tab.c $@
 	mv -f y.tab.h $*.tab.h
 
-.c.so:
-	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -shared $< -o $@
+plugin0.pico_cflgs ?= -fPIC
+
+.pico.so:
+	$(LD) $(LDFLAGS) $($@_cflgs) -shared $< -o $@
+.c.pico:
+	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -c $< -o $@
 
 
 hoc.tab.h: hoc.c

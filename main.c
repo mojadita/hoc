@@ -153,22 +153,5 @@ void init_plugins(void)
                     dlerror());
                 continue;
             }
-            int (*plugin_init)(void) = dlsym(plugin_so, "init");
-            if (plugin_init == NULL) {
-                fprintf(stderr, "plugin %s dlsym(\"init\") failed: %s\n",
-                    plugin_name,
-                    dlerror());
-                dlclose(plugin_so);
-                continue;
-            }
-            fprintf(stderr, "plugin %s cargado satisfactoriamente\n",
-                    plugin_name);
-            int res = plugin_init();
-            if (res < 0) {
-                fprintf(stderr, "plugin %s: init() failed with code %d\n",
-                plugin_name,
-                res);
-                break;
-            }
     }
 } /* init_plugins */
