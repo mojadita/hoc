@@ -11,6 +11,7 @@ LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
 
 RM            ?= rm -f
 targets        = hoc hoc.1.gz ack
+plugins        = plugin0.so
 toclean       += $(targets)
 OS            != uname -o
 
@@ -30,7 +31,9 @@ XMOD          ?= 0755
 INSTALL       ?= install
 IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
-toinstall     ?= $(bindir)/hoc $(man1dir)/hoc.1.gz
+toinstall     ?= $(bindir)/hoc \
+                 $(man1dir)/hoc.1.gz \
+				 $(pkglibdir)/plugin0.so
 
 common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
                 reserved_words.o main.o do_help.o instr.o scope.o \
@@ -42,7 +45,7 @@ hoc_libs       = -lm
 toclean       += hoc.o
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
-BUILD_DATE.txt: $(targets)
+BUILD_DATE.txt: $(targets) $(plugins)
 	date > $@
 toclean += BUILD_DATE.txt
 
@@ -58,6 +61,9 @@ $(bindir)/hoc: hoc
 
 $(man1dir)/hoc.1.gz: hoc.1.gz
 	-$(INSTALL) $(IFLAGS) -m $(FMOD) $? $@
+
+$(pkglibdir)/plugin0.so: plugin0.so
+	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
 
 clean:
 	$(RM) $(toclean)

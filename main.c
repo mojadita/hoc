@@ -161,6 +161,8 @@ void init_plugins(void)
                 dlclose(plugin_so);
                 continue;
             }
+            fprintf(stderr, "plugin %s cargado satisfactoriamente\n",
+                    plugin_name);
             int res = plugin_init();
             if (res < 0) {
                 fprintf(stderr, "plugin %s: init() failed with code %d\n",
@@ -168,7 +170,5 @@ void init_plugins(void)
                 res);
                 break;
             }
-            fprintf(stderr, "plugin %s cargado satisfactoriamente\n",
-                    plugin_name);
     }
 } /* init_plugins */
