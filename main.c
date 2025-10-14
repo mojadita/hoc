@@ -142,37 +142,33 @@ void init_plugins(void)
             if (!strcmp(file->d_name, "..") || !strcmp(file->d_name, "."))
                 continue;
 
-            int plugin_fd = openat(dir_fd, file->d_name, O_RDONLY);
-            if (plugin_fd < 0) {
-                fprintf(stderr, "plugin %s/%s: %s\n",
-                    pkglibdir,
-                    file->d_name,
-                    strerror(errno));
-                continue;
-            }
-            void *plugin_so = fdlopen(plugin_fd, RTLD_LAZY);
+            char plugin_name[1024];
+            snprintf(plugin_name, sizeof plugin_name,
+                     pkglibdir "/%s", file->d_name);
+
+            void *plugin_so = dlopen(plugin_name, RTLD_LAZY);
             if (plugin_so == NULL) {
-                fprintf(stderr, "dlopen %s/%s: %s\n",
-                    pkglibdir,
-                    file->d_name,
+                fprintf(stderr, "dlopen %s: %s\n",
+                    plugin_name,
                     dlerror());
-                close(plugin_fd);
                 continue;
             }
             int (*plugin_init)(void) = dlsym(plugin_so, "init");
             if (plugin_init == NULL) {
-                fprintf(stderr, "plugin %s/%s dlsym(\"init\") failed: %s\n",
-                    pkglibdir,
-                    file->d_name,
+                fprintf(stderr, "plugin %s dlsym(\"init\") failed: %s\n",
+                    plugin_name,
                     dlerror());
                 dlclose(plugin_so);
-                close(plugin_fd);
                 continue;
             }
             int res = plugin_init();
-            fprintf(stderr, "plugin %s/%s cargado satisfactoriamente\n",
-                    pkglibdir,
-                    file->d_name);
+            if (res < 0) {
+                fprintf(stderr, "plugin %s: init() failed with code %d\n",
+                plugin_name,
+                res);
+                break;
+            }
+            fprintf(stderr, "plugin %s cargado satisfactoriamente\n",
+                    plugin_name);
     }
-    fdclosedir(d);
 } /* init_plugins */
