@@ -152,10 +152,10 @@ void init_plugins(void)
             }
             void *plugin_so = fdlopen(plugin_fd, RTLD_LAZY);
             if (plugin_so == NULL) {
-                fprintf(stderr, "plugin %s/%s dlopen: %s\n",
+                fprintf(stderr, "dlopen %s/%s: %s\n",
                     pkglibdir,
                     file->d_name,
-                    strerror(errno));
+                    dlerror());
                 close(plugin_fd);
                 continue;
             }
@@ -164,7 +164,7 @@ void init_plugins(void)
                 fprintf(stderr, "plugin %s/%s dlsym(\"init\") failed: %s\n",
                     pkglibdir,
                     file->d_name,
-                    strerror(errno));
+                    dlerror());
                 dlclose(plugin_so);
                 close(plugin_fd);
                 continue;
