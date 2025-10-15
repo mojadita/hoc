@@ -29,7 +29,7 @@ int
 register_builtin(
         const char   *name,
         const Symbol *type,
-        void         (*function_ref)(const instr *i),
+        bltin_cb      function_ref,
         ...)
 {
     va_list args;

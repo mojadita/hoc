@@ -10,17 +10,24 @@
 
 #include "plugins.h"
 
-void sinh_cb(const instr *i)
+void sinh_cb(int plugin_id)
 {
     double par    = pop().val;
     Cell   result = { .val = sinh(par) };
     push(result);
 }
 
-void cosh_cb(const instr *i)
+void cosh_cb(int plugin_id)
 {
     double par    = pop().val;
     Cell   result = { .val = cosh(par) };
+    push(result);
+}
+
+void tanh_cb(int plugin_id)
+{
+    double par    = pop().val;
+    Cell   result = { .val = tanh(par) };
     push(result);
 }
 
@@ -32,21 +39,9 @@ void cosh_cb(const instr *i)
  * de hecho. Esto se hace asi en el Makefile ahora. */
 int _init()
 {
-    int res = register_builtin(
-            "sinh", Double, sinh_cb,
-            "x",    Double,
-            NULL);
-    if (res < 0) {
-        fprintf(stderr, "Error al registrar la funcion double sinh(double x).\n");
-    }
-
-    res = register_builtin(
-            "cosh", Double, cosh_cb,
-            "x",    Double,
-            NULL);
-    if (res < 0) {
-        fprintf(stderr, "Error al registrar la funcion double cosh(double x).\n");
-    }
+    register_builtin("sinh", Double, sinh_cb, "x", Double, NULL);
+    register_builtin("cosh", Double, cosh_cb, "x", Double, NULL);
+    register_builtin("tanh", Double, tanh_cb, "x", Double, NULL);
 
     return 0;
 }

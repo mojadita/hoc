@@ -12,11 +12,9 @@
 
 #include "builtins.h"
 
-typedef void (*subr_cb)(const instr *i);
-
 struct builtin_s {
     Symbol   *sym;
-    subr_cb   subr;
+    bltin_cb  subr;
 }; /* struct builtin_s */
 
 #endif /* BUILTINSP_H_650fa348_a85a_11f0_9d05_0023ae68f329 */

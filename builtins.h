@@ -9,10 +9,11 @@
 
 #include "instr.h"
 #include "symbol.h"
+#include "plugins.h"
 
 typedef struct builtin_s builtin;
 
-typedef void (*bltin_cb)(const instr *i);
+typedef void (*bltin_cb)(int bltin_id);
 
 int
 register_builtin(
