@@ -57,6 +57,9 @@
         i->name,                    \
         ##__VA_ARGS__)
 
+#define  PR_TAIL(_fmt, ...)         \
+    printf(_fmt, ##__VA_ARGS__)
+
 #if UQ_CODE_DEBUG_PROG
 #define PRG(_fmt, ...) printf(F(_fmt), ##__VA_ARGS__)
 #else
@@ -871,7 +874,7 @@ void bltin(const instr *i)
     fp = sp;
 
 #if UQ_CODE_DEBUG_EXEC /* { only if debug exec has been activated */
-    P_TAIL(": %s(", func_desc->name);
+    P_TAIL(" <%d>: %s(", bltin_id, func_desc->name);
     const char *sep = "";
     char workspace[100];
     for (int i = 0; i < func_desc->argums_len; ++i) {
@@ -892,9 +895,14 @@ void bltin(const instr *i)
 
     bltin->subr(bltin_id);  /* execute */
 
+#if UQ_CODE_DEBUG_EXEC /* { only if debug exec has been activated */
     if (func_desc->typref != NULL) {
-        P_TAIL(" -> %s", func_desc->typref->t2i->printval(*top()));
+        P_TAIL(" -> %s",
+               func_desc->typref->t2i->printval(top(),
+               workspace,
+               sizeof workspace));
     }
+#endif /* UQ_CODE_DEBUG_EXEC } */
 
     UPDATE_PC();
 } /* bltin */
@@ -904,8 +912,8 @@ void bltin_prt(const instr *i, const Cell *pc)
     int bltin_id = pc[0].param;
     const builtin *bltin = get_builtin_info(bltin_id);
     const Symbol *func_desc = bltin->sym;
-    PR("#%d  ", bltin_id);
-    PR("[%s %s(",
+    PR(" <%d> %s %s(",
+        bltin_id,
         func_desc->typref
                 ? func_desc->typref->name
                 :"",
@@ -914,9 +922,10 @@ void bltin_prt(const instr *i, const Cell *pc)
     for (int index = 0; index < func_desc->argums_len; ++index) {
         const Symbol *param = func_desc->argums[index],
                      *param_type = param->typref;
-        PR("%s%s %s", sep, param_type->name, param->name);
+        PR_TAIL("%s%s %s", sep, param_type->name, param->name);
         sep = ", ";
     }
+    PR_TAIL(")\n");
 } /* bltin_prt */
 
 #define AND_THEN_OR_ELSE(_name, _fld, _op, _operation) /* { */\

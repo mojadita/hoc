@@ -155,7 +155,7 @@ size_t size_lvars = 0;
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident function procedure
+%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_subr builtin_func
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
@@ -273,8 +273,28 @@ stmt
                              progp = saved_progp;
                            }
 
+    | builtin_subr mark '(' arglist_opt ')' {
+                             $$ = $2;
+                             if ($4 != $1->argums_len) {
+                                 execerror(" " BRIGHT GREEN "%s"
+                                           ANSI_END " accepts "
+                                           "%d arguments, passed %d",
+                                           $1->name, $1->argums_len, $4);
+                             }
+                             CODE_INST(bltin, $1->bltin_index);
+                             if ($1->type == BLTIN_FUNC) {
+                                 CODE_INST(drop);
+                             }
+                             pop_sub_call_stack(); }
+
     | procedure mark '(' arglist_opt ')' ';' {
                              $$ = $2;
+                             if ($4 != $1->argums_len) {
+                                 execerror(" " BRIGHT GREEN "%s"
+                                           ANSI_END " accepts "
+                                           "%d arguments, passed %d",
+                                           $1->name, $1->argums_len, $4);
+                             }
                              CODE_INST(call, $1);             /* instruction */
                              if ($1->size_args) {
                                  CODE_INST(spadd, $1->size_args); /* pop arguments */
@@ -294,6 +314,10 @@ stmt
                              }
                              end_scope();
                            }
+    ;
+
+builtin_subr
+    : BLTIN_PROC           { push_sub_call_stack($1); }
     ;
 
 procedure
@@ -1071,15 +1095,30 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                             }
 
     | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
-                              $$.typ = $1->typref; }
+                              $$.typ = $1->typref;
+                            }
     | BLTIN1 '(' expr_bltin ')' {
                               $$.cel = $3.cel;
                               $$.typ = $1->typref;
-                              CODE_INST(bltin1, $1); }
+                              CODE_INST(bltin1, $1);
+                            }
     | BLTIN2 '(' expr_bltin ',' expr_bltin ')'
                             { $$.cel = $3.cel;
                               $$.typ = $1->typref;
-                              CODE_INST(bltin2, $1); }
+                              CODE_INST(bltin2, $1);
+                            }
+    | builtin_func mark '(' arglist_opt ')' {
+                              $$.cel = $2;
+                              $$.typ = $1->typref;
+                              if ($4 != $1->argums_len) {
+                                  execerror(" " BRIGHT GREEN "%s"
+                                            ANSI_END " accepts "
+                                            "%d arguments, passed %d",
+                                            $1->name, $1->argums_len, $4);
+                              }
+                              CODE_INST(bltin, $1->bltin_index);
+                              pop_sub_call_stack();
+                            }
 
     | function mark '(' arglist_opt ')' {
                               $$.cel = $2;
@@ -1091,11 +1130,17 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                                             $1->name, $1->argums_len, $4);
                               }
                               CODE_INST(call,  $1);            /* instruction */
-                              CODE_INST(spadd, $1->size_args);
-                              pop_sub_call_stack(); }          /* eliminando argumentos */
+                              CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
+                              pop_sub_call_stack();
+                            }
     ;
 
 expr_bltin: expr { code_conv_val($1.typ, Double); }
+    ;
+
+builtin_func
+    : BLTIN_FUNC            { push_sub_call_stack($1); }
+    ;
 
 function
     : FUNCTION              { push_sub_call_stack($1);
