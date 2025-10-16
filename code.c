@@ -20,6 +20,7 @@
 #include "hoc.h"
 #include "math.h"
 #include "types.h"
+#include "builtinsP.h"
 
 #include "scope.h"
 
@@ -859,6 +860,64 @@ void bltin2_prt(const instr *i, const Cell *pc)
 {
     PR("%s\n", pc[1].sym->help);
 }
+
+void bltin(const instr *i)
+{
+    int bltin_id = pc[0].param;
+    const builtin *bltin = get_builtin_info(bltin_id);
+    const Symbol *func_desc = bltin->sym;
+    Cell *saved_fp = fp; /* save fp to print arguments */
+
+    fp = sp;
+
+#if UQ_CODE_DEBUG_EXEC /* { only if debug exec has been activated */
+    P_TAIL(": %s(", func_desc->name);
+    const char *sep = "";
+    char workspace[100];
+    for (int i = 0; i < func_desc->argums_len; ++i) {
+        const Symbol *param = func_desc->argums[i],
+                     *param_type = param->typref;
+        P_TAIL("%s%s=%s",
+               sep,
+               param->name,
+               param_type->t2i->printval(*getarg(param->offset),
+               workspace,
+               sizeof workspace));
+        sep = ", ";
+    }
+    P_TAIL(")");
+#endif /* UQ_CODE_DEBUG_EXEC } */
+
+    fp = saved_fp; /* restore fp */
+
+    bltin->subr(bltin_id);  /* execute */
+
+    if (func_desc->typref != NULL) {
+        P_TAIL(" -> %s", func_desc->typref->t2i->printval(*top()));
+    }
+
+    UPDATE_PC();
+} /* bltin */
+
+void bltin_prt(const instr *i, const Cell *pc)
+{
+    int bltin_id = pc[0].param;
+    const builtin *bltin = get_builtin_info(bltin_id);
+    const Symbol *func_desc = bltin->sym;
+    PR("#%d  ", bltin_id);
+    PR("[%s %s(",
+        func_desc->typref
+                ? func_desc->typref->name
+                :"",
+        func_desc->name);
+    const char *sep = "";
+    for (int index = 0; index < func_desc->argums_len; ++index) {
+        const Symbol *param = func_desc->argums[index],
+                     *param_type = param->typref;
+        PR("%s%s %s", sep, param_type->name, param->name);
+        sep = ", ";
+    }
+} /* bltin_prt */
 
 #define AND_THEN_OR_ELSE(_name, _fld, _op, _operation) /* { */\
     void _name(const instr *i)                                \

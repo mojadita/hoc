@@ -88,3 +88,9 @@ register_builtin(
     return ret_val;
 
 } /* register_builtin */
+
+const builtin *get_builtin_info(int id)
+{
+    assert(id >= 0 && id < builtins_len);
+    return &builtins[id];
+}

@@ -115,6 +115,7 @@ INST(print_s,1)
 INST(bltin0,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin0 (una sin parametros) */
 INST(bltin1,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin1 (de un parametro) */
 INST(bltin2,2,      SUFF(void, symb, prog))    /* llama a una funcion bltin2 (de dos parametros) */
+INST(bltin,1,       SUFF(void, arg, prog))     /* llama a una funcion bltin arbitraria */
 INST(ge_c,1)                                   /* operador Y >= X */
 INST(ge_d,1)
 INST(ge_f,1)
