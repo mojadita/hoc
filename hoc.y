@@ -151,7 +151,7 @@ size_t size_lvars = 0;
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist
 %type  <expr> expr expr_or expr_and expr_bitor expr_bitand expr_bitxor expr_shift
-%type  <expr> expr_rel expr_arit term fact prim expr_bltin expr_and_left expr_or_left
+%type  <expr> expr_rel expr_arit term fact prim expr_and_left expr_or_left
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
@@ -1120,9 +1120,6 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
                               pop_sub_call_stack();
                             }
-    ;
-
-expr_bltin: expr { code_conv_val($1.typ, Double); }
     ;
 
 builtin_func

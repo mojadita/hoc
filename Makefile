@@ -86,12 +86,7 @@ type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
 toclean += type2inst.c
 
-##
-##  Crear un .c a partir de un .y
-.y.c:
-	$(YACC) -d $<
-	mv -f y.tab.c $@
-	mv -f y.tab.h $*.tab.h
+# REGLAS IMPLICITAS
 
 .pico.so:
 	$(LD) $(LDFLAGS) $($@_cflgs) -shared $< -o $@
@@ -99,9 +94,16 @@ toclean += type2inst.c
 	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -c $< -o $@
 
 
-hoc.tab.h: hoc.c
+hoc.tab.h hoc.c: hoc.y
+	$(YACC) -d $?
+	cp y.tab.c hoc.c
+	cp y.tab.h hoc.tab.h
+	...
+	rm -f y.tab.[ch]
+toclean += hoc.tab.h hoc.c
+
 hoc.1: hoc.1.in config.mk
-toclean += HOC.tab.h hoc.1 hoc.c
+toclean += hoc.1
 
 # ack.c code.c do_help.c error.c
 # hoc.c init.c instr.c lex.c main.c math.c
