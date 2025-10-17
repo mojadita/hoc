@@ -5,31 +5,75 @@
  * License: BSD
  */
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
 
 #include "plugins.h"
 
-void sinh_cb(int plugin_id)
+#define DOUBLE_F( /*                     { */\
+        _rfld, /* result field */            \
+        _name, /* builtin name */            \
+        _func) /* funct to call */           \
+void _name##_cb(int plugin_id)               \
+{                                            \
+    double par    = pop().val;               \
+    Cell   result = { ._rfld = _func(par) }; \
+    push(result);                            \
+} /* _name##_cb                          } */
+
+DOUBLE_F(val, abs,   fabs)
+DOUBLE_F(val, acos,  acos)
+DOUBLE_F(val, acosh, acosh)
+DOUBLE_F(val, asin,  asin)
+DOUBLE_F(val, asinh, asinh)
+DOUBLE_F(val, atan,  atan)
+
+void atan2_cb(int plugin_id)
 {
-    double par    = pop().val;
-    Cell   result = { .val = sinh(par) };
+    double    x = pop().val,
+              y = pop().val;
+    Cell result = { .val  = atan2(y, x) };
     push(result);
 }
 
-void cosh_cb(int plugin_id)
+DOUBLE_F(val, atanh, atanh)
+DOUBLE_F(val, cos,   cos)
+DOUBLE_F(val, cosh,  cosh)
+DOUBLE_F(val, exp,   exp)
+DOUBLE_F(val, inv,   1.0/)
+DOUBLE_F(val, log,   log)
+DOUBLE_F(val, log10, log10)
+DOUBLE_F(val, ops,   -)
+
+void pow_cb(int plugin_id)
 {
-    double par    = pop().val;
-    Cell   result = { .val = cosh(par) };
+    double    y = pop().val,
+              x = pop().val;
+    Cell result = { .val = pow(x, y) };
     push(result);
 }
 
-void tanh_cb(int plugin_id)
+void random_cb(int plugin_id)
 {
-    double par    = pop().val;
-    Cell   result = { .val = tanh(par) };
+    Cell result = { .num = random() };
     push(result);
 }
+
+DOUBLE_F(val, sin,  sin)
+DOUBLE_F(val, sinh, sinh)
+DOUBLE_F(val, sqrt, sqrt)
+DOUBLE_F(val, tan,  tan)
+DOUBLE_F(val, tanh, tanh)
+
+void time_cb(int plugin_id)
+{
+    Cell result = { .num = time(NULL) };
+    push(result);
+}
+
+#undef DOUBLE_F
 
 /* La rutina que dlopen() ejecuta automaticamente se llama
  * _init, pero es necesario enlazar el .so llamando al
@@ -39,9 +83,33 @@ void tanh_cb(int plugin_id)
  * de hecho. Esto se hace asi en el Makefile ahora. */
 int _init()
 {
-    register_builtin("sinh", Double, sinh_cb, "x", Double, NULL);
-    register_builtin("cosh", Double, cosh_cb, "x", Double, NULL);
-    register_builtin("tanh", Double, tanh_cb, "x", Double, NULL);
+
+#define REGISTER_BUILTIN(_ret_type, _name, ...) \
+    register_builtin(#_name, _ret_type, _name##_cb, ##__VA_ARGS__, NULL, NULL)
+
+    REGISTER_BUILTIN(Double,  abs,   "x", Double);
+    REGISTER_BUILTIN(Double,  acos,  "x", Double);
+    REGISTER_BUILTIN(Double,  acosh, "x", Double);
+    REGISTER_BUILTIN(Double,  asin,  "x", Double);
+    REGISTER_BUILTIN(Double,  asinh, "x", Double);
+    REGISTER_BUILTIN(Double,  atan,  "x", Double);
+    REGISTER_BUILTIN(Double,  atan2, "y", Double, "x", Double);
+    REGISTER_BUILTIN(Double,  atanh, "x", Double);
+    REGISTER_BUILTIN(Double,  cos,   "x", Double);
+    REGISTER_BUILTIN(Double,  cosh,  "x", Double);
+    REGISTER_BUILTIN(Double,  exp,   "x", Double);
+    REGISTER_BUILTIN(Double,  inv,   "x", Double);
+    REGISTER_BUILTIN(Double,  log,   "x", Double);
+    REGISTER_BUILTIN(Double,  log10, "x", Double);
+    REGISTER_BUILTIN(Double,  ops,   "x", Double);
+    REGISTER_BUILTIN(Double,  pow,   "x", Double, "y", Double);
+    REGISTER_BUILTIN(Long,    random);
+    REGISTER_BUILTIN(Double,  sin,   "x", Double);
+    REGISTER_BUILTIN(Double,  sinh,  "x", Double);
+    REGISTER_BUILTIN(Double,  sqrt,  "x", Double);
+    REGISTER_BUILTIN(Double,  tan,   "x", Double);
+    REGISTER_BUILTIN(Double,  tanh,  "x", Double);
+    REGISTER_BUILTIN(Long, time);
 
     return 0;
 }

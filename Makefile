@@ -6,23 +6,31 @@
 #
 
 ##  nd = No Debugging    db = Debugging
-DEBUG-TYPE    ?= db
+DEBUG-TYPE       ?= db
+OS               != uname -o
 
-CFLAGS-nd     ?= -O3
-LDFLAGS-nd    ?=
-CFLAGS-db     ?= -O0 -g
-LDFLAGS-db    ?= -g
+CFLAGS-nd        ?= -O3
+LDFLAGS-nd       ?=
+CFLAGS-db        ?= -O0 -g
+LDFLAGS-db       ?= -g
 
-CFLAGS         = $(CFLAGS-$(DEBUG-TYPE))
-LDFLAGS        = $(LDFLAGS-$(DEBUG-TYPE))
+CFLAGS            = $(CFLAGS-$(DEBUG-TYPE))
+LDFLAGS           = $(LDFLAGS-$(DEBUG-TYPE))
 
-RM            ?= rm -f
-targets        = hoc hoc.1.gz ack
-plugins        = plugin0.so
-toclean       += $(targets)
-OS            != uname -o
+LDFLAGS-Cygwin    = -Wl,-load-all-symbols
+LDFLAGS-GNU/Linux = -Wl,-export-dynamic
+LDFLAGS-FreeBSD   = -Wl,-export-dynamic
 
-WHICH_LEX	  ?= lex.o
+
+LDFLAGS          += $(LDFLAGS-$(OS))
+LIBS             ?= -lm
+
+RM               ?= rm -f
+targets           = hoc hoc.1.gz ack
+plugins           = plugin0.so
+toclean          += $(targets)
+
+WHICH_LEX	     ?= lex.o
 
 .SUFFIXES: .out .so .o .pico .c .l .y
 
@@ -48,7 +56,7 @@ common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
-hoc_ldfl       = -Wl,-export-dynamic
+hoc_ldfl       =
 hoc_libs       = -lm 
 toclean       += hoc.o
 

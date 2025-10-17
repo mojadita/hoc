@@ -140,6 +140,8 @@ void init(void)  /* install constants and built-ins in table */
     Symbol *D = lookup("double");
     assert(D->type == TYPE);
 
+#if 0 /* no these builtins */
+
     for (   struct builtin *p = builtins;
             p->name;
             p++)
@@ -153,6 +155,7 @@ void init(void)  /* install constants and built-ins in table */
             case BLTIN2: s->ptr2 = p->func; break;
         }
     }
+#endif /* 0 */
 
     for (   struct constant *p = consts;
             p->name != NULL;
