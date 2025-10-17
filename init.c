@@ -37,35 +37,6 @@ static struct constant { /* constants */
     { NULL,      0.0, },
 };
 
-static struct builtin { /* built-ins-1 */
-    char *name;
-    double (*func)();
-    int  type;
-    const char *help;
-} builtins[] = {
-    { "abs",   fabs,      BLTIN1, "abs(x)", },
-    { "acos",  acos,      BLTIN1, "acos(x)", },
-    { "asin",  asin,      BLTIN1, "asin(x)", },
-    { "atan",  atan,      BLTIN1, "atan(x)", },
-    { "atan2", atan2,     BLTIN2, "atan2(y,x)", },
-    { "cos",   cos,       BLTIN1, "cos(x)", },
-    { "exp",   exp,       BLTIN1, "exp(x)", },
-    { "intg",  integer,   BLTIN1, "intg(x)", },
-    { "inv",   inverso,   BLTIN1, "inv(x)", },
-    { "log",   log,       BLTIN1, "log(x)", },
-    { "log10", log10,     BLTIN1, "log10(x)", },
-    { "ops",   opuesto,   BLTIN1, "ops(x)", },
-    { "pow",   Pow,       BLTIN2, "pow(x,y)", },
-    { "rand",  Rand,      BLTIN0, "rand()", },
-    { "read",  rd,        BLTIN0, "read()", },
-    { "sin",   sin,       BLTIN1, "sin(x)", },
-    { "sqrt",  Sqrt,      BLTIN1, "sqrt(x)", },
-    { "tan",   tan,       BLTIN1, "tan(x)", },
-    { "time",  now,       BLTIN0, "time()", },
-    { NULL,    NULL, },
-};
-
-
 const Symbol
        *Char,
        *Double,
@@ -75,7 +46,6 @@ const Symbol
        *Short,
        *String,
        *Prev;
-
 
 static struct predefined_types { /* predefined types */
     char             *name;
@@ -91,36 +61,14 @@ static struct predefined_types { /* predefined types */
      * puede cambiar el orden, es mejor no hacerlo para
      * evitar errores al renumerar los tipos en caso de
      * tener que hacer una insercion. */
-    { .name    = "string",
-      .sym_ref = &String,
-      .t2i     = &t2i_str,
-    }, {
-      .name    = "char",
-      .sym_ref = &Char,
-      .t2i     = &t2i_c,
-    }, {
-      .name    = "short",
-      .sym_ref = &Short,
-      .t2i     = &t2i_s,
-    }, {
-      .name    = "int",
-      .sym_ref = &Integer,
-      .t2i     = &t2i_i,
-    }, {
-      .name    = "long",
-      .sym_ref = &Long,
-      .t2i     = &t2i_l,
-    }, {
-      .name    = "float",
-      .sym_ref = &Float,
-      .t2i     = &t2i_f,
-    }, {
-      .name    = "double",
-      .sym_ref = &Double,
-      .t2i     = &t2i_d,
-    }, {
-      .name    = NULL,
-    },
+    { .name= "string", .sym_ref= &String,  .t2i= &t2i_str, },
+    { .name= "char",   .sym_ref= &Char,    .t2i= &t2i_c, },
+    { .name= "short",  .sym_ref= &Short,   .t2i= &t2i_s, },
+    { .name= "int",    .sym_ref= &Integer, .t2i= &t2i_i, },
+    { .name= "long",   .sym_ref= &Long,    .t2i= &t2i_l, },
+    { .name= "float",  .sym_ref= &Float,   .t2i= &t2i_f, },
+    { .name= "double", .sym_ref= &Double,  .t2i= &t2i_d, },
+    { .name= NULL, },
 };
 
 void init(void)  /* install constants and built-ins in table */
@@ -137,35 +85,15 @@ void init(void)  /* install constants and built-ins in table */
         *p->sym_ref = s;
     }
 
-    Symbol *D = lookup("double");
-    assert(D->type == TYPE);
-
-#if 0 /* no these builtins */
-
-    for (   struct builtin *p = builtins;
-            p->name;
-            p++)
-    {
-        Symbol *s = install(p->name, p->type, NULL);
-        s->help = p->help;
-        s->typref = D;
-        switch(p->type) {
-            case BLTIN0: s->ptr0 = p->func; break;
-            case BLTIN1: s->ptr1 = p->func; break;
-            case BLTIN2: s->ptr2 = p->func; break;
-        }
-    }
-#endif /* 0 */
-
     for (   struct constant *p = consts;
             p->name != NULL;
             p++)
     {
         Symbol *s = install(p->name, CONST, NULL);
-        s->typref = D;
+        s->typref = Double;
         s->cel    = p->cval;
     }
 
-    /* creamos el simbolo prev */
-    Prev = register_global_var("prev", D);
+    /* creamos el simbolo 'prev' */
+    Prev = register_global_var("prev", Double);
 }

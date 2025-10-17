@@ -49,58 +49,6 @@ double acos(double cx)
     return atan(sqrt(1 - cx*cx) / cx);
 } /* acos */
 
-
-/*  Pow y Sqrt son wrappers o envoltorios para las funciones
-    originales de la libreria math.h  */
-double Pow(double b, double e)
-{
-    if (b == 0 && e == 0)
-        execerror("indeterminacion tipo 0^0");
-    return pow(b, e);
-}
-
-double Sqrt(double x)
-{
-    if (x < 0.0)
-        execerror("Raiz de numero < 0");
-    return sqrt(x);
-}
-
-double inverso( double x )
-{
-    return 1/x;
-}
-
-double opuesto( double x )
-{
-    return -x;
-}
-
-double Rand(void)
-{
-    return rand() / 2.147483648E9;
-}
-
-double rd(void)
-{
-    double v;
-    if (scanf("%lg", &v) != 1) {
-        execerror("couldn't parse a double\n");
-    }
-    return v;
-}
-
-double now(void)
-{
-    double n = time(NULL);
-    return (double)n;
-}
-
-double integer(double x)
-{
-    return (int) x;
-}
-
 long fast_pwr_l(long x, int e)
 {
     unsigned mask;

@@ -11,14 +11,7 @@
 
 double asin(double sx);
 double acos(double cx);
-double Pow(double b, double e);
 double Sqrt(double x);
-double inverso( double x );
-double opuesto( double x );
-double Rand(void);
-double rd(void);
-double now(void);
-double integer(double x);
 long fast_pwr_l(long x, int e);
 
 #endif /* MATH_H */

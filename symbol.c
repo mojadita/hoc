@@ -82,9 +82,6 @@ static struct type2char {
     V(LVAR),
     V(BLTIN_FUNC),
     V(BLTIN_PROC),
-    V(BLTIN0),
-    V(BLTIN1),
-    V(BLTIN2),
     V(UNDEF),
     V(CONST),
     V(PROCEDURE),
@@ -250,9 +247,6 @@ void list_all_symbols(Symbol *from)
                 sep = ", ";
             }
             printf(")");
-            break;
-        case BLTIN0: case BLTIN1: case BLTIN2:
-            printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
             break;
         case FUNCTION:
             printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
