@@ -1,4 +1,4 @@
-int n=0;
+int N=0;
 proc hanoi(int src, int dst, int rsv, int alt) {
 #    brkpt;
     /* si quiero mover una torre de n discos del pincho $1 al pincho $2,
@@ -7,7 +7,7 @@ proc hanoi(int src, int dst, int rsv, int alt) {
      * de la torre $1 a la torre $2, y por ultim mover una torre de (n-1)
      * discos de la torre $3 a la torre $2. */
     if (alt == 1) {
-        print ++n, ": ", src, " -> ", dst, "\n";
+        print ++N, ": ", src, " -> ", dst, "\n";
         return;
     }
     hanoi(src,  rsv, dst, alt - 1);

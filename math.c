@@ -15,43 +15,8 @@
 #include <time.h>
 #include "error.h"
 
+
 #if 0
-/* algunas definiciones que no estan en a libreria math */
-/*  Confirmacion de las operaciones para obtener
- *  el arcoseno, arcocoseno
- *  cos(x)^2 + sin(x)^2 = 1
- *  cos(x)^2 = 1 - sin(x)^2
- *  cos(x) = sqrt(1 - sin(x)^2)
- *  tan(x) = sin(x) / cos(x)
- *  tan(x) = sin(x) / sqrt(1 - sin(x)^2)
- *  sx = sin(x)
- *  tan(x) = sx / sqrt(1 - sx^2)
- *  atan(tan(x)) = atan(sx / sqrt(1 - sx^2))
- *  x = atan(sx / sqrt(1 - sx^2))
- *  asin(sx) = asin(sin(x)) = x
- *  asin(sx) = atan(sx / sqrt(1 - sx^2))
- */
-double asin(double sx)
-{
-    return atan(sx/sqrt(1-sx*sx));
-} /* asin */
-
-/*  sin(x)^2 = 1 - cos(x)^2
- *  sin(x) = sqrt(1 - cos(x)^2)
- *  tan(x) = sin(x) / cos(x) = sqrt(1 - cos(x)^2) / cos(x)
- *  cx = cos(x)  -->  x = acos(cx)
- *  tan(x) = sqrt(1 - cx^2) / cx
- *  atan(tan(x)) = atan(sqrt(1 - cx^2) / cx)
- *  x = atan(sqrt(1 - cx^2) / cx)
- *  acos(cx) = atan(sqrt(1 - cx^2) / cx)
- */
-double acos(double cx)
-{
-    return atan(sqrt(1 - cx*cx) / cx);
-} /* acos */
-
-#endif
-
 /*  Pow y Sqrt son wrappers o envoltorios para las funciones
     originales de la libreria math.h  */
 double Pow(double b, double e)
@@ -102,6 +67,7 @@ double integer(double x)
 {
     return (int) x;
 }
+#endif
 
 long fast_pwr_l(long x, int e)
 {

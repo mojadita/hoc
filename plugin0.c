@@ -58,6 +58,17 @@ void _name##_cb(int plugin_id)              \
     push(result); /*                     }{ */\
 } /* _name##_cb */
 
+void mod_cb(int plugin_id)
+{
+    double y = pop().val,
+           x = pop().val;
+    int    i = x / y;
+    Cell   result = { .val = x - i * y };
+
+    push(result);
+} /* mod_cb */
+
+
 DOUBLE_F2(atan2, (y, x))
 DOUBLE_F2(pow,   (x, y))
 
@@ -103,6 +114,7 @@ int _init()
     REGISTER_BUILTIN(Double,  inv,   "x", Double);
     REGISTER_BUILTIN(Double,  log,   "x", Double);
     REGISTER_BUILTIN(Double,  log10, "x", Double);
+    REGISTER_BUILTIN(Double,  mod,   "x", Double, "y", Double);
     REGISTER_BUILTIN(Double,  ops,   "x", Double);
     REGISTER_BUILTIN(Double,  pow,   "x", Double, "y", Double);
     REGISTER_BUILTIN(Long,    random);

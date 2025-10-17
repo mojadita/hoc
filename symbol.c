@@ -103,6 +103,47 @@ const char *lookup_type(int typ)
     return "UNKNOWN";
 }
 
+const char *print_prototype(const Symbol *f, char *buff, size_t buff_sz)
+{
+#define UPDATE()  do {                       \
+            if (n >= buff_sz) n = buff_sz-1; \
+            buff    += n;                    \
+            buff_sz -= n;                    \
+        } while (0)
+
+    const char *ret_val = buff;
+
+    ssize_t n;
+    const Symbol *f_typref = f->typref;
+    switch (f->type) {
+    case BLTIN_FUNC:
+    case BLTIN_PROC:
+        n = snprintf(buff, buff_sz, "bltin_index <%d>:  ",
+            f->bltin_index);
+        UPDATE();
+        break;
+    }
+    if (f_typref != NULL) {
+        n = snprintf(buff, buff_sz, "typref %s ",
+            f_typref->name);
+        UPDATE();
+    }
+    n = snprintf(buff, buff_sz, "%s(", f->name);
+    UPDATE();
+    const char *sep = "";
+    for (int i = 0; i < f->argums_len; ++i) {
+        const Symbol *arg = f->argums[i];
+        const Symbol *arg_typref = arg->typref;
+        n = snprintf(buff, buff_sz, "%s%s %s",
+            sep, arg_typref->name, arg->name);
+        UPDATE();
+        sep = ", ";
+    }
+    n = snprintf(buff, buff_sz, ")");
+    UPDATE();
+    return ret_val;
+} /* print_prototype */
+
 void list_symbols(void)
 {
     int col = 0;
@@ -232,35 +273,18 @@ void list_all_symbols(Symbol *from)
             printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
             break;
         case CONST:
-            printf_ncols(UQ_COL2_SYMBS, " value %s",        workplace);
+            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
+            printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
             break;
         case BLTIN_FUNC:
         case BLTIN_PROC:
-            printf_ncols(UQ_COL2_SYMBS, " index %d",        sym->bltin_index);
-            printf(" %s %s(",
-                   sym->typref
-                       ? sym->typref->name
-                       : "",
-                   sym->name);
-            const char *sep = "";
-            for (int i = 0; i < sym->argums_len; ++i) {
-                const Symbol *param = sym->argums[i],
-                             *type  = param->typref;
-                printf("%s%s %s", sep, type->name, param->name);
-                sep = ", ";
-            }
-            printf(")");
-            break;
-        case BLTIN0: case BLTIN1: case BLTIN2:
-            printf_ncols(UQ_COL2_SYMBS, " descr %s",        sym->help);
-            break;
         case FUNCTION:
-            printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
-            printf_ncols(UQ_COL3_SYMBS, "argums %zd",       sym->argums_len);
-            break;
         case PROCEDURE:
-            printf_ncols(UQ_COL2_SYMBS, "argums %zd",       sym->argums_len);
+            printf("%s", print_prototype(sym, workplace, sizeof workplace));
             break;
+        case TYPE:
+            printf_ncols(UQ_COL3_SYMBS, "    sz %zu, ", sym->t2i->size);
+            printf_ncols(UQ_COL4_SYMBS, " align %zu", sym->t2i->align);
         }
         puts("");
     }

@@ -17,12 +17,6 @@ LDFLAGS-db       ?= -g
 CFLAGS            = $(CFLAGS-$(DEBUG-TYPE))
 LDFLAGS           = $(LDFLAGS-$(DEBUG-TYPE))
 
-LDFLAGS-Cygwin    = --load-all-symbols
-LDFLAGS-GNU/Linux = --export-dynamic
-LDFLAGS-FreeBSD   = --export-dynamic
-
-
-LDFLAGS          += $(LDFLAGS-$(OS))
 LIBS             ?= -lm
 
 RM               ?= rm -f
@@ -56,7 +50,7 @@ common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
 toclean       += $(common_objs) lex.c
 
 hoc_objs       = hoc.o $(common_objs)
-hoc_ldfl       =
+hoc_ldfl       = -Wl,--export-dynamic
 hoc_libs       = -lm 
 toclean       += hoc.o
 
