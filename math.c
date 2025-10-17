@@ -15,6 +15,7 @@
 #include <time.h>
 #include "error.h"
 
+#if 0
 /* algunas definiciones que no estan en a libreria math */
 /*  Confirmacion de las operaciones para obtener
  *  el arcoseno, arcocoseno
@@ -49,6 +50,7 @@ double acos(double cx)
     return atan(sqrt(1 - cx*cx) / cx);
 } /* acos */
 
+#endif
 
 /*  Pow y Sqrt son wrappers o envoltorios para las funciones
     originales de la libreria math.h  */

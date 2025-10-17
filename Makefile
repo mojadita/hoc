@@ -17,9 +17,9 @@ LDFLAGS-db       ?= -g
 CFLAGS            = $(CFLAGS-$(DEBUG-TYPE))
 LDFLAGS           = $(LDFLAGS-$(DEBUG-TYPE))
 
-LDFLAGS-Cygwin    = -Wl,-load-all-symbols
-LDFLAGS-GNU/Linux = -Wl,-export-dynamic
-LDFLAGS-FreeBSD   = -Wl,-export-dynamic
+LDFLAGS-Cygwin    = --load-all-symbols
+LDFLAGS-GNU/Linux = --export-dynamic
+LDFLAGS-FreeBSD   = --export-dynamic
 
 
 LDFLAGS          += $(LDFLAGS-$(OS))
