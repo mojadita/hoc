@@ -136,7 +136,7 @@ size_t size_lvars = 0;
 
 %token        ERROR
 %token <lit>  DOUBLE FLOAT
-%token <sym>  VAR LVAR BLTIN0 BLTIN1 BLTIN2 BLTIN_FUNC BLTIN_PROC CONST
+%token <sym>  VAR LVAR BLTIN_FUNC BLTIN_PROC CONST
 %token <sym>  FUNCTION PROCEDURE
 %token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
 %token <tok>  OR AND GE LE EQ NE EXP
@@ -1094,19 +1094,6 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               $$.typ = $1->typref;
                             }
 
-    | BLTIN0 '(' ')'        { $$.cel = CODE_INST(bltin0, $1);
-                              $$.typ = $1->typref;
-                            }
-    | BLTIN1 '(' expr_bltin ')' {
-                              $$.cel = $3.cel;
-                              $$.typ = $1->typref;
-                              CODE_INST(bltin1, $1);
-                            }
-    | BLTIN2 '(' expr_bltin ',' expr_bltin ')'
-                            { $$.cel = $3.cel;
-                              $$.typ = $1->typref;
-                              CODE_INST(bltin2, $1);
-                            }
     | builtin_func mark '(' arglist_opt ')' {
                               $$.cel = $2;
                               $$.typ = $1->typref;
