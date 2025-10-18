@@ -213,7 +213,7 @@ void execute(Cell *p) /* run the machine */
     do {
         instruction = instruction_set + pc->inst;
 
-        EXEC("[%04lx]: <%02x> %s",
+        EXEC("[%04lx]: <%02x> " CYAN "%s" ANSI_END,
                 pc - prog,
                 instruction->code_id,
                 instruction->name);

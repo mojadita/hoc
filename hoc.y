@@ -95,6 +95,59 @@ jmp_buf begin;
 # define PT(_fmt, ...)
 #endif
 
+/* LCU: Sat Oct 18 11:27:04 -05 2025
+ * TODO: voy por aqui. */
+#define BEGIN_UNPATCHED_CODE()          \
+        do {                            \
+            PT(CYAN ">>>" ANSI_END      \
+                " begin inserting "     \
+                MAGENTA                 \
+                "UNPATCHED" ANSI_END    \
+                " code @ [%04lx]\n",    \
+                progp - prog);          \
+            do {} while(0)
+
+#define END_UNPATCHED_CODE()            \
+            PT(CYAN "<<<" ANSI_END      \
+                " end   inserting "     \
+                MAGENTA                 \
+                "UNPATCHED" ANSI_END    \
+                " code\n");             \
+        } while (0)
+
+#define BEGIN_PATCHING_CODE(_addr)      \
+        do {                            \
+            PT(CYAN ">>>" ANSI_END      \
+                " begin inserting "     \
+                GREEN                   \
+                " PATCHED " ANSI_END    \
+                " code @ [%04lx]\n",    \
+                _addr - prog);          \
+            Cell *saved_progp = progp;  \
+            progp = _addr;              \
+            do {} while(0)
+
+#define CHANGE_PATCHING_TO(_addr)       \
+        do {                            \
+            PT(CYAN "###" ANSI_END      \
+                "   change to new "     \
+                YELLOW                  \
+                "PATCHING" ANSI_END     \
+                " point "               \
+                "@ [%04lx]\n",          \
+                _addr - prog);          \
+            progp = _addr;              \
+        } while (0)
+
+#define END_PATCHING_CODE()             \
+            PT(CYAN "<<<" ANSI_END      \
+                " end   inserting "     \
+                GREEN                   \
+                " PATCHED " ANSI_END    \
+                " code\n");             \
+            progp = saved_progp;        \
+        } while (0)
+
 #define CODE_INST(I, ...)                \
         code_inst(INST_##I, ##__VA_ARGS__)
 
@@ -207,9 +260,9 @@ stmt
                              CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE),
                                       "return;");
-                             PT(">>> inserting UNPATCHED code @ [%04lx]\n", progp - prog);
-                             $$ = CODE_INST(Goto, 0);
-                             PT("<<< end inserting UNPATCHED code\n");
+                             BEGIN_UNPATCHED_CODE();
+                                 $$ = CODE_INST(Goto, 0);
+                             END_UNPATCHED_CODE();
                              add_patch_return(indef, $$);
                            }
     | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION),
@@ -218,15 +271,17 @@ stmt
                              /* asigno a la direccion de retorno de la funcion, en la
                               * cima de la lista de parametros */
                              code_conv_val($2.typ, indef->typref);
-                             CODE_INST_TYP(indef->typref, argassign,
+                             CODE_INST_TYP(
+                                       indef->typref,
+                                       argassign,
                                        indef->ret_val_offset,
                                        "{RET_VAL} ");
                              CODE_INST(drop);
 
-                             PT(">>> inserting UNPATCHED code @ [%04lx]\n", progp - prog);
-                             Cell *p = CODE_INST(Goto, prog);
-                             add_patch_return(indef, p);
-                             PT("<<< end inserting UNPATCHED code\n");
+                             BEGIN_UNPATCHED_CODE();
+                                 Cell *p = CODE_INST(Goto, prog);
+                                 add_patch_return(indef, p);
+                             END_UNPATCHED_CODE();
                            }
     | PRINT expr_seq ';'   { $$ = $2; }
     | SYMBS          ';'   { $$ = CODE_INST(symbs); }
@@ -235,42 +290,23 @@ stmt
     | LIST           ';'   { $$ = CODE_INST(list); }
     | WHILE cond do stmt   { $$ = $2;
                              CODE_INST(Goto, $2);
-                             Cell *saved_progp = progp;
-                             progp = $3;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             BEGIN_PATCHING_CODE($3);
                                  CODE_INST(if_f_goto, saved_progp);
-                             PT("<<< end patching CODE @ [%04lx], "
-                                "continuing @ [%04lx]\n",
-                                 progp - prog, saved_progp - prog);
-                             progp = saved_progp; }
+                             END_PATCHING_CODE(); }
 
     | IF cond do stmt      { $$ = $2;
-                             Cell *saved_progp = progp;
-                             progp = $3;
-                             PT(">>> patching CODE @ [%04lx]\n", progp - prog);
+                             BEGIN_PATCHING_CODE($3);
                                  CODE_INST(if_f_goto, saved_progp);
-                             PT("<<< end patching CODE @ [%04lx], continuing @ [%04lx]\n",
-                                     progp - prog, saved_progp - prog);
-                             progp = saved_progp;
+                             END_PATCHING_CODE();
                            }
 
     | IF cond do stmt else stmt {
                              $$ = $2;
-                             PT(">>> PATCHING CODE @ [%04lx]\n", progp - prog);
-                             Cell *saved_progp = progp;
-                             progp = $3;
-                             PT("*** $6 == %p\n", $6);
-                             CODE_INST(if_f_goto, $6);
-                             PT("<<< end PATCHING CODE @ [%04lx], "
-                                   "continuing @ [%04lx]\n",
-                                   progp - prog, saved_progp - prog);
-                             progp = $5;
-                             PT(">>> PATCHING CODE @ [%04lx]\n", progp - prog);
+                             BEGIN_PATCHING_CODE($3);
+                                 CODE_INST(if_f_goto, $6);
+                                 CHANGE_PATCHING_TO($5);
                                  CODE_INST(Goto, saved_progp);
-                             PT("<<< end PATCHING CODE @ [%04lx], "
-                                   "continuing @ [%04lx]\n",
-                                   progp - prog, saved_progp - prog);
-                             progp = saved_progp;
+                             END_PATCHING_CODE();
                            }
 
     | builtin_subr mark '(' arglist_opt ')' {
@@ -327,9 +363,9 @@ procedure
 create_scope
     :  /* empty */         { scope *sc = start_scope();
                              if (get_root_scope() == sc) {
-                                 PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
-                                 $$ = CODE_INST(noop);
-                                 PT("<<< end   UNPATCHED code\n");
+                                 BEGIN_UNPATCHED_CODE();
+                                     $$ = CODE_INST(noop);
+                                 END_UNPATCHED_CODE();
                              } else {
                                  $$ = progp;
                              }
@@ -483,20 +519,16 @@ lvar_definable_ident
     ;
 
 do  :  /* empty */         {
-                             PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
-                                     progp - prog);
+                             BEGIN_UNPATCHED_CODE();
                                  $$ = CODE_INST(if_f_goto, prog);
-                             PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
-                                     progp - prog);
+                             END_UNPATCHED_CODE();
                            }
     ;
 
 else:  ELSE                {
-                             PT(">>> inserting UNPATCHED CODE @ [%04lx]\n",
-                                     progp - prog);
+                             BEGIN_UNPATCHED_CODE();
                                  $$ = CODE_INST(Goto, prog);
-                             PT("<<< end inserting UNPATCHED CODE @ [%04lx]\n",
-                                     progp - prog);
+                             END_UNPATCHED_CODE();
                            }
     ;
 
@@ -713,15 +745,9 @@ expr_or
             $$.typ = Integer;                         \
             TOBOOL($3.typ);                           \
                                                       \
-            Cell *saved_progp = progp;                \
-            progp = $2;                               \
-            PT(">>> begin patching CODE @ "           \
-                   "[%04lx]\n", progp - prog);        \
+            BEGIN_PATCHING_CODE($2);                  \
                 CODE_INST(_inst, saved_progp);        \
-            PT("<<< end   patching CODE @ [%04lx], "  \
-               "continuing @ [%04lx]\n",              \
-                  progp - prog, saved_progp - prog);  \
-            progp = saved_progp;                      \
+            END_PATCHING_CODE();                      \
         } while (0)  /* BOOLEAN_OP } */
 
                              /* See definition of this macro in
@@ -748,12 +774,11 @@ or  : OR                   {
  * '||' operators.
  * LBL: 5c908960_a5cd_11f0_a7a8_0023ae68f329
  */
-#define INSERT_PATCHABLE_NOOP() /* { */                                 \
-        do {                                                            \
-            PT(">>> begin inserting unpatched CODE @ [%04lx]\n",        \
-                    progp - prog);                                      \
-            $$ = CODE_INST(noop); /* para la instruccion and_then */    \
-            PT("<<< end   inserting unpatched CODE\n");                 \
+#define INSERT_PATCHABLE_NOOP() /* { */                       \
+        do {                                                  \
+            BEGIN_UNPATCHED_CODE();                           \
+            $$ = CODE_INST(noop); /* para luego 'and_then' */ \
+            END_UNPATCHED_CODE();                             \
         } while (0)  /* INSERT_PATCHABLE_NOOP } */
 
                              /* See definition of this macro in
@@ -1178,13 +1203,13 @@ defn: proc_head '(' formal_arglist_opt ')' preamb block {
 preamb: /* empty */         {
                               CODE_INST(push_fp);
                               CODE_INST(move_sp_to_fp);
-                              PT(">>> begin UNPATCHED code @ [%04lx]\n", progp - prog);
-                              /* LCU: Mon Sep  8 13:17:49 EEST 2025
-                               * we need to return this pointer (not
-                               * a pointer to the beginning of the code)
-                               * because it is what we need to patch. */
-                              $$ = CODE_INST(noop);
-                              PT("<<< end   UNPATCHED code\n");
+                              BEGIN_UNPATCHED_CODE();
+                                  /* LCU: Mon Sep  8 13:17:49 EEST 2025
+                                   * we need to return this pointer (not
+                                   * a pointer to the beginning of the code)
+                                   * because it is what we need to patch. */
+                                  $$ = CODE_INST(noop);
+                              END_UNPATCHED_CODE();
                             }
     ;
 
@@ -1381,13 +1406,12 @@ code_conv_val(
 
 OpRel code_unpatched_op(token tok)
 {
-    PT(">>> begin inserting UNPATCHED CODE @ [%04lx]\n",
-          progp - prog);
-    OpRel ret_val = {
-        .tok   = tok,
-        .start = CODE_INST(noop),
-    };
-    PT("<<< end   inserting UNPATCHED CODE\n");
+    OpRel ret_val = { .tok = tok, .start = progp };
+
+    BEGIN_UNPATCHED_CODE();
+        CODE_INST(noop);
+    END_UNPATCHED_CODE();
+
     return ret_val;
 } /* code_unpatched_op */
 
@@ -1405,12 +1429,10 @@ const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
     }
 
     /* less */
-    PT(">>> begin PATCHING CODE @ [%04lx]\n", op->start - prog);
-    Cell *saved_progp = progp;
-    progp             = op->start;
-    code_conv_val(exp1->typ, exp2->typ);
-    progp             = saved_progp;
-    PT("<<< end   PATCHING CODE\n");
+    BEGIN_PATCHING_CODE(op->start);
+        code_conv_val(exp1->typ, exp2->typ);
+    END_PATCHING_CODE();
+
     return exp2->typ;
 
 } /* check_op_bin */
@@ -1418,13 +1440,9 @@ const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
 void patch_block(Cell*patch_point)
 {
     if (size_lvars != 0) {
-        /* PARCHEO DE CODIGO */
-        Cell *saved_progp = progp;
-        progp             = patch_point;
-        PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", patch_point - prog);
-        CODE_INST(spadd, -size_lvars);
-        PT("<<< END   PATCHING CODE @ [%04lx]\n", patch_point - prog);
-        progp             = saved_progp;
+        BEGIN_PATCHING_CODE(patch_point);
+            CODE_INST(spadd, -size_lvars);
+        END_PATCHING_CODE();
         CODE_INST(spadd, size_lvars);
         size_lvars = 0;
     }
@@ -1443,41 +1461,37 @@ void add_patch_return(Symbol *subr, Cell *patch_point)
 
 void patch_returns(const Symbol *subr, Cell *target)
 {
-    PT("<<< SAVING PROGRAMMING POINT @ [%04lx]\n", progp - prog);
-    Cell *saved_progp = progp; /* salvamos el puntero de programacion */
-
-    /* para cada punto a parchear */
-    for (int i = 0; i < subr->returns_to_patch_len; ++i) {
-        Cell *point_to_patch = subr->returns_to_patch[i];
-        progp                = point_to_patch;
-        PT(">>> BEGIN PATCHING CODE @ [%04lx]\n", point_to_patch - prog);
-        CODE_INST(Goto, target);
-        PT("<<< END   PATCHING CODE @ [%04lx]\n", point_to_patch - prog);
-    }
-    PT("<<< RESTORING PROGRAMMING POINT @ [%04lx]\n", saved_progp - prog);
-    progp = saved_progp;
+    BEGIN_PATCHING_CODE(progp);
+        /* para cada punto a parchear */
+        for (int i = 0; i < subr->returns_to_patch_len; ++i) {
+            Cell *point_to_patch = subr->returns_to_patch[i];
+            CHANGE_PATCHING_TO(point_to_patch);
+            CODE_INST(Goto, target);
+        }
+    END_PATCHING_CODE();
 } /* patch_returns */
 
 void yyerror(char *s)   /* called for yacc syntax error */
 {
-
-    int i = 0;
+    int          i    = 0;
     const token *last = get_last_token(i++),
                 *tok  = NULL;
+
     for (   ;  (i < UQ_LAST_TOKENS_SZ)
             && (tok = get_last_token(i))
             && (tok->lin == last->lin)
             ; i++)
         continue;
 
-    printf(CYAN "%5d" WHITE ":" CYAN "%3d" WHITE ": "BRIGHT GREEN "%s\n" ANSI_END,
-            last->lin, last->col, s);
+    printf(CYAN "%5d" WHITE ":" CYAN "%3d" WHITE ": "
+           BRIGHT GREEN "%s\n" ANSI_END,
+           last->lin, last->col, s);
 
     printf(CYAN "%5d" WHITE ":" CYAN "%3d" WHITE ": " GREEN,
             last->lin, last->col);
 
     int col = 1;
-    for (i--; i > 0; i--) {
+    for (--i; i > 0; --i) {
         tok = get_last_token(i);
         printf("%*s%s",
             tok->col - col, "", tok->lex);
