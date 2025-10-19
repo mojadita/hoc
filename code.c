@@ -48,6 +48,7 @@
 #define P_TAIL(_fmt, ...)
 #endif /* UQ_CODE_DEBUG_EXEC   }} */
 
+/* next two macros result in always printed */
 #define  PR(_fmt, ...)              \
     printf(YELLOW"%04lx" WHITE ": " \
         "<" CYAN "%02x" WHITE "> "  \
@@ -71,7 +72,7 @@
 #define  UQ_NPROG 10000 /* 65536 celdas para instrucciones/datos/pila */
 #endif
 
-Cell  prog[UQ_NPROG];  /* the machine */
+Cell  prog[UQ_NPROG];  /* the machine memory */
 Cell *progp    = prog; /* next free cell for code generation */
 Cell *pc       = prog; /* program counter during execution */
 Cell *fp       = NULL;
@@ -84,7 +85,7 @@ void initcode(void)  /* initalize for code generation */
     progp = progbase;
 } /* initcode */
 
-void initexec(void) /* initialize for execution */
+void initexec(void) /* initialize for code execution */
 {
     fp    =
     sp    = varbase;
