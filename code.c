@@ -157,7 +157,7 @@ Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
     progp        += i->n_cells;
 
     return ret_val;
-}
+} /* code_inst */
 
 void execute(Cell *p) /* run the machine */
 {
@@ -185,11 +185,11 @@ void execute(Cell *p) /* run the machine */
     EXEC(BRIGHT YELLOW "END [%04lx], fp=[%04lx], "
             "sp=[%04lx], stacksize=%d" ANSI_END "\n",
             (pc - prog), fp - prog, sp - prog, stacksize());
-}
+} /* execute */
 
 #define UPDATE_PC() do {   \
         pc += i->n_cells;  \
-    } while (0)
+    } while (0) /* UPDATE_PC */
 
 void STOP(const instr *i)
 {
@@ -239,8 +239,8 @@ void swap_prt(const instr *i, const Cell *pc)
     PR("\n");
 }
 
-/* ver instancias de esta macro mas abajo para saber el tipo
- * de funcion que generan, ejemplo:
+/* look instances of this macro below to know what kind
+ * of function they generate, e.g.
  * void datum_c_prog(
  *      const instr    *i
  *      Cell           *pc,
@@ -254,17 +254,17 @@ void swap_prt(const instr *i, const Cell *pc)
  * }
  *
  */
-#define DATUM_PROG(_typ, _suff, _fld, _fmt)        \
-    void datum##_suff##_prog(                      \
-            const instr    *i,                     \
-            Cell           *pc,                    \
-            va_list         args)                  \
-    {                                              \
-                                                   \
-        Cell c = progp[1] = va_arg(args, Cell);   \
-                                                   \
-        PRG(" " _fmt, c._fld);                     \
-    }
+#define DATUM_PROG(_typ, _suff, _fld, _fmt)     \
+    void datum##_suff##_prog(                   \
+            const instr    *i,                  \
+            Cell           *pc,                 \
+            va_list         args)               \
+    {                                           \
+                                                \
+        Cell c = progp[1] = va_arg(args, Cell); \
+                                                \
+        PRG(" " _fmt, c._fld);                  \
+    } /* datum##_suff##_prog */
 
 DATUM_PROG(int,    _c, chr,  FMT_CHAR)
 DATUM_PROG(double, _d, val,  FMT_DOUBLE)

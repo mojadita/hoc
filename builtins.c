@@ -93,4 +93,4 @@ const builtin *get_builtin_info(int id)
 {
     assert(id >= 0 && id < builtins_len);
     return &builtins[id];
-}
+} /* get_builtin_info */

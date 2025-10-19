@@ -36,3 +36,5 @@ PRINTVAL(_f, flt,  FMT_FLOAT)
 PRINTVAL(_i, inum, FMT_INT)
 PRINTVAL(_l, num,  FMT_LONG)
 PRINTVAL(_s, sht,  FMT_SHORT)
+
+/* types.c */

@@ -49,3 +49,5 @@ const instr instruction_set[] = {
 
 const size_t instruction_set_len
     = NELEM(instruction_set);
+
+/* instr.c */

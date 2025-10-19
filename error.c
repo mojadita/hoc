@@ -59,4 +59,4 @@ void defnonly(int cual, const char *name, ...)
         execerror("'%s': debe usarse dentro de una definicion proc/func.\n",
                   buffer);
     }
-}
+} /* defnonly */

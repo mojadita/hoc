@@ -41,8 +41,6 @@
 
 char *progname;     /* for error messages */
 
-void init_plugins(void);
-
 int parse(void)
 {
     EXEC(BRIGHT CYAN "BEGIN" ANSI_END "\n");
@@ -62,6 +60,7 @@ void do_help(int exit_code)
 } /* do_help */
 
 static void process(FILE *in);
+void init_plugins(void);
 
 int main(int argc, char *argv[]) /* hoc1 */
 {

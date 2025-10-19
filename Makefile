@@ -49,10 +49,12 @@ common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
 				intern.o type2inst.o types.o builtins.o
 toclean       += $(common_objs) lex.c
 
-hoc_objs       = hoc.o $(common_objs)
-hoc_ldfl       = -Wl,--export-dynamic
-hoc_libs       = -lm 
-toclean       += hoc.o
+hoc_objs           = hoc.o $(common_objs)
+hoc_ldfl           = -Wl,--export-dynamic
+hoc_libs-GNU/Linux = -ldl
+hoc_libs-FreeBSD   =
+hoc_libs           = $(hoc_libs-$(OS))
+toclean           += hoc.o
 
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
@@ -80,7 +82,7 @@ clean:
 	$(RM) $(toclean)
 
 hoc hoc.out: $(hoc_objs)
-	$(CC) $(LDFLAGS) $($@_ldfl) -o $@ $(hoc_objs) $(hoc_libs)
+	$(CC) $(LDFLAGS) $($@_ldfl) -o $@ $(hoc_objs) $(hoc_libs) $(LIBS)
 
 type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@

@@ -16,7 +16,7 @@ unsigned long ack(unsigned long a, unsigned long b)
     if (a == 0) return b+1;
     if (b == 0) return ack(a-1, 1);
     return ack(a-1, ack(a, b-1));
-}
+} /* ack */
 
 char line[256];
 
@@ -33,4 +33,4 @@ int main()
         printf("n_calls = %lu\n",
                n_calls);
     }
-}
+} /* main */

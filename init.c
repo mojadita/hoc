@@ -24,9 +24,9 @@ static struct constant { /* constants */
     { "PI",      { .val = M_PI }, },
     { "version", { .val = UQ_VERSION }, },
     { NULL,      0.0, },
-};
+}; /* consts */
 
-const Symbol
+const Symbol   /* predefined symbols */
        *Char,
        *Double,
        *Float,
@@ -42,7 +42,7 @@ static struct predefined_types { /* predefined types */
     const type2inst  *t2i;     /* select instruction
                                 * for type mapping */
     const char       *fmt;     /* format string */
-} builtin_types [] = {
+} builtin_types [] = /* { */ {
     /* LCU: Tue Sep 30 11:35:26 -05 2025
      * Los tipos de esta tabla estan ordenados por pesos,
      * a fin de calcular que operando debe ser promocionado
@@ -58,7 +58,7 @@ static struct predefined_types { /* predefined types */
     { .name = "float",  .sym_ref = &Float,  .t2i = &t2i_f, },
     { .name = "double", .sym_ref = &Double, .t2i = &t2i_d, },
     { .name = NULL, },
-};
+}; /* builtin_types } */
 
 void init(void)  /* install constants and built-ins in table */
 {
@@ -88,4 +88,4 @@ void init(void)  /* install constants and built-ins in table */
 
     /* creamos el simbolo prev */
     Prev = register_global_var("prev", D);
-}
+} /* init */

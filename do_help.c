@@ -19,7 +19,6 @@
 #include "log.h"
 #include "execute_program.h"
 
-
 void
 do_help(int exit_code)
 {
