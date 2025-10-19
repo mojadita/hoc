@@ -51,14 +51,14 @@ int parse(void)
     return res;
 } /* parse */
 
-void do_help(void)
+void do_help(int exit_code)
 {
     printf(
         "Uso: %s [ opts ] [ file ... ]\n"
         "Where opts are:\n"
         "  -h  this help screen\n",
         progname);
-    exit(EXIT_SUCCESS);
+    exit(exit_code);
 } /* do_help */
 
 static void process(FILE *in);
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) /* hoc1 */
     int opt;
     while ((opt = getopt(argc, argv, "hv")) != EOF) {
         switch (opt) {
-        case 'h': do_help();
+        case 'h': do_help(EXIT_SUCCESS);
         case 'v': do_version(EXIT_SUCCESS);
         }
     } /* while */

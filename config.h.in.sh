@@ -11,8 +11,8 @@ cat <<EOF
  * Date: @BUILD_DATE@
  * Copyright: (c) @COPYRIGHT_YEARS@ @AUTHOR_NAME@.  All rights reserved.
  */
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef CONFIG_H_4517f47e_ace6_11f0_882b_0023ae68f329
+#define CONFIG_H_4517f47e_ace6_11f0_882b_0023ae68f329
 
 EOF
 
@@ -29,5 +29,5 @@ sed -E -e '/^[ 	]*(#.*)?$/d' \
 
 cat <<EOF
 
-#endif /* CONFIG_H */
+#endif /* CONFIG_H_4517f47e_ace6_11f0_882b_0023ae68f329 */
 EOF

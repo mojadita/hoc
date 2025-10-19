@@ -3,8 +3,8 @@
  * Date: Mon Dec 16 13:35:35 EET 2024
  * Copyright: (c) 2024 SpinDrive Oy, FI.  All rights reserved.
  */
-#ifndef DYNARRAY_H
-#define DYNARRAY_H
+#ifndef DYNARRAY_H_ab61a4e0_ace7_11f0_9280_0023ae68f329
+#define DYNARRAY_H_ab61a4e0_ace7_11f0_9280_0023ae68f329
 
 #include <assert.h>  /* for assert macro */
 #include <stdlib.h>  /* for realloc */
@@ -30,4 +30,4 @@
             }                                    \
         } while (0)
 
-#endif /* DYNARRAY_H */
+#endif /* DYNARRAY_H_ab61a4e0_ace7_11f0_9280_0023ae68f329 */

@@ -4,12 +4,11 @@
  * Copyright: (c) 2025 Luis Colorado & Edward Rivas.  All rights reserved.
  * License: BSD
  */
-#ifndef INIT_H
-#define INIT_H
+#ifndef INIT_H_1c182308_ace8_11f0_b3f6_0023ae68f329
+#define INIT_H_1c182308_ace8_11f0_b3f6_0023ae68f329
 
-#include "symbol.h"
-
+//#include "symbol.h"
 
 void init(void);  /* install constants and built-ins in table */
 
-#endif /* INIT_H */
+#endif /* INIT_H_1c182308_ace8_11f0_b3f6_0023ae68f329 */

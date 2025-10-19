@@ -4,8 +4,8 @@
  * Date: Tue Jan 21 13:39:23 EET 2025
  * Copyright: (c) 2024-2025 Edward Rivas y Luis Colorado.  All rights reserved.
  */
-#ifndef COLORS_H
-#define COLORS_H
+#ifndef COLORS_H_1734472e_ace6_11f0_af09_0023ae68f329
+#define COLORS_H_1734472e_ace6_11f0_af09_0023ae68f329
 
 #ifndef UQ_USE_COLORS  /* { */
 #warning define UQ_USE_COLORS in "config.mk" file and then include "config.h" \
@@ -35,4 +35,4 @@
 # define ANSI_END ""
 #endif /* UQ_USE_COLORS }}*/
 
-#endif /* COLORS_H */
+#endif /* COLORS_H_1734472e_ace6_11f0_af09_0023ae68f329 */

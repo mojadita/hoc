@@ -8,9 +8,7 @@
 #ifndef _DO_HELP_H
 #define _DO_HELP_H
 
-#if 0
 void do_help(   int exit_code);
-#endif
 
 void do_version(int exit_code);
 

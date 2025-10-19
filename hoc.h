@@ -5,8 +5,8 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD.
  */
-#ifndef HOC_H
-#define HOC_H
+#ifndef HOC_H_f2663572_ace7_11f0_939a_0023ae68f329
+#define HOC_H_f2663572_ace7_11f0_939a_0023ae68f329
 
 #include "type2inst.h"
 #include "config.h"
@@ -67,4 +67,4 @@ extern int lineno;
 extern int col_no;
 extern char *progname;
 
-#endif /* HOC_H */
+#endif /* HOC_H_f2663572_ace7_11f0_939a_0023ae68f329 */
