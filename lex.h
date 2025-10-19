@@ -5,8 +5,8 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD
  */
-#ifndef LEX_H
-#define LEX_H
+#ifndef LEX_H_4384dee8_acea_11f0_bfa1_0023ae68f329
+#define LEX_H_4384dee8_acea_11f0_bfa1_0023ae68f329
 
 #include "cellP.h"
 
@@ -22,9 +22,6 @@ struct token {
 
 const token *get_last_token(
         unsigned pos);
-
-#endif /* LEX_H */
-
 
 /************************************
                        UQ_LAST_TOKENS_SZ(=8)
@@ -47,3 +44,5 @@ const token *get_last_token(
       +--------------+    ^
 
  ************************************/
+
+#endif /* LEX_H_4384dee8_acea_11f0_bfa1_0023ae68f329 */

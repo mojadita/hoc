@@ -46,8 +46,8 @@
  * scope ends.  This will free all symbols related to the
  * current scope upto the parent scope.
  */
-#ifndef SCOPE_H
-#define SCOPE_H
+#ifndef SCOPE_H_ac8e7764_acea_11f0_b273_0023ae68f329
+#define SCOPE_H_ac8e7764_acea_11f0_b273_0023ae68f329
 
 /* La tabla de simbolos se gestiona como una lista
  * de simbolos, encadenados a traves de un puntero
@@ -175,4 +175,4 @@ Symbol *install(
         int           sym_type,
         const Symbol *lvar_type);
 
-#endif /* SCOPE_H */
+#endif /* SCOPE_H_ac8e7764_acea_11f0_b273_0023ae68f329 */

@@ -4,8 +4,8 @@
  * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
  * License: BSD
  */
-#ifndef SYMBOLP_H
-#define SYMBOLP_H
+#ifndef SYMBOLP_H_f49099c0_acea_11f0_a250_0023ae68f329
+#define SYMBOLP_H_f49099c0_acea_11f0_a250_0023ae68f329
 
 #include <sys/types.h>
 
@@ -68,8 +68,8 @@ struct Symbol_s {                         /* Symbol table entry */
 };
 
 const char *lookup_type(int typ);
-void list_symbols(void);
-void list_all_symbols(Symbol *current_symbol);
-void list_variables(Symbol *current_symbol);
+void        list_symbols(void);
+void        list_all_symbols(Symbol *current_symbol);
+void        list_variables(Symbol *current_symbol);
 
-#endif /* SYMBOLP_H */
+#endif /* SYMBOLP_H_f49099c0_acea_11f0_a250_0023ae68f329 */

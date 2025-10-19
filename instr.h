@@ -6,8 +6,8 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD
  */
-#ifndef INSTR_H
-#define INSTR_H
+#ifndef INSTR_H_c9973130_ace9_11f0_aae7_0023ae68f329
+#define INSTR_H_c9973130_ace9_11f0_aae7_0023ae68f329
 
 #include <stdarg.h>
 #include <sys/types.h>
@@ -27,10 +27,12 @@ typedef struct instr        instr;
 enum instr_code_e {
 #define INST(_nom,_n, ...) INST_##_nom,
 #define SUFF(_typ, _p1,_p2)
+
 #include "instrucciones.h"
+
 #undef  INST
 #undef  SUFF
-}; /* enum instr */
+}; /* enum instr_code_e */
 
 #include "cell.h"
 
@@ -46,4 +48,4 @@ struct instr {
 extern const instr  instruction_set[];
 extern const size_t instruction_set_len;
 
-#endif /* INSTR_H */
+#endif /* INSTR_H_c9973130_ace9_11f0_aae7_0023ae68f329 */

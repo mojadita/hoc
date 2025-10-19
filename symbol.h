@@ -4,8 +4,8 @@
  * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
  * License: BSD
  */
-#ifndef SYMBOL_H
-#define SYMBOL_H
+#ifndef SYMBOL_H_c71f231c_acea_11f0_b3dd_0023ae68f329
+#define SYMBOL_H_c71f231c_acea_11f0_b3dd_0023ae68f329
 
 typedef struct Symbol_s Symbol;
 
@@ -15,14 +15,14 @@ void list_all_symbols(Symbol *current_symbol);
 void list_variables(Symbol *current_symbol);
 
 Symbol *register_subr(
-        const char   *name,   /* nombre de la funcion/procedimiento */
-        int           type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
-        const Symbol *typref, /* simbolo del tipo del valor devuelto por la
-                               * funcion, NULL para proc */
-        Cell         *entry); /* punto de entrada a la funcion */
+        const char   *name,    /* nombre de la funcion/procedimiento */
+        int           type,    /* tipo de symbolo (PROCEDURE/FUNCTION) */
+        const Symbol *typref,  /* simbolo del tipo del valor devuelto por la
+                                * funcion, NULL para proc */
+        Cell         *entry);  /* punto de entrada a la funcion */
 
-void end_register_subr(         /* end subroutine definition */
-        const Symbol *subr);  /* the symbol given by register_subr */
+void end_register_subr(        /* end subroutine definition */
+        const Symbol *subr);   /* the symbol given by register_subr */
 
 Symbol *register_global_var(   /* registers a global variable */
         const char   *name,    /* name of the function */
@@ -30,6 +30,6 @@ Symbol *register_global_var(   /* registers a global variable */
 
 Symbol *register_local_var(
         const char   *name,
-        const Symbol *typref);          /* registers a local variable */
+        const Symbol *typref); /* registers a local variable */
 
-#endif /* SYMBOL_H */
+#endif /* SYMBOL_H_c71f231c_acea_11f0_b3dd_0023ae68f329 */

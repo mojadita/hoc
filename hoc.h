@@ -8,10 +8,14 @@
 #ifndef HOC_H_f2663572_ace7_11f0_939a_0023ae68f329
 #define HOC_H_f2663572_ace7_11f0_939a_0023ae68f329
 
-#include "type2inst.h"
-#include "config.h"
 #include <setjmp.h>
 #include <stdio.h>
+
+#include "config.h"
+#include "cell.h"
+#include "symbol.h"
+#include "instr.h"
+#include "lex.h"
 
 #if UQ_USE_LOCUS /* {{ */
 #define F(_fmt) "%s:%d: %s: "_fmt, __FILE__, __LINE__, __func__
@@ -20,11 +24,6 @@
 #endif /* UQ_USE_LOCUS  }}*/
 
 #define OUTPUT_FMT   "%32.8g"
-
-#include "cell.h"
-#include "symbol.h"
-#include "instr.h"
-#include "lex.h"
 
 typedef struct var_decl_list_s {
     Cell         *start;          /* codigo de inicializacion de la

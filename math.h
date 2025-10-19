@@ -6,19 +6,9 @@
  * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
  * License: BSD.
  */
-#ifndef MATH_H
-#define MATH_H
+#ifndef MATH_H_7925021c_acea_11f0_96ea_0023ae68f329
+#define MATH_H_7925021c_acea_11f0_96ea_0023ae68f329
 
-double asin(double sx);
-double acos(double cx);
-double Pow(double b, double e);
-double Sqrt(double x);
-double inverso( double x );
-double opuesto( double x );
-double Rand(void);
-double rd(void);
-double now(void);
-double integer(double x);
 long fast_pwr_l(long x, int e);
 
-#endif /* MATH_H */
+#endif /* MATH_H_7925021c_acea_11f0_96ea_0023ae68f329 */
