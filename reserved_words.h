@@ -5,8 +5,8 @@
  * Copyright (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
  * License: BSD.
  */
-#ifndef RESERVED_WORDS_H
-#define RESERVED_WORDS_H
+#ifndef RESERVED_WORDS_H_18a613d8_ac7a_11f0_b32e_0023ae68f329
+#define RESERVED_WORDS_H_18a613d8_ac7a_11f0_b32e_0023ae68f329
 
 typedef struct reserved_word reserved_word;
 
@@ -18,4 +18,4 @@ struct reserved_word { /* reserved statements */
 
 const reserved_word *rw_lookup(const char *lexeme);
 
-#endif /* RESERVED_WORDS_H */
+#endif /* RESERVED_WORDS_H_18a613d8_ac7a_11f0_b32e_0023ae68f329 */

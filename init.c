@@ -11,19 +11,8 @@
 #include <math.h>
 
 #include "config.h"
-#include "hoc.h"
-#include "hoc.tab.h"
-#include "math.h"
 #include "cellP.h"
-#include "code.h"
-#include "scope.h"
-#include "type2inst.h"
-#include "types.h"
-#include "init.h"
 #include "symbolP.h"
-
-double integer(double x);
-double Rand(void);
 
 static struct constant { /* constants */
     char *name;

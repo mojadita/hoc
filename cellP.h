@@ -4,8 +4,8 @@
  * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
  * License: BSD
  */
-#ifndef CELLP_H
-#define CELLP_H
+#ifndef CELLP_H_c5ba43da_ace0_11f0_8ed7_0023ae68f329
+#define CELLP_H_c5ba43da_ace0_11f0_8ed7_0023ae68f329
 
 #include "instr.h"
 
@@ -31,13 +31,4 @@ union Cell_u {
 
 extern Cell prog[];   /* memoria de programa */
 
-Cell val2cell_c(va_list args);
-Cell val2cell_d(va_list args);
-Cell val2cell_f(va_list args);
-Cell val2cell_i(va_list args);
-Cell val2cell_l(va_list args);
-Cell val2cell_s(va_list args);
-
-Cell val2cell(Symbol *typ, ...);
-
-#endif /* CELLP_H */
+#endif /* CELLP_H_c5ba43da_ace0_11f0_8ed7_0023ae68f329 */

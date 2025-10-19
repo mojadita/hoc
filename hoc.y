@@ -1273,7 +1273,7 @@ formal_arglist
 
 proc_head
     : PROC UNDEF            {
-                              $$ = define($2, PROCEDURE, NULL, progp);
+                              $$ = register_subr($2, PROCEDURE, NULL, progp);
                               $$->main_scope = start_scope();
                               P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
                                         $2, progp - prog);
@@ -1283,7 +1283,7 @@ proc_head
 
 func_head
     : FUNC TYPE UNDEF       {
-                              $$ = define($3, FUNCTION, $2, progp);
+                              $$ = register_subr($3, FUNCTION, $2, progp);
                               $$->main_scope = start_scope();
                               P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
                                 $3, progp - prog);
@@ -1313,7 +1313,7 @@ void patching_subr(
     CODE_INST(pop_fp);
     CODE_INST(ret);
     end_scope();
-    end_define(subr);
+    end_register_subr(subr);
     indef = NULL;
     P("FIN DEFINICION %s\n", what);
 } /* patching_subr */

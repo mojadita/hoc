@@ -5,8 +5,8 @@
  * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
  * License: BSD
  */
-#ifndef CODE_H
-#define CODE_H
+#ifndef CODE_H_56139530_ac78_11f0_b0d7_0023ae68f329
+#define CODE_H_56139530_ac78_11f0_b0d7_0023ae68f329
 
 #include "instr.h"
 
@@ -14,38 +14,36 @@
 #include "symbol.h"
 #include "hoc.h"
 
-extern Cell *progp;                   /* next free cell for code generation */
-extern Cell *progbase;                /* pointer to first program instruction */
-extern Cell *varbase;
+extern Cell *progp;                     /* next free cell for code generation */
+extern Cell *progbase;                  /* pointer to first program instruction */
+extern Cell *varbase;                   /* pointer to last assigned variable */
 
-void  initcode(void);                 /* initalize for code generation */
-void  initexec(void);                 /* initalize for code execution */
-void  push(Cell            d);        /* push d onto stack */
-Cell  pop(void);                      /* pops Cell and rturn top element from stack */
-Cell *code_inst(instr_code f, ...);   /* encodes one instruction of operand */
-Cell *code_sym(Symbol     *s);        /* encodes one symbol in a Cell */
-Cell *code_val(double      val);      /* encodes a double value in a Cell */
-Cell *code_cel(Cell       *cel);      /* install one reference to Cell */
-Cell *code_num(int         val);      /* install one integer on Cell */
-Cell *code_str(const char *str);      /* install one string on Cell */
-void  execute(Cell        *p);        /* run the machine */
-Symbol *define(
-        const char *name,             /* put func/proc in symbol table */
-        int         type,
-        Symbol     *typref,
-        Cell       *entry_point);
-void  end_define(const Symbol *subr); /* housekeeping after function definition */
-int   stacksize(void);                /* return the stack size */
+void    initcode(void);                 /* initalize for code generation */
+void    initexec(void);                 /* initalize for code execution */
 
-Cell *getarg(int arg);                /* return a pointer to argument */
+void    push(                           /* push d onto stack */
+        Cell          d);
+Cell    pop(void);                      /* pops Cell and rturn top element from stack */
 
-Symbol *register_global_var(
-        const char *name,
-        const Symbol *typref);        /* registers a global variable */
+Cell   *code_inst(                      /* encodes one instruction of operand */
+        instr_code    f,
+        ...);
 
-Symbol *register_local_var(
-        const char *name,
-        const Symbol *typref); /* registers a local variable */
+void    execute(
+        Cell         *p);               /* run the machine */
+
+Symbol *register_subr(                  /* put func/proc in symbol table */
+        const char   *name,
+        int           type,
+        const Symbol *typref,
+        Cell         *entry_point);
+
+void    end_register_subr(              /* housekeeping after function definition */
+        const Symbol *subr);
+
+int     stacksize(void);                /* return the stack size */
+
+Cell   *getarg(int arg);                /* return a pointer to argument */
 
 /* instructions */
 /* LCU: Esta macro define dos prototipos por cada instruccion:
@@ -70,9 +68,9 @@ Symbol *register_local_var(
                 Cell        *,  \
                 va_list args);
 
-
 #include "instrucciones.h"
+
 #undef  INST
 #undef  SUFF
 
-#endif /* CODE_H */
+#endif /* CODE_H_56139530_ac78_11f0_b0d7_0023ae68f329 */

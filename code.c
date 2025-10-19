@@ -91,49 +91,6 @@ void initexec(void) /* initialize for execution */
 } /* initexec */
 
 
-Symbol *register_global_var(
-        const char   *name,
-        const Symbol *typref)
-{
-    assert(get_current_scope() == NULL);
-    if (progp >= varbase) {
-        execerror("variables zone exhausted (progp >= varbase)\n");
-    }
-    if (lookup(name)) {
-        execerror("Variable %s already defined\n", name);
-    }
-    Symbol *sym = install(name, VAR, typref);
-    sym->defn = --varbase;
-    PRG("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
-        sym->name,
-        lookup_type(sym->type),
-        typref->name,
-        sym->defn ? sym->defn - prog : -1);
-    return sym;
-} /* register_global_var */
-
-Symbol *register_local_var(
-        const char   *name,
-        const Symbol *typref)
-{
-    scope *scop = get_current_scope();
-    assert(scop != NULL);
-    if (lookup_current_scope(name)) {
-        execerror("Variable " GREEN "%s" ANSI_END
-            " already defined in current scope\n", name);
-    }
-    Symbol *sym = install(name, LVAR, typref);
-    scop->size += typref->t2i->size;
-    sym->offset = -(scop->base_offset + scop->size);
-
-    PRG("Symbol '%s', type=%s, typref=%s, offset=%+d\n",
-        sym->name,
-        lookup_type(sym->type),
-        typref->name,
-        sym->offset);
-    return sym;
-} /* register_local_var */
-
 
 int stacksize(void) /* return the stack size */
 {
@@ -961,35 +918,6 @@ AND_THEN_OR_ELSE(and_then, inum, ,   &&)
 AND_THEN_OR_ELSE(or_else,  inum, !,  ||)
 
 #undef AND_THEN_OR_ELSE /*                                       } */
-
-/* se llama al definir una funcion (o procedimiento) */
-Symbol *define(
-        const char *name,   /* nombre de la funcion/procedimiento */
-        int         type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
-        Symbol     *typref, /* simbolo del tipo del valor devuelto por la
-                             * funcion, NULL para proc */
-        Cell       *entry)  /* punto de entrada a la funcion */
-{
-    P_TAIL("define(\"%s\", %s, %s, [%04lx]);\n",
-            name,
-            lookup_type(type),
-            typref  ? typref->name
-                    : "VOID",
-            entry - prog);
-    Symbol *symb = install(name, type, typref);
-    symb->defn   = entry;
-
-    return symb;
-}
-
-/* se llama al terminar la definicion de una funcion
- * (o prodecimiento) */
-void end_define(const Symbol *subr)
-{
-    /* adjust progbase to point to the code starting point */
-    progbase = progp;     /* next code starts here */
-    P_TAIL("end_define(%s);\n", subr->name);
-}
 
 void call(const instr *i)   /* call a function */
 {

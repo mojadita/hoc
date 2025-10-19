@@ -20,6 +20,18 @@
 
 #include "symbolP.h"
 
+
+#ifndef   UQ_TRACE_SYMBS /* { */
+#warning  UQ_TRACE_SYMBS should be included in 'config.mk'
+#define   UQ_TRACE_SYMBS         1
+#endif /* UQ_TRACE_SYMBS    } */
+
+#if UQ_TRACE_SYMBS /*     { */
+#define SYM(_fmt, ...) printf(F(_fmt), ##__VA_ARGS__)
+#else /*  UQ_TRACE_SYMBS  }{ */
+#define SYM(_fmt, ...)
+#endif /* UQ_TRACE_SYMBS  } */
+
 #ifndef   UQ_COL1_SYMBS /* { */
 #warning  UQ_COL1_SYMBS should be included in 'config.mk'
 #define   UQ_COL1_SYMBS         (-20)
@@ -66,6 +78,79 @@
  * los simbolos recientes son mas accesibles que
  * los antiguos) */
 
+
+/* se llama al definir una funcion (o procedimiento) */
+Symbol *register_subr(
+        const char   *name,   /* nombre de la funcion/procedimiento */
+        int           type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
+        const Symbol *typref, /* simbolo del tipo del valor devuelto por la
+                             * funcion, NULL para proc */
+        Cell         *entry)  /* punto de entrada a la funcion */
+{
+    SYM("%s(\"%s\", %s, %s, [%04lx]);\n",
+            __func__,
+            name,
+            lookup_type(type),
+            typref  ? typref->name
+                    : "VOID",
+            entry - prog);
+    Symbol *symb = install(name, type, typref);
+    symb->defn   = entry;
+
+    return symb;
+}
+
+/* se llama al terminar la definicion de una funcion
+ * (o prodecimiento) */
+void end_register_subr(const Symbol *subr)
+{
+    /* adjust progbase to point to the code starting point */
+    progbase = progp;     /* next code starts here */
+    SYM("%s(%s);\n", __func__, subr->name);
+}
+
+Symbol *register_global_var(
+        const char   *name,
+        const Symbol *typref)
+{
+    assert(get_current_scope() == NULL);
+    if (progp >= varbase) {
+        execerror("variables zone exhausted (progp >= varbase)\n");
+    }
+    if (lookup(name)) {
+        execerror("Variable %s already defined\n", name);
+    }
+    Symbol *sym = install(name, VAR, typref);
+    sym->defn = --varbase;
+    SYM("Symbol '%s', type=%s, typref=%s, pos=[%04lx]\n",
+        sym->name,
+        lookup_type(sym->type),
+        typref->name,
+        sym->defn ? sym->defn - prog : -1);
+    return sym;
+} /* register_global_var */
+
+Symbol *register_local_var(
+        const char   *name,
+        const Symbol *typref)
+{
+    scope *scop = get_current_scope();
+    assert(scop != NULL);
+    if (lookup_current_scope(name)) {
+        execerror("Variable " GREEN "%s" ANSI_END
+            " already defined in current scope\n", name);
+    }
+    Symbol *sym = install(name, LVAR, typref);
+    scop->size += typref->t2i->size;
+    sym->offset = -(scop->base_offset + scop->size);
+
+    SYM("Symbol '%s', type=%s, typref=%s, offset=%+d\n",
+        sym->name,
+        lookup_type(sym->type),
+        typref->name,
+        sym->offset);
+    return sym;
+} /* register_local_var */
 
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
