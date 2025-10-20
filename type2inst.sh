@@ -52,8 +52,8 @@ $(add_suffix _c)
 
 }, t2i_d = {
 
-    .one      = { .val = 1.0 },
-    .zero     = { .val = 0.0 },
+    .one      = { .dbl = 1.0 },
+    .zero     = { .dbl = 0.0 },
     .fmt      = "%.12lg",
     .printval = printval_d,
     .size     = 1,
@@ -78,8 +78,8 @@ $(add_suffix _f)
 
 }, t2i_i = {
 
-    .one      = { .inum = 1 },
-    .zero     = { .inum = 0 },
+    .one      = { .itg = 1 },
+    .zero     = { .itg = 0 },
     .fmt      = "%i",
     .printval = printval_i,
     .size     = 1,
@@ -91,8 +91,8 @@ $(add_suffix _i)
 
 }, t2i_l = {
 
-    .one      = { .num = 1L },
-    .zero     = { .num = 0L },
+    .one      = { .lng = 1L },
+    .zero     = { .lng = 0L },
     .fmt      = "%li",
     .printval = printval_l,
     .size     = 1,

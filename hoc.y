@@ -175,7 +175,6 @@ size_t size_lvars = 0;
 %union {
     const instr  *inst; /* instruccion maquina */
     Symbol       *sym;  /* puntero a simbolo */
-    double        val;  /* valor double */
     Cell         *cel;  /* referencia a Cell */
     Cell          lit;  /* literal */
     unsigned long num;  /* valor entero, para $<num> */

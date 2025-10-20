@@ -20,10 +20,10 @@ union Cell_u {
     };
     char         chr;
     short        sht;
-    int          inum;
-    long         num;
+    int          itg;
+    long         lng;
     float        flt;
-    double       val;
+    double       dbl;
     Cell        *cel;
     Symbol      *sym;
     const char  *str;

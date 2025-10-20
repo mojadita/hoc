@@ -18,11 +18,11 @@ static struct constant { /* constants */
     char *name;
     Cell  cval;
 } consts[] = {
-    { "DEG",     { .val = 180.0/M_PI }, },
-    { "E",       { .val = M_E }, },
-    { "PHI",     { .val = 1.61803398874989484820 }, },
-    { "PI",      { .val = M_PI }, },
-    { "version", { .val = UQ_VERSION }, },
+    { "DEG",     { .dbl = 180.0/M_PI }, },
+    { "E",       { .dbl = M_E }, },
+    { "PHI",     { .dbl = 1.61803398874989484820 }, },
+    { "PI",      { .dbl = M_PI }, },
+    { "version", { .dbl = UQ_VERSION }, },
     { NULL,      0.0, },
 }; /* consts */
 

@@ -267,10 +267,10 @@ void swap_prt(const instr *i, const Cell *pc)
     } /* datum##_suff##_prog */
 
 DATUM_PROG(int,    _c, chr,  FMT_CHAR)
-DATUM_PROG(double, _d, val,  FMT_DOUBLE)
+DATUM_PROG(double, _d, dbl,  FMT_DOUBLE)
 DATUM_PROG(double, _f, flt,  FMT_FLOAT)
-DATUM_PROG(int,    _i, inum, FMT_INT)
-DATUM_PROG(long,   _l, num,  FMT_LONG)
+DATUM_PROG(int,    _i, itg,  FMT_INT)
+DATUM_PROG(long,   _l, lng,  FMT_LONG)
 DATUM_PROG(int,    _s, sht,  FMT_SHORT)
 
 #undef DATUM_PROG
@@ -295,10 +295,10 @@ DATUM_PROG(int,    _s, sht,  FMT_SHORT)
         } /* constpush##_suff##_prt      }{ */
 
 CONSTPUSH(_c, chr,  FMT_CHAR)   /* push constant onto stack */
-CONSTPUSH(_d, val,  FMT_DOUBLE)
+CONSTPUSH(_d, dbl,  FMT_DOUBLE)
 CONSTPUSH(_f, flt,  FMT_FLOAT)
-CONSTPUSH(_i, inum, FMT_INT)
-CONSTPUSH(_l, num,  FMT_LONG)
+CONSTPUSH(_i, itg,  FMT_INT)
+CONSTPUSH(_l, lng,  FMT_LONG)
 CONSTPUSH(_s, sht,  FMT_SHORT)
 
 #undef CONSTPUSH /*                      } */
@@ -325,24 +325,24 @@ CONSTPUSH(_s, sht,  FMT_SHORT)
     } /* _nam##_suff##_prt         }{ */
 
 OP(add, _c, chr,  +, FMT_CHAR) /* add top two elements on stack */
-OP(add, _d, val,  +, FMT_DOUBLE)
+OP(add, _d, dbl,  +, FMT_DOUBLE)
 OP(add, _f, flt,  +, FMT_FLOAT)
-OP(add, _i, inum, +, FMT_INT)
-OP(add, _l, num,  +, FMT_LONG)
+OP(add, _i, itg,  +, FMT_INT)
+OP(add, _l, lng,  +, FMT_LONG)
 OP(add, _s, sht,  +, FMT_SHORT)
 
 OP(sub, _c, chr,  -, FMT_CHAR)
-OP(sub, _d, val,  -, FMT_DOUBLE)
+OP(sub, _d, dbl,  -, FMT_DOUBLE)
 OP(sub, _f, flt,  -, FMT_FLOAT)
-OP(sub, _i, inum, -, FMT_INT)
-OP(sub, _l, num,  -, FMT_LONG)
+OP(sub, _i, itg,  -, FMT_INT)
+OP(sub, _l, lng,  -, FMT_LONG)
 OP(sub, _s, chr,  -, FMT_SHORT)
 
 OP(mul, _c, chr,  *, FMT_CHAR)
-OP(mul, _d, val,  *, FMT_DOUBLE)
+OP(mul, _d, dbl,  *, FMT_DOUBLE)
 OP(mul, _f, flt,  *, FMT_FLOAT)
-OP(mul, _i, inum, *, FMT_INT)
-OP(mul, _l, num,  *, FMT_LONG)
+OP(mul, _i, itg,  *, FMT_INT)
+OP(mul, _l, lng,  *, FMT_LONG)
 OP(mul, _s, chr,  *, FMT_SHORT)
 
 #define OP_DIVI_MOD(_nam, _suff, _fld, _op, _fmt) /* { */    \
@@ -369,16 +369,16 @@ OP(mul, _s, chr,  *, FMT_SHORT)
     } /* _nam##_suff##_prt         }{ */
 
 OP_DIVI_MOD(divi, _c, chr,  /, FMT_CHAR)
-OP_DIVI_MOD(divi, _d, val,  /, FMT_DOUBLE)
+OP_DIVI_MOD(divi, _d, dbl,  /, FMT_DOUBLE)
 OP_DIVI_MOD(divi, _f, flt,  /, FMT_FLOAT)
-OP_DIVI_MOD(divi, _i, inum, /, FMT_INT)
-OP_DIVI_MOD(divi, _l, num,  /, FMT_LONG)
+OP_DIVI_MOD(divi, _i, itg,  /, FMT_INT)
+OP_DIVI_MOD(divi, _l, lng,  /, FMT_LONG)
 OP_DIVI_MOD(divi, _s, chr,  /, FMT_SHORT)
 
 OP_DIVI_MOD(mod, _c, chr,  %, FMT_CHAR) /* multiply two elements on stack (only integers) */
-OP_DIVI_MOD(mod, _l, num,  %, FMT_LONG)
-OP_DIVI_MOD(mod, _i, inum, %, FMT_INT)
-OP_DIVI_MOD(mod, _s, chr,  %, FMT_SHORT)
+OP_DIVI_MOD(mod, _l, lng,  %, FMT_LONG)
+OP_DIVI_MOD(mod, _i, itg,  %, FMT_INT)
+OP_DIVI_MOD(mod, _s, sht,  %, FMT_SHORT)
 
 #undef OP  /* } */
 
@@ -387,10 +387,10 @@ OP_DIVI_MOD(mod, _s, chr,  %, FMT_SHORT)
     {                                               \
         Cell p2  = pop(),                           \
              p1  = pop(),                           \
-             res = { .inum = p1._fld _op p2._fld }; \
+             res = { .itg = p1._fld _op p2._fld }; \
                                                     \
         P_TAIL(": " _fmt " %s " _fmt " -> " FMT_INT,\
-                p1._fld, #_op, p2._fld, res.inum);  \
+                p1._fld, #_op, p2._fld, res.itg);  \
         push(res);                                  \
                                                     \
         UPDATE_PC();                                \
@@ -404,45 +404,45 @@ OP_DIVI_MOD(mod, _s, chr,  %, FMT_SHORT)
     } /* _nam##_suff##_prt         }{ */
 
 RELOP(ge, _c, chr,  >=,  FMT_CHAR)
-RELOP(ge, _d, val,  >=,  FMT_DOUBLE)
+RELOP(ge, _d, dbl,  >=,  FMT_DOUBLE)
 RELOP(ge, _f, flt,  >=,  FMT_FLOAT)
-RELOP(ge, _i, inum, >=,  FMT_INT)
-RELOP(ge, _l, num,  >=,  FMT_LONG)
+RELOP(ge, _i, itg,  >=,  FMT_INT)
+RELOP(ge, _l, lng,  >=,  FMT_LONG)
 RELOP(ge, _s, sht,  >=,  FMT_SHORT)
 
 RELOP(le, _c, chr,  <=,  FMT_CHAR)
-RELOP(le, _d, val,  <=,  FMT_DOUBLE)
+RELOP(le, _d, dbl,  <=,  FMT_DOUBLE)
 RELOP(le, _f, flt,  <=,  FMT_FLOAT)
-RELOP(le, _i, inum, <=,  FMT_INT)
-RELOP(le, _l, num,  <=,  FMT_LONG)
+RELOP(le, _i, itg,  <=,  FMT_INT)
+RELOP(le, _l, lng,  <=,  FMT_LONG)
 RELOP(le, _s, sht,  <=,  FMT_SHORT)
 
 RELOP(gt, _c, chr,  >,  FMT_CHAR)
-RELOP(gt, _d, val,  >,  FMT_DOUBLE)
+RELOP(gt, _d, dbl,  >,  FMT_DOUBLE)
 RELOP(gt, _f, flt,  >,  FMT_FLOAT)
-RELOP(gt, _i, inum, >,  FMT_INT)
-RELOP(gt, _l, num,  >,  FMT_LONG)
+RELOP(gt, _i, itg,  >,  FMT_INT)
+RELOP(gt, _l, lng,  >,  FMT_LONG)
 RELOP(gt, _s, sht,  >,  FMT_SHORT)
 
 RELOP(lt, _c, chr,  <,  FMT_CHAR)
-RELOP(lt, _d, val,  <,  FMT_DOUBLE)
+RELOP(lt, _d, dbl,  <,  FMT_DOUBLE)
 RELOP(lt, _f, flt,  <,  FMT_FLOAT)
-RELOP(lt, _i, inum, <,  FMT_INT)
-RELOP(lt, _l, num,  <,  FMT_LONG)
+RELOP(lt, _i, itg,  <,  FMT_INT)
+RELOP(lt, _l, lng,  <,  FMT_LONG)
 RELOP(lt, _s, sht,  <,  FMT_SHORT)
 
 RELOP(eq, _c, chr,  ==,  FMT_CHAR)
-RELOP(eq, _d, val,  ==,  FMT_DOUBLE)
+RELOP(eq, _d, dbl,  ==,  FMT_DOUBLE)
 RELOP(eq, _f, flt,  ==,  FMT_FLOAT)
-RELOP(eq, _i, inum, ==,  FMT_INT)
-RELOP(eq, _l, num,  ==,  FMT_LONG)
+RELOP(eq, _i, itg,  ==,  FMT_INT)
+RELOP(eq, _l, lng,  ==,  FMT_LONG)
 RELOP(eq, _s, sht,  ==,  FMT_SHORT)
 
 RELOP(ne, _c, chr,  !=,  FMT_CHAR)
-RELOP(ne, _d, val,  !=,  FMT_DOUBLE)
+RELOP(ne, _d, dbl,  !=,  FMT_DOUBLE)
 RELOP(ne, _f, flt,  !=,  FMT_FLOAT)
-RELOP(ne, _i, inum, !=,  FMT_INT)
-RELOP(ne, _l, num,  !=,  FMT_LONG)
+RELOP(ne, _i, itg,  !=,  FMT_INT)
+RELOP(ne, _l, lng,  !=,  FMT_LONG)
 RELOP(ne, _s, sht,  !=,  FMT_SHORT)
 
 #undef RELOP  /* } */
@@ -473,24 +473,24 @@ RELOP(ne, _s, sht,  !=,  FMT_SHORT)
         } /* _name##_suff##_prt                 }{ */
 
 BIT_OPER( bit_or,  _c, chr,  |,  FMT_CHAR )  /* operador OR  de bits  */
-BIT_OPER( bit_or,  _i, inum, |,  FMT_INT )
-BIT_OPER( bit_or,  _l, num,  |,  FMT_LONG )
+BIT_OPER( bit_or,  _i, itg,  |,  FMT_INT )
+BIT_OPER( bit_or,  _l, lng,  |,  FMT_LONG )
 BIT_OPER( bit_or,  _s, sht,  |,  FMT_SHORT )
 BIT_OPER( bit_xor, _c, chr,  ^,  FMT_CHAR )  /* operador XOR de bits */
-BIT_OPER( bit_xor, _i, inum, ^,  FMT_INT )
-BIT_OPER( bit_xor, _l, num,  ^,  FMT_LONG )
+BIT_OPER( bit_xor, _i, itg,  ^,  FMT_INT )
+BIT_OPER( bit_xor, _l, lng,  ^,  FMT_LONG )
 BIT_OPER( bit_xor, _s, sht,  ^,  FMT_SHORT )
 BIT_OPER( bit_and, _c, chr,  &,  FMT_CHAR )  /* operador AND de bits */
-BIT_OPER( bit_and, _i, inum, &,  FMT_INT )
-BIT_OPER( bit_and, _l, num,  &,  FMT_LONG )
+BIT_OPER( bit_and, _i, itg,  &,  FMT_INT )
+BIT_OPER( bit_and, _l, lng,  &,  FMT_LONG )
 BIT_OPER( bit_and, _s, sht,  &,  FMT_SHORT )
 BIT_OPER( bit_shl, _c, chr,  <<, FMT_CHAR )  /* operador <<  de bits  */
-BIT_OPER( bit_shl, _i, inum, <<, FMT_INT )
-BIT_OPER( bit_shl, _l, num,  <<, FMT_LONG )
+BIT_OPER( bit_shl, _i, itg,  <<, FMT_INT )
+BIT_OPER( bit_shl, _l, lng,  <<, FMT_LONG )
 BIT_OPER( bit_shl, _s, sht,  <<, FMT_SHORT )
 BIT_OPER( bit_shr, _c, chr,  >>, FMT_CHAR )  /* operador >>  de bits  */
-BIT_OPER( bit_shr, _i, inum, >>, FMT_INT )
-BIT_OPER( bit_shr, _l, num,  >>, FMT_LONG )
+BIT_OPER( bit_shr, _i, itg,  >>, FMT_INT )
+BIT_OPER( bit_shr, _l, lng,  >>, FMT_LONG )
 BIT_OPER( bit_shr, _s, sht,  >>, FMT_SHORT )
 
 #undef BIT_OPER /*                       }} */
@@ -517,8 +517,8 @@ BIT_OPER( bit_shr, _s, sht,  >>, FMT_SHORT )
         PR("\n");                                      \
     } /* mod##_suff##_prt         }{ */
 
-MOD(_d, val, FMT_DOUBLE) /* mod top two elements on stack */
-MOD(_f, val, FMT_FLOAT)
+MOD(_d, dbl, FMT_DOUBLE) /* mod top two elements on stack */
+MOD(_f, dbl, FMT_FLOAT)
 
 #undef MOD /*                     } */
 
@@ -541,19 +541,19 @@ MOD(_f, val, FMT_FLOAT)
         PR("\n");                              \
     } /* _name##_suff##_prt         }{ */
 
-UNARY_LOP(neg, _c,  chr,  chr,  -, FMT_CHAR) /* change sign top element on stack */
-UNARY_LOP(neg, _d,  val,  val,  -, FMT_DOUBLE)
-UNARY_LOP(neg, _f,  flt,  flt,  -, FMT_FLOAT)
-UNARY_LOP(neg, _i,  inum, inum, -, FMT_INT)
-UNARY_LOP(neg, _l,  num,  num,  -, FMT_LONG)
-UNARY_LOP(neg, _s,  sht,  sht,  -, FMT_SHORT)
+UNARY_LOP(neg,     _c,  chr,  chr,  -, FMT_CHAR) /* change sign top element on stack */
+UNARY_LOP(neg,     _d,  dbl,  dbl,  -, FMT_DOUBLE)
+UNARY_LOP(neg,     _f,  flt,  flt,  -, FMT_FLOAT)
+UNARY_LOP(neg,     _i,  itg,  itg,  -, FMT_INT)
+UNARY_LOP(neg,     _l,  lng,  lng,  -, FMT_LONG)
+UNARY_LOP(neg,     _s,  sht,  sht,  -, FMT_SHORT)
 
-UNARY_LOP(not,,       inum, inum, !, FMT_INT)  /* logical not */
+UNARY_LOP(not,       ,  itg,  itg,  !, FMT_INT)  /* logical not */
 
-UNARY_LOP(bit_not,_c, chr,  chr,  ~, FMT_CHAR)  /* bitwise not */
-UNARY_LOP(bit_not,_i, inum, inum, ~, FMT_INT)
-UNARY_LOP(bit_not,_l, num,  num,  ~, FMT_LONG)
-UNARY_LOP(bit_not,_s, sht,  sht,  ~, FMT_SHORT)
+UNARY_LOP(bit_not, _c,  chr,  chr,  ~, FMT_CHAR) /* bitwise not */
+UNARY_LOP(bit_not, _i,  itg,  itg,  ~, FMT_INT)
+UNARY_LOP(bit_not, _l,  lng,  lng,  ~, FMT_LONG)
+UNARY_LOP(bit_not, _s,  sht,  sht,  ~, FMT_SHORT)
 
 #undef NEG /*                     } */
 
@@ -578,11 +578,11 @@ UNARY_LOP(bit_not,_s, sht,  sht,  ~, FMT_SHORT)
         PR("\n");                                   \
     } /* pwr##_suff##_prt               }{ */
 
-PWR(_d, val,  pow,        FMT_DOUBLE)
+PWR(_d, dbl,  pow,        FMT_DOUBLE)
 PWR(_f, flt,  pow,        FMT_FLOAT)
 PWR(_c, chr,  fast_pwr_l, FMT_CHAR)   /* pow top two elements on stack */
-PWR(_i, inum, fast_pwr_l, FMT_INT)
-PWR(_l, num,  fast_pwr_l, FMT_LONG)
+PWR(_i, itg,  fast_pwr_l, FMT_INT)
+PWR(_l, lng,  fast_pwr_l, FMT_LONG)
 PWR(_s, sht,  fast_pwr_l, FMT_SHORT)
 
 #undef PWR /*                           } */
@@ -623,10 +623,10 @@ void symb_prog(const instr *i, Cell *pc, va_list args)
     } /* eval##_suff##_prt               }{ */
 
 EVAL(_c, chr,  FMT_CHAR)   /* evaluates a global variable */
-EVAL(_d, val,  FMT_DOUBLE)
-EVAL(_f, val,  FMT_FLOAT)
-EVAL(_i, inum, FMT_INT)
-EVAL(_l, num,  FMT_LONG)
+EVAL(_d, dbl,  FMT_DOUBLE)
+EVAL(_f, dbl,  FMT_FLOAT)
+EVAL(_i, itg,  FMT_INT)
+EVAL(_l, lng,  FMT_LONG)
 EVAL(_s, sht,  FMT_SHORT)
 
 #undef EVAL /*                           } */
@@ -656,10 +656,10 @@ EVAL(_s, sht,  FMT_SHORT)
     } /* argeval##_suff##_prt         }{ */
 
 ARGEVAL(_c, chr, FMT_CHAR)   /* push local var onto stack */
-ARGEVAL(_d, val, FMT_DOUBLE)
+ARGEVAL(_d, dbl, FMT_DOUBLE)
 ARGEVAL(_f, flt, FMT_FLOAT)
-ARGEVAL(_i, inum, FMT_INT)
-ARGEVAL(_l, num, FMT_LONG)
+ARGEVAL(_i, itg, FMT_INT)
+ARGEVAL(_l, lng, FMT_LONG)
 ARGEVAL(_s, sht, FMT_SHORT)
 
 #undef EVAL /*                        } */
@@ -690,10 +690,10 @@ ARGEVAL(_s, sht, FMT_SHORT)
     } /* assign##_suff##_prt         }{ */
 
 ASSIGN(_c, chr,  FMT_CHAR)      /* assign top value to next value */
-ASSIGN(_d, val,  FMT_DOUBLE)
+ASSIGN(_d, dbl,  FMT_DOUBLE)
 ASSIGN(_f, flt,  FMT_FLOAT)
-ASSIGN(_i, inum, FMT_INT)
-ASSIGN(_l, num,  FMT_LONG)
+ASSIGN(_i, itg,  FMT_INT)
+ASSIGN(_l, lng,  FMT_LONG)
 ASSIGN(_s, sht,  FMT_SHORT)
 
 #undef ASSIGN /*                     } */
@@ -734,10 +734,10 @@ void arg_str_prog(const instr *i, Cell *pc, va_list args)
     } /* argassign##_suff##_prt         }{ */
 
 ARGASSIGN(_c, chr,  FMT_CHAR)   /* store top of stack in local var */
-ARGASSIGN(_d, val,  FMT_DOUBLE)
+ARGASSIGN(_d, dbl,  FMT_DOUBLE)
 ARGASSIGN(_f, flt,  FMT_FLOAT)
-ARGASSIGN(_i, inum, FMT_INT)
-ARGASSIGN(_l, num,  FMT_LONG)
+ARGASSIGN(_i, itg,  FMT_INT)
+ARGASSIGN(_l, lng,  FMT_LONG)
 ARGASSIGN(_s, sht,  FMT_SHORT)
 
 #undef ARGASSIGN /*                     } */
@@ -760,10 +760,10 @@ ARGASSIGN(_s, sht,  FMT_SHORT)
     } /* print##_suff##_prt         }{ */
 
 PRINT_INST(_c, chr,  FMT_CHAR)   /* pop top value from stack, print it */
-PRINT_INST(_d, val,  FMT_DOUBLE)
+PRINT_INST(_d, dbl,  FMT_DOUBLE)
 PRINT_INST(_f, flt,  FMT_FLOAT)
-PRINT_INST(_i, inum, FMT_INT)
-PRINT_INST(_l, num,  FMT_LONG)
+PRINT_INST(_i, itg,  FMT_INT)
+PRINT_INST(_l, lng,  FMT_LONG)
 PRINT_INST(_s, sht,  FMT_SHORT)
 
 #undef PRINT /*                     } */
@@ -771,9 +771,9 @@ PRINT_INST(_s, sht,  FMT_SHORT)
 void bltin0(const instr *i) /* evaluate built-in on top of stack */
 {
     Symbol *sym = pc[1].sym;
-    Cell    res = { .val = sym->ptr0() };
+    Cell    res = { .dbl = sym->ptr0() };
 
-    P_TAIL(": %s() -> %.8lg", sym->name, res.val);
+    P_TAIL(": %s() -> %.8lg", sym->name, res.dbl);
 
     push(res);
 
@@ -789,10 +789,10 @@ void bltin1(const instr *i) /* evaluate built-in with one argument */
 {
     Symbol *sym = pc[1].sym;
     Cell  p   = pop(),
-          res = { .val = sym->ptr1( p.val ) };
+          res = { .dbl = sym->ptr1( p.dbl ) };
 
     P_TAIL(": %s(%.8lg) -> %.8lg",
-        sym->name, p.val, res.val);
+        sym->name, p.dbl, res.dbl);
     push(res);
 
     UPDATE_PC();
@@ -808,10 +808,10 @@ void bltin2(const instr *i) /* evaluate built-in with two arguments */
     Symbol *sym = pc[1].sym;
     Cell    p2  = pop(),
             p1  = pop(),
-            res = { .val = sym->ptr2( p1.val, p2.val ) };
+            res = { .dbl = sym->ptr2( p1.dbl, p2.dbl ) };
 
     P_TAIL(": %s(%.8lg, %.8lg) -> %.8lg",
-        sym->name, p1.val, p2.val, res.val);
+        sym->name, p1.dbl, p2.dbl, res.dbl);
     push(res);
 
     UPDATE_PC();
@@ -915,8 +915,8 @@ void bltin_prt(const instr *i, const Cell *pc)
         PR("[%04x]\n", pc[0].param);                          \
     } /* _name##_prt                       }{*/
 
-AND_THEN_OR_ELSE(and_then, inum, ,   &&)
-AND_THEN_OR_ELSE(or_else,  inum, !,  ||)
+AND_THEN_OR_ELSE(and_then, itg,  ,  &&)
+AND_THEN_OR_ELSE(or_else,  itg, !,  ||)
 
 #undef AND_THEN_OR_ELSE /*                                       } */
 
@@ -1006,10 +1006,10 @@ void prexpr##_suffix##_prt(          \
 } /* prexpr##_suffix##_prt */
 
 PREXPR(_c, chr,  FMT_CHAR)   /* print numeric value */
-PREXPR(_d, val,  FMT_DOUBLE)
+PREXPR(_d, dbl,  FMT_DOUBLE)
 PREXPR(_f, flt,  FMT_FLOAT)
-PREXPR(_i, inum, FMT_INT)
-PREXPR(_l, num,  FMT_LONG)
+PREXPR(_i, itg,  FMT_INT)
+PREXPR(_l, lng,  FMT_LONG)
 PREXPR(_s, sht,  FMT_SHORT)
 
 void symbs(const instr *i)
@@ -1077,7 +1077,7 @@ void list_prt(const instr *i, const Cell *pc)
 void if_f_goto(const instr *i) /* jump if false */
 {
 
-    pc = pop().inum
+    pc = pop().itg
         ? pc + i->n_cells
         : prog + pc[0].param;
 
@@ -1200,35 +1200,35 @@ void move_sp_to_fp_prt(const instr *i, const Cell *pc)
         PR("\n");                             \
     } /* _name##_prt */
 
-CHG_TYPE(c2d, chr,  FMT_CHAR,   val,  FMT_DOUBLE) /* cast char to double */
+CHG_TYPE(c2d, chr,  FMT_CHAR,   dbl,  FMT_DOUBLE) /* cast char to double */
 CHG_TYPE(c2f, chr,  FMT_CHAR,   flt,  FMT_FLOAT)  /* cast char to float */
-CHG_TYPE(c2i, chr,  FMT_CHAR,   inum, FMT_INT)    /* cast char to int */
-CHG_TYPE(c2l, chr,  FMT_CHAR,   num,  FMT_LONG)   /* cast char to long */
+CHG_TYPE(c2i, chr,  FMT_CHAR,   itg,  FMT_INT)    /* cast char to int */
+CHG_TYPE(c2l, chr,  FMT_CHAR,   lng,  FMT_LONG)   /* cast char to long */
 CHG_TYPE(c2s, chr,  FMT_CHAR,   sht,  FMT_SHORT)  /* cast char to short */
-CHG_TYPE(d2c, val,  FMT_DOUBLE, chr,  FMT_CHAR)   /* cast double to char */
-CHG_TYPE(d2f, val,  FMT_DOUBLE, flt,  FMT_FLOAT)  /* cast double to float */
-CHG_TYPE(d2i, val,  FMT_DOUBLE, inum, FMT_INT)    /* cast double to int */
-CHG_TYPE(d2l, val,  FMT_DOUBLE, num,  FMT_LONG)   /* cast double to long */
-CHG_TYPE(d2s, val,  FMT_DOUBLE, sht,  FMT_SHORT)  /* cast double to short */
+CHG_TYPE(d2c, dbl,  FMT_DOUBLE, chr,  FMT_CHAR)   /* cast double to char */
+CHG_TYPE(d2f, dbl,  FMT_DOUBLE, flt,  FMT_FLOAT)  /* cast double to float */
+CHG_TYPE(d2i, dbl,  FMT_DOUBLE, itg,  FMT_INT)    /* cast double to int */
+CHG_TYPE(d2l, dbl,  FMT_DOUBLE, lng,  FMT_LONG)   /* cast double to long */
+CHG_TYPE(d2s, dbl,  FMT_DOUBLE, sht,  FMT_SHORT)  /* cast double to short */
 CHG_TYPE(f2c, flt,  FMT_FLOAT,  chr,  FMT_CHAR)   /* cast float to char */
-CHG_TYPE(f2d, flt,  FMT_FLOAT,  val,  FMT_DOUBLE) /* cast float to double */
-CHG_TYPE(f2i, flt,  FMT_FLOAT,  inum, FMT_INT)    /* cast float to int */
-CHG_TYPE(f2l, flt,  FMT_FLOAT,  num,  FMT_LONG)   /* cast float to long */
+CHG_TYPE(f2d, flt,  FMT_FLOAT,  dbl,  FMT_DOUBLE) /* cast float to double */
+CHG_TYPE(f2i, flt,  FMT_FLOAT,  itg,  FMT_INT)    /* cast float to int */
+CHG_TYPE(f2l, flt,  FMT_FLOAT,  lng,  FMT_LONG)   /* cast float to long */
 CHG_TYPE(f2s, flt,  FMT_FLOAT,  sht,  FMT_SHORT)  /* cast float to short */
-CHG_TYPE(i2c, inum, FMT_INT,    chr,  FMT_CHAR)   /* cast int to char */
-CHG_TYPE(i2d, inum, FMT_INT,    val,  FMT_DOUBLE) /* cast int to double */
-CHG_TYPE(i2f, inum, FMT_INT,    flt,  FMT_FLOAT)  /* cast int to float */
-CHG_TYPE(i2l, inum, FMT_INT,    num,  FMT_LONG)   /* cast int to long */
-CHG_TYPE(i2s, inum, FMT_INT,    sht,  FMT_SHORT)  /* cast int to short */
-CHG_TYPE(l2c, num,  FMT_LONG,   chr,  FMT_CHAR)   /* cast long to char */
-CHG_TYPE(l2d, num,  FMT_LONG,   val,  FMT_DOUBLE) /* cast long to double */
-CHG_TYPE(l2f, num,  FMT_LONG,   flt,  FMT_FLOAT)  /* cast long to float */
-CHG_TYPE(l2i, num,  FMT_LONG,   inum, FMT_INT)    /* cast long to int */
-CHG_TYPE(l2s, num,  FMT_LONG,   sht,  FMT_SHORT)  /* cast long to short */
+CHG_TYPE(i2c, itg,  FMT_INT,    chr,  FMT_CHAR)   /* cast int to char */
+CHG_TYPE(i2d, itg,  FMT_INT,    dbl,  FMT_DOUBLE) /* cast int to double */
+CHG_TYPE(i2f, itg,  FMT_INT,    flt,  FMT_FLOAT)  /* cast int to float */
+CHG_TYPE(i2l, itg,  FMT_INT,    lng,  FMT_LONG)   /* cast int to long */
+CHG_TYPE(i2s, itg,  FMT_INT,    sht,  FMT_SHORT)  /* cast int to short */
+CHG_TYPE(l2c, lng,  FMT_LONG,   chr,  FMT_CHAR)   /* cast long to char */
+CHG_TYPE(l2d, lng,  FMT_LONG,   dbl,  FMT_DOUBLE) /* cast long to double */
+CHG_TYPE(l2f, lng,  FMT_LONG,   flt,  FMT_FLOAT)  /* cast long to float */
+CHG_TYPE(l2i, lng,  FMT_LONG,   itg,  FMT_INT)    /* cast long to int */
+CHG_TYPE(l2s, lng,  FMT_LONG,   sht,  FMT_SHORT)  /* cast long to short */
 CHG_TYPE(s2c, sht,  FMT_SHORT,  chr,  FMT_CHAR)   /* cast short to char */
-CHG_TYPE(s2d, sht,  FMT_SHORT,  val,  FMT_DOUBLE) /* cast short to double */
+CHG_TYPE(s2d, sht,  FMT_SHORT,  dbl,  FMT_DOUBLE) /* cast short to double */
 CHG_TYPE(s2f, sht,  FMT_SHORT,  flt,  FMT_FLOAT)  /* cast short to float */
-CHG_TYPE(s2i, sht,  FMT_SHORT,  inum, FMT_INT)    /* cast short to int */
-CHG_TYPE(s2l, sht,  FMT_SHORT,  num,  FMT_LONG)   /* cast short to long */
+CHG_TYPE(s2i, sht,  FMT_SHORT,  itg,  FMT_INT)    /* cast short to int */
+CHG_TYPE(s2l, sht,  FMT_SHORT,  lng,  FMT_LONG)   /* cast short to long */
 
 #undef CHG_TYPE

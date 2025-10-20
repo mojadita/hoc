@@ -31,10 +31,10 @@ const char *printval##_suff(        \
 } /* printval##_suff */
 
 PRINTVAL(_c, chr,  FMT_CHAR)
-PRINTVAL(_d, val,  FMT_DOUBLE)
+PRINTVAL(_d, dbl,  FMT_DOUBLE)
 PRINTVAL(_f, flt,  FMT_FLOAT)
-PRINTVAL(_i, inum, FMT_INT)
-PRINTVAL(_l, num,  FMT_LONG)
+PRINTVAL(_i, itg,  FMT_INT)
+PRINTVAL(_l, lng,  FMT_LONG)
 PRINTVAL(_s, sht,  FMT_SHORT)
 
 /* types.c */

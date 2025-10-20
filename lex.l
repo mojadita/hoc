@@ -109,7 +109,7 @@ sufd        {flt}?
                     Cell  lit;                                            \
                                                                           \
                     /* OJO, p se inicializa en esta llamada */            \
-                    lit.num = strtoul(yytext, &p, _base);                 \
+                    lit.lng = strtoul(yytext, &p, _base);                 \
                                                                           \
                     /* comprobamos el siguiente caracter tras literal */  \
                     switch (toupper(*p)) {                                \
@@ -119,12 +119,12 @@ sufd        {flt}?
                         tok = LONG; break;                                \
                                                                           \
                     case 'H':                                             \
-                        lit.sht = lit.num;                                \
+                        lit.sht = lit.lng;                                \
                         P("short " FMT_SHORT " (%d)\n", lit.sht, SHORT);  \
                         tok = SHORT; break;                               \
                                                                           \
                     default:                                              \
-                        lit.inum = lit.num;                               \
+                        lit.itg = lit.lng;                               \
                         P("integer " FMT_INT " (%d)\n", lit.inum, INTEGER);\
                         break;                                            \
                     }                                                     \
@@ -230,7 +230,7 @@ sufd        {flt}?
                     break;
 
                 default:
-                    yylval.lit.val = lit;
+                    yylval.lit.dbl = lit;
                     P("double " FMT_DOUBLE " (%d)\n", yylval.lit.val, tok);
                     break;
                 }
