@@ -115,7 +115,7 @@ sufd        {flt}?
                     switch (toupper(*p)) {                                \
                                                                           \
                     case 'L':                                             \
-                        P("long " FMT_LONG " (%d)\n", lit.num, LONG);     \
+                        P("long " FMT_LONG " (%d)\n", lit.lng, LONG);     \
                         tok = LONG; break;                                \
                                                                           \
                     case 'H':                                             \
@@ -125,7 +125,7 @@ sufd        {flt}?
                                                                           \
                     default:                                              \
                         lit.itg = lit.lng;                               \
-                        P("integer " FMT_INT " (%d)\n", lit.inum, INTEGER);\
+                        P("integer " FMT_INT " (%d)\n", lit.itg, INTEGER);\
                         break;                                            \
                     }                                                     \
                                                                           \
@@ -231,7 +231,7 @@ sufd        {flt}?
 
                 default:
                     yylval.lit.dbl = lit;
-                    P("double " FMT_DOUBLE " (%d)\n", yylval.lit.val, tok);
+                    P("double " FMT_DOUBLE " (%d)\n", yylval.lit.dbl, tok);
                     break;
                 }
 
