@@ -14,36 +14,36 @@
 
 /* ONE PARAMETER FUNCTIONS */
 
-#define DOUBLE_F( /*                     { */\
-        _rfld, /* result field */            \
-        _name, /* builtin name */            \
-        _func) /* funct to call */           \
-void _name##_cb(int plugin_id)               \
-{                                            \
-    double par    = pop().val;               \
-    Cell   result = { ._rfld = _func(par) }; \
-    push(result);                            \
+#define DOUBLE_F( /*                     { */      \
+        _rfld, /* result field */                  \
+        _name, /* builtin name */                  \
+        _func) /* funct to call */                 \
+void _name##_cb(int plugin_id)                     \
+{                                                  \
+    Cell   par    = pop();                         \
+    Cell   result = { ._rfld = _func(par._rfld) }; \
+    push(result);                                  \
 } /* _name##_cb                          }{ */
 
-DOUBLE_F(val, abs,   fabs)
-DOUBLE_F(val, acos,  acos)
-DOUBLE_F(val, acosh, acosh)
-DOUBLE_F(val, asin,  asin)
-DOUBLE_F(val, asinh, asinh)
-DOUBLE_F(val, atan,  atan)
-DOUBLE_F(val, atanh, atanh)
-DOUBLE_F(val, cos,   cos)
-DOUBLE_F(val, cosh,  cosh)
-DOUBLE_F(val, exp,   exp)
-DOUBLE_F(val, inv,   1.0/)
-DOUBLE_F(val, log,   log)
-DOUBLE_F(val, log10, log10)
-DOUBLE_F(val, ops,   - )
-DOUBLE_F(val, sin,  sin)
-DOUBLE_F(val, sinh, sinh)
-DOUBLE_F(val, sqrt, sqrt)
-DOUBLE_F(val, tan,  tan)
-DOUBLE_F(val, tanh, tanh)
+DOUBLE_F(dbl, abs,   fabs)
+DOUBLE_F(dbl, acos,  acos)
+DOUBLE_F(dbl, acosh, acosh)
+DOUBLE_F(dbl, asin,  asin)
+DOUBLE_F(dbl, asinh, asinh)
+DOUBLE_F(dbl, atan,  atan)
+DOUBLE_F(dbl, atanh, atanh)
+DOUBLE_F(dbl, cos,   cos)
+DOUBLE_F(dbl, cosh,  cosh)
+DOUBLE_F(dbl, exp,   exp)
+DOUBLE_F(dbl, inv,   1.0/)
+DOUBLE_F(dbl, log,   log)
+DOUBLE_F(dbl, log10, log10)
+DOUBLE_F(dbl, ops,   - )
+DOUBLE_F(dbl, sin,  sin)
+DOUBLE_F(dbl, sinh, sinh)
+DOUBLE_F(dbl, sqrt, sqrt)
+DOUBLE_F(dbl, tan,  tan)
+DOUBLE_F(dbl, tanh, tanh)
 
 #undef DOUBLE_F /*                       } */
 
@@ -51,19 +51,19 @@ DOUBLE_F(val, tanh, tanh)
 #define DOUBLE_F2(_name, _expr) /*       { */\
 void _name##_cb(int plugin_id)              \
 {                                           \
-    double    x = pop().val,                \
-              y = pop().val;                \
-    Cell result = { .val  = _name _expr };  \
+    double    x = pop().dbl,                \
+              y = pop().dbl;                \
+    Cell result = { .dbl  = _name _expr };  \
                                             \
     push(result); /*                     }{ */\
 } /* _name##_cb */
 
 void mod_cb(int plugin_id)
 {
-    double y = pop().val,
-           x = pop().val;
+    double y = pop().dbl,
+           x = pop().dbl;
     int    i = x / y;
-    Cell   result = { .val = x - i * y };
+    Cell   result = { .dbl = x - i * y };
 
     push(result);
 } /* mod_cb */
@@ -78,14 +78,19 @@ DOUBLE_F2(pow,   (x, y))
 
 void random_cb(int plugin_id)
 {
-    Cell result = { .num = random() };
+    Cell result = { .lng = random() };
     push(result);
 }
 
 void time_cb(int plugin_id)
 {
-    Cell result = { .num = time(NULL) };
+    Cell result = { .lng = time(NULL) };
     push(result);
+}
+
+void exit_cb(int plugin_id)
+{
+	exit(pop().itg);
 }
 
 /* La rutina que dlopen() ejecuta automaticamente se llama
@@ -124,6 +129,7 @@ int _init()
     REGISTER_BUILTIN(Double,  tan,   "x", Double);
     REGISTER_BUILTIN(Double,  tanh,  "x", Double);
     REGISTER_BUILTIN(Long,    time);
+    REGISTER_BUILTIN(NULL,    exit, "x", Integer);
 
     return 0;
 } /* _init() */

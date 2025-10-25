@@ -20,7 +20,7 @@ LDFLAGS           = $(LDFLAGS-$(DEBUG-TYPE))
 LIBS             ?= -lm
 
 RM               ?= rm -f
-targets           = hoc hoc.1.gz ack
+targets           = hoc hoc.1.gz ack plugin0.so
 plugins           = plugin0.so
 toclean          += $(targets)
 
@@ -56,6 +56,9 @@ hoc_libs-FreeBSD   =
 hoc_libs           = $(hoc_libs-$(OS))
 toclean           += hoc.o
 
+plugin0.so_objs    = plugin0.pico
+plugin0.so_ldfl    = -shared
+toclean           += $(plugin0.so_objs)
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets) $(plugins)
@@ -84,54 +87,31 @@ clean:
 hoc hoc.out: $(hoc_objs)
 	$(CC) $(LDFLAGS) $($@_ldfl) -o $@ $(hoc_objs) $(hoc_libs) $(LIBS)
 
+plugin0.so: $(plugin0.so_deps) $(plugin0.so_objs)
+	$(LD) $(LDFLAGS) $($@_ldfl) $($@_objs) -o $@
+
 type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
 toclean += type2inst.c
 
 # REGLAS IMPLICITAS
 
-.pico.so:
-	$(LD) $(LDFLAGS) $($@_cflgs) -shared $< -o $@
 .c.pico:
 	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -c $< -o $@
 
 
 hoc.tab.h hoc.c: hoc.y
 	$(YACC) -d $?
-	cp y.tab.c hoc.c
-	cp y.tab.h hoc.tab.h
-	...
-	rm -f y.tab.[ch]
+	mv y.tab.c hoc.c
+	mv y.tab.h hoc.tab.h
 toclean += hoc.tab.h hoc.c
 
 hoc.1: hoc.1.in config.mk
 toclean += hoc.1
 
-# ack.c code.c do_help.c error.c
-# hoc.c init.c instr.c lex.c main.c math.c
-# reserved_words.c symbol.c yylex.c
+plugin0.pico: plugin0.c plugins.h builtins.h \
+  instr.h instrucciones.h cell.h symbol.h \
+  types.h config.h cellP.h code.h hoc.h lex.h \
+  hoc.tab.h
 
-ack.o: ack.c 
-code.o: code.c config.h colors.h hoc.h instr.h \
-  instrucciones.h hoc.tab.h code.h
-do_help.o: do_help.c config.h do_help.h
-error.o: error.c config.h colors.h hoc.h instr.h \
-  instrucciones.h error.h
-hoc.o: hoc.c config.h colors.h hoc.h instr.h \
-  instrucciones.h error.h math.h code.h 
-init.o: init.c config.h hoc.h instr.h \
-  instrucciones.h hoc.tab.h math.h code.h
-instr.o: instr.c code.h hoc.h instr.h \
-  instrucciones.h
-lex.o: lex.c config.h hoc.h instr.h \
-  instrucciones.h hoc.tab.h code.h \
-  reserved_words.h 
-main.o: main.c config.h colors.h do_help.h hoc.h \
-  instr.h instrucciones.h code.h
-math.o: math.c error.h
-reserved_words.o: reserved_words.c hoc.h instr.h \
-  instrucciones.h hoc.tab.h reserved_words.h
-symbol.o: symbol.c hoc.h instr.h instrucciones.h \
-  config.h colors.h hoc.tab.h
-yylex.o: yylex.c hoc.h instr.h \
-  instrucciones.h hoc.tab.h
+-include .depend

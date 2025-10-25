@@ -207,7 +207,7 @@ size_t size_lvars = 0;
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_subr builtin_func
+%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_proc builtin_func
 %type  <str>  lvar_valid_ident gvar_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
@@ -308,7 +308,7 @@ stmt
                              END_PATCHING_CODE();
                            }
 
-    | builtin_subr mark '(' arglist_opt ')' {
+    | builtin_proc mark '(' arglist_opt ')' ';' {
                              $$ = $2;
                              if ($4 != $1->argums_len) {
                                  execerror(" " BRIGHT GREEN "%s"
@@ -351,7 +351,7 @@ stmt
                            }
     ;
 
-builtin_subr
+builtin_proc
     : BLTIN_PROC           { push_sub_call_stack($1); }
     ;
 
