@@ -14,6 +14,21 @@
 
 /* ONE PARAMETER FUNCTIONS */
 
+/* this macro expands to a generic builtin call of
+ * one parameter (of any type, expressed by the _rfld
+ * macro parameter) and one result (of the same type)
+ * and calls the function internally, extracting the
+ * parameter from the hoc stack, and pushing in the
+ * stack the result value.
+ * Example:
+ * DOUBLE_F(dbl, sin, sin) -->
+ * void sin_cb(int plugin_id)
+ * {
+ *     Cell par = pop();
+ *     Cell result = { .dbl = sin(par.dbl) };  <-- result is calculated here
+ *     push(result);
+ * } / * sin_cb * /
+ */
 #define DOUBLE_F( /*                     { */      \
         _rfld, /* result field */                  \
         _name, /* builtin name */                  \
@@ -58,19 +73,9 @@ void _name##_cb(int plugin_id)              \
     push(result); /*                     }{ */\
 } /* _name##_cb */
 
-void mod_cb(int plugin_id)
-{
-    double y = pop().dbl,
-           x = pop().dbl;
-    int    i = x / y;
-    Cell   result = { .dbl = x - i * y };
-
-    push(result);
-} /* mod_cb */
-
-
 DOUBLE_F2(atan2, (y, x))
 DOUBLE_F2(pow,   (x, y))
+DOUBLE_F2(fmod,  (y, x))
 
 #undef DOUBLE_F2 /*                      } */
 
@@ -90,7 +95,12 @@ void time_cb(int plugin_id)
 
 void exit_cb(int plugin_id)
 {
-	exit(pop().itg);
+    exit(pop().itg);
+}
+
+void srandom_cb(int plugin_id)
+{
+    srandom(pop().itg);
 }
 
 /* La rutina que dlopen() ejecuta automaticamente se llama
@@ -119,13 +129,14 @@ int _init()
     REGISTER_BUILTIN(Double,  inv,   "x", Double);
     REGISTER_BUILTIN(Double,  log,   "x", Double);
     REGISTER_BUILTIN(Double,  log10, "x", Double);
-    REGISTER_BUILTIN(Double,  mod,   "x", Double, "y", Double);
+    REGISTER_BUILTIN(Double,  fmod,  "y", Double, "x", Double);
     REGISTER_BUILTIN(Double,  ops,   "x", Double);
     REGISTER_BUILTIN(Double,  pow,   "x", Double, "y", Double);
     REGISTER_BUILTIN(Long,    random);
     REGISTER_BUILTIN(Double,  sin,   "x", Double);
     REGISTER_BUILTIN(Double,  sinh,  "x", Double);
     REGISTER_BUILTIN(Double,  sqrt,  "x", Double);
+    REGISTER_BUILTIN(NULL,    srandom, "x", Integer);
     REGISTER_BUILTIN(Double,  tan,   "x", Double);
     REGISTER_BUILTIN(Double,  tanh,  "x", Double);
     REGISTER_BUILTIN(Long,    time);

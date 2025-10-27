@@ -20,9 +20,9 @@ LDFLAGS           = $(LDFLAGS-$(DEBUG-TYPE))
 LIBS             ?= -lm
 
 RM               ?= rm -f
-targets           = hoc hoc.1.gz ack plugin0.so
+targets           = hoc hoc.1.gz ack
 plugins           = plugin0.so
-toclean          += $(targets)
+toclean          += $(targets) $(plugins)
 
 WHICH_LEX	     ?= lex.o
 
