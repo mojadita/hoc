@@ -128,7 +128,7 @@ void init_plugins(void)
     if (d == NULL) {
         fprintf(stderr,
                 "directorio %s: %s\n",
-                pkglibdir,
+                pkgactivepluginsdir,
                 strerror(errno));
         return;
     }

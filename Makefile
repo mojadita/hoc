@@ -24,9 +24,8 @@ targets           = hoc hoc.1.gz ack
 plugins           = plugin0.so
 toclean          += $(targets) $(plugins)
 
-WHICH_LEX	     ?= lex.o
-
 .SUFFIXES: .out .so .o .pico .c .l .y
+.PHONY: clean install uninstal deinstall
 
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
@@ -36,28 +35,28 @@ GRP-FreeBSD   ?= wheel
 
 FMOD          ?= 0644
 XMOD          ?= 0755
+DMOD          ?= 0755
 
 INSTALL       ?= install
 IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall     ?= $(bindir)/hoc \
                  $(man1dir)/hoc.1.gz \
-				 $(pkglibdir)/plugin0.so
+                 $(pkglibdir)/plugin0.so \
+                 $(pkgactivepluginsdir)
 
-common_objs    = symbol.o init.o error.o math.o code.o $(WHICH_LEX) \
-                reserved_words.o main.o do_help.o instr.o scope.o \
-				intern.o type2inst.o types.o builtins.o
-toclean       += $(common_objs) lex.c
-
-hoc_objs           = hoc.o $(common_objs)
+hoc_deps           =
+hoc_objs           = hoc.o symbol.o init.o error.o math.o code.o lex.o \
+                     reserved_words.o main.o do_help.o instr.o scope.o \
+                     intern.o type2inst.o types.o builtins.o
 hoc_ldfl           = -Wl,--export-dynamic
 hoc_libs-GNU/Linux = -ldl
 hoc_libs-FreeBSD   =
 hoc_libs           = $(hoc_libs-$(OS))
-toclean           += hoc.o
+toclean           += $(hoc_objs) lex.c
 
 plugin0.so_objs    = plugin0.pico
-plugin0.so_ldfl    = -shared
+plugin0.so_ldfl    = -shared -soname=plugin0.so
 toclean           += $(plugin0.so_objs)
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
@@ -72,14 +71,16 @@ install: $(toinstall)
 uninstall:
 	$(RM) $(toinstall)
 
-$(bindir)/hoc: hoc
-	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
+$(bindir)/hoc \
+$(pkglibdir)/plugin0.so: $(@:T) $(@:H)
+	-$(INSTALL) $(IFLAGS) -m $(XMOD) $(@:T) $@
 
-$(man1dir)/hoc.1.gz: hoc.1.gz
-	-$(INSTALL) $(IFLAGS) -m $(FMOD) $? $@
+$(man1dir)/hoc.1.gz: $(@:T)
+	-$(INSTALL) $(IFLAGS) -m $(FMOD) $(@:T) $@
 
-$(pkglibdir)/plugin0.so: plugin0.so
-	-$(INSTALL) $(IFLAGS) -m $(XMOD) $? $@
+$(pkgactivepluginsdir) \
+$(pkglibdir):
+	-$(INSTALL) $(IFLAGS) -m $(DMOD) -d $@
 
 clean:
 	$(RM) $(toclean)

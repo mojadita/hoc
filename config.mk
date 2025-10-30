@@ -25,6 +25,7 @@ sbindir                  ?= $(exec_prefix)/sbin
 datarootdir              ?= $(prefix)/share
 pkgdatadir               ?= $(datarootdir)/$(PACKAGE)
 pkglibdir                ?= $(pkgdatadir)/plugins
+pkgactivepluginsdir      ?= $(pkglibdir)/active
 mandir                   ?= $(datarootdir)/man
 man8dir                  ?= $(mandir)/man8
 man1dir                  ?= $(mandir)/man1
