@@ -25,9 +25,6 @@ struct Symbol_s {                         /* Symbol table entry */
                                            * variable/func/builtin... */
     union {
         Cell       cel;                   /* si el tipo es CONST */
-        double   (*ptr0)(void);           /* si el tipo es BLTIN0 */
-        double   (*ptr1)(double);         /* si el tipo es BLTIN1 */
-        double   (*ptr2)(double, double); /* si el tipo es BLTIN2 */
         struct {                          /* si el tipo es FUNC, PROC o
                                            * VAR o BLTIN_PROC o BLTIN_FUNC */
             Cell       *defn;             /* donde empieza el codigo de la funcion */

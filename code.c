@@ -768,60 +768,6 @@ PRINT_INST(_s, sht,  FMT_SHORT)
 
 #undef PRINT /*                     } */
 
-void bltin0(const instr *i) /* evaluate built-in on top of stack */
-{
-    Symbol *sym = pc[1].sym;
-    Cell    res = { .dbl = sym->ptr0() };
-
-    P_TAIL(": %s() -> %.8lg", sym->name, res.dbl);
-
-    push(res);
-
-    UPDATE_PC();
-}
-
-void bltin0_prt(const instr *i, const Cell *pc)
-{
-    PR("%s\n", pc[1].sym->help);
-}
-
-void bltin1(const instr *i) /* evaluate built-in with one argument */
-{
-    Symbol *sym = pc[1].sym;
-    Cell  p   = pop(),
-          res = { .dbl = sym->ptr1( p.dbl ) };
-
-    P_TAIL(": %s(%.8lg) -> %.8lg",
-        sym->name, p.dbl, res.dbl);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void bltin1_prt(const instr *i, const Cell *pc)
-{
-    PR("%s\n", pc[1].sym->help);
-}
-
-void bltin2(const instr *i) /* evaluate built-in with two arguments */
-{
-    Symbol *sym = pc[1].sym;
-    Cell    p2  = pop(),
-            p1  = pop(),
-            res = { .dbl = sym->ptr2( p1.dbl, p2.dbl ) };
-
-    P_TAIL(": %s(%.8lg, %.8lg) -> %.8lg",
-        sym->name, p1.dbl, p2.dbl, res.dbl);
-    push(res);
-
-    UPDATE_PC();
-}
-
-void bltin2_prt(const instr *i, const Cell *pc)
-{
-    PR("%s\n", pc[1].sym->help);
-}
-
 void bltin(const instr *i)
 {
     int bltin_id = pc[0].param;
