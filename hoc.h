@@ -44,6 +44,11 @@ typedef struct expr_s {
     const Symbol *typ;
 } Expr;
 
+typedef struct const_expr_s {
+    Cell          cel;
+    const Symbol *typ;
+} ConstExpr;
+
 typedef struct OpRel_s {
     Cell         *start;
     token         tok;

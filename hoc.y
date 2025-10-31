@@ -182,6 +182,7 @@ size_t size_lvars = 0;
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
     Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
+    ConstExpr     const_expr; /* tipo de una expresion constante */
     token         tok;  /* tipo asociado a un operador, con todo el token */
     OpRel         opr;  /* tipo del operador relacional. */
 }
@@ -213,6 +214,9 @@ size_t size_lvars = 0;
 %type  <vi>   gvar_init lvar_init
 %type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign bitop_assign '&' '|' '^' '~'
 %type  <opr>  op_rel op_sum op_mul op_exp binop_bitor binop_bitxor binop_bitand binop_shift
+%type  <const_expr> const_prim const_fact const_term const_expr_arit const_expr_rel
+%type  <const_expr> const_expr_shift const_expr_bitand const_expr_bitxor const_expr_bitor
+%type  <const_expr> const_expr_and const_expr
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -517,6 +521,65 @@ lvar_definable_ident
     | LVAR
     ;
 
+// /* DECLARACION DE CONSTANTES LOCALES/GLOBALES { */
+//
+// const_decl :  const_decl_list ';'
+//     ;
+//
+// const_decl_list
+//     : const_decl_list ',' const_init  {
+//
+//                                       $$ = $1;
+//                                       if ($$.start == NULL && $3.start != NULL) {
+//                                           $$.start = $3.start;
+//                                       }
+//
+//                                       /* see macro definition in
+//                                        * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+//                                        * above */
+//                                       DO_VAR_REGISTRATION(
+//                                             $$.type_decl,
+//                                             register_local_const,
+//                                             $3.name,
+//                                             $3.type_expr_init,
+//                                             $3.start);
+//                                     }
+//
+//     | TYPE const_init                { $$.type_decl = $1;
+//                                       $$.start     = $2.start;
+//
+//                                       /* see macro definition in
+//                                        * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+//                                        * above */
+//                                       DO_VAR_REGISTRATION(
+//                                             $$.type_decl,
+//                                             register_local_const,
+//                                             $2.name,
+//                                             $2.type_expr_init,
+//                                             $2.start);
+//                                     }
+//     ;
+//
+// const_init
+//     : const_valid_ident '=' const_expr {
+//                                   $$.name           = $1;
+//                                   $$.start          = $3.cel;
+//                                   $$.type_expr_init = $3.typ; }
+//     ;
+//
+// const_valid_ident
+//     : UNDEF
+//     | const_definable_ident { $$ = $1->name; }
+//     ;
+//
+// const_definable_ident
+//     : VAR
+//     | LVAR
+//     ;
+//
+// /* LCU: Fri Oct 31 13:29:27 -05 2025
+//  * TODO: voy por aqui  } */
+
 do  :  /* empty */         {
                              BEGIN_UNPATCHED_CODE();
                                  $$ = CODE_INST(if_f_goto, prog);
@@ -758,6 +821,11 @@ expr_or
     | expr_and
     ;
 
+const_expr
+    : const_expr_and OR const_expr
+    | const_expr_and
+    ;
+
 expr_or_left
     : expr_and             { TOBOOL($1.typ); }
     ;
@@ -810,6 +878,11 @@ and : AND                  {
                            }
     ;
 
+const_expr_and
+    : const_expr_bitor AND const_expr_and
+    | const_expr_bitor
+    ;
+
 expr_bitor
     : expr_bitor binop_bitor expr_bitxor {
 
@@ -845,12 +918,23 @@ binop_bitor
     : '|'                   { $$ = code_unpatched_op($1); }
     ;
 
+const_expr_bitor
+    : const_expr_bitor '|' const_expr_bitxor
+    | const_expr_bitxor
+    ;
+
+
 expr_bitxor
     : expr_bitxor binop_bitxor expr_bitand {
                               BITOP();
                               CODE_INST_TYP($$.typ, bit_xor);
                             }
     | expr_bitand
+    ;
+
+const_expr_bitxor
+    : const_expr_bitxor '^' const_expr_bitand
+    | const_expr_bitand
     ;
 
 binop_bitxor
@@ -863,6 +947,11 @@ expr_bitand
                               CODE_INST_TYP($$.typ, bit_and);
                             }
     | expr_shift
+    ;
+
+const_expr_bitand
+    : const_expr_bitand '&' const_expr_shift
+    | const_expr_shift
     ;
 
 binop_bitand
@@ -879,6 +968,12 @@ expr_shift
                               } /* switch */
                             }
     | expr_rel
+    ;
+
+const_expr_shift
+    : const_expr_shift SHIFT_LEFT  const_expr_rel
+    : const_expr_shift SHIFT_RIGHT const_expr_rel
+    | const_expr_rel
     ;
 
 binop_shift
@@ -903,6 +998,11 @@ expr_rel
     | expr_arit
     ;
 
+const_expr_rel
+    : const_expr_rel const_op_rel const_expr_arit
+    | const_expr_arit
+    ;
+
 op_rel
     : '<'                   { $$ = code_unpatched_op($1); }
     | '>'                   { $$ = code_unpatched_op($1); }
@@ -910,6 +1010,15 @@ op_rel
     | NE                    { $$ = code_unpatched_op($1); }
     | GE                    { $$ = code_unpatched_op($1); }
     | LE                    { $$ = code_unpatched_op($1); }
+    ;
+
+const_op_rel
+    : '<'
+    | '>'
+    | EQ
+    | NE
+    | GE
+    | LE
     ;
 
 expr_arit
@@ -931,9 +1040,19 @@ expr_arit
     | term
     ;
 
+const_expr_arit
+    : const_expr_arit const_op_sum const_term
+    | const_term
+    ;
+
 op_sum
     : '+'                   { $$ = code_unpatched_op($1); }
     | '-'                   { $$ = code_unpatched_op($1); }
+    ;
+
+const_op_sum
+    : '+'
+    | '-'
     ;
 
 term
@@ -952,10 +1071,21 @@ term
     | fact
     ;
 
+const_term
+    : const_term const_op_mul const_fact
+    | const_fact
+    ;
+
 op_mul
     : '*'                   { $$ = code_unpatched_op($1); }
     | '/'                   { $$ = code_unpatched_op($1); }
     | '%'                   { $$ = code_unpatched_op($1); }
+    ;
+
+const_op_mul
+    : '*'
+    | '/'
+    | '%'
     ;
 
 fact: prim op_exp fact      {
@@ -966,6 +1096,11 @@ fact: prim op_exp fact      {
                               CODE_INST_TYP($$.typ, pwr);
                             }
     | prim
+    ;
+
+const_fact
+    : const_prim EXP const_fact
+    | const_prim
     ;
 
 op_exp
@@ -1144,6 +1279,22 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
                               pop_sub_call_stack();
                             }
+    ;
+
+const_prim
+    : '(' TYPE ')' const_prim
+    | '(' const_expr ')'
+    | FLOAT
+    | DOUBLE
+    | CHAR
+    | SHORT
+    | INTEGER
+    | LONG
+    | '!' const_prim
+    | '~' prim
+    | '+' prim
+    | '-' prim
+    | CONST
     ;
 
 builtin_func
