@@ -258,7 +258,7 @@ error_end
     ;
 
 stmt
-    : ';'                  { $$ = progp; } /* null statement */
+    :             ';'      { $$ = progp; } /* null statement */
     | expr        ';'      { $$ = $1.cel;
                              CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE),
@@ -464,7 +464,6 @@ lvar_decl :  lvar_decl_list ';'
 
 lvar_decl_list
     : lvar_decl_list ',' lvar_init  {
-
                                       $$ = $1;
                                       if ($$.start == NULL && $3.start != NULL) {
                                           $$.start = $3.start;
@@ -1099,7 +1098,8 @@ fact: prim op_exp fact      {
     ;
 
 const_fact
-    : const_prim EXP const_fact
+    : const_prim EXP const_fact {
+                            }
     | const_prim
     ;
 
@@ -1283,18 +1283,75 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
 
 const_prim
     : '(' TYPE ')' const_prim
-    | '(' const_expr ')'
-    | FLOAT
-    | DOUBLE
-    | CHAR
-    | SHORT
-    | INTEGER
-    | LONG
-    | '!' const_prim
-    | '~' prim
-    | '+' prim
-    | '-' prim
-    | CONST
+                            { $$.cel = const_conv_val($4.typ, $2, $4.cel);
+                              $$.typ = $2; }
+    | '(' const_expr ')'    { $$     = $2; }
+    | FLOAT                 { $$.cel = $1;
+                              $$.typ = Float; }
+    | DOUBLE                { $$.cel = $1;
+                              $$.typ = Double; }
+    | CHAR                  { $$.cel = $1;
+                              $$.typ = Char; }
+    | SHORT                 { $$.cel = $1;
+                              $$.typ = Short; }
+    | INTEGER               { $$.cel = $1;
+                              $$.typ = Integer; }
+    | LONG                  { $$.cel = $1;
+                              $$.typ = Long; }
+    | '!' const_prim        { $$.typ = Integer;
+                              if        ($$.typ == Char) {
+                                  $$.cel.itg = ! $2.cel.chr;
+                              } else if ($$.typ == Short) {
+                                  $$.cel.itg = ! $2.cel.sht;
+                              } else if ($$.typ == Integer) {
+                                  $$.cel.itg = ! $2.cel.itg;
+                              } else if ($$.typ == Long) {
+                                  $$.cel.itg = ! $2.cel.lng;
+                              } else if ($$.typ == Float) {
+                                  $$.cel.itg = ! $2.cel.flt;
+                              } else if ($$.typ == Double) {
+                                  $$.cel.itg = ! $2.cel.dbl;
+                              } else {
+                                  execerror(GREEN "%s" ANSI_END " invalid",
+                                          $2.typ->name);
+                              }
+                            }
+    | '~' const_prim        { $$ = $2;
+                              if        ($$.typ == Char) {
+                                  $$.cel.chr = ~ $2.cel.chr;
+                              } else if ($$.typ == Short) {
+                                  $$.cel.sht = ~ $2.cel.sht;
+                              } else if ($$.typ == Integer) {
+                                  $$.cel.itg = ~ $2.cel.itg;
+                              } else if ($$.typ == Long) {
+                                  $$.cel.lng = ~ $2.cel.lng;
+                              } else {
+                                  execerror(GREEN "%s" ANSI_END " invalid",
+                                          $2.typ->name);
+                              }
+                            }
+    | '+' const_prim        { $$     = $2; }
+    | '-' const_prim        { $$     = $2;
+                              if        ($$.typ == Char) {
+                                  $$.cel.chr = - $2.cel.chr;
+                              } else if ($$.typ == Short) {
+                                  $$.cel.sht = - $2.cel.sht;
+                              } else if ($$.typ == Integer) {
+                                  $$.cel.itg = - $2.cel.itg;
+                              } else if ($$.typ == Long) {
+                                  $$.cel.lng = - $2.cel.lng;
+                              } else if ($$.typ == Float) {
+                                  $$.cel.flt = - $2.cel.flt;
+                              } else if ($$.typ == Double) {
+                                  $$.cel.dbl = - $2.cel.dbl;
+                              } else {
+                                  execerror(GREEN "%s" ANSI_END " invalid",
+                                          $2.typ->name);
+                              }
+                            }
+    | CONST                 { $$.typ = $1->typref;
+                              $$.cel = $1->cel;
+                            }
     ;
 
 builtin_func
@@ -1491,6 +1548,67 @@ void pop_sub_call_stack(void)
 {
     --sub_call_stack_len;
 }
+
+Cell
+const_conv_val(
+        const Symbol *t_src,
+        const Symbol *t_dst,
+        Cell orig)
+{
+    if (t_src != t_dst) {
+        if          (t_src == Char) {
+            if      (t_dst == Double)  orig.dbl = orig.chr;
+            else if (t_dst == Float)   orig.flt = orig.chr;
+            else if (t_dst == Integer) orig.itg = orig.chr;
+            else if (t_dst == Long)    orig.lng = orig.chr;
+            else if (t_dst == Short)   orig.sht = orig.chr;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Double) {
+            if      (t_dst == Char)    orig.chr = orig.dbl;
+            else if (t_dst == Float)   orig.flt = orig.dbl;
+            else if (t_dst == Integer) orig.itg = orig.dbl;
+            else if (t_dst == Long)    orig.lng = orig.dbl;
+            else if (t_dst == Short)   orig.sht = orig.dbl;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Float) {
+            if      (t_dst == Char)    orig.chr = orig.flt;
+            else if (t_dst == Double)  orig.dbl = orig.flt;
+            else if (t_dst == Integer) orig.itg = orig.flt;
+            else if (t_dst == Long)    orig.lng = orig.flt;
+            else if (t_dst == Short)   orig.sht = orig.flt;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Integer) {
+            if      (t_dst == Char)    orig.chr = orig.itg;
+            else if (t_dst == Double)  orig.dbl = orig.itg;
+            else if (t_dst == Float)   orig.flt = orig.itg;
+            else if (t_dst == Long)    orig.lng = orig.itg;
+            else if (t_dst == Short)   orig.sht = orig.itg;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Long) {
+            if      (t_dst == Char)    orig.chr = orig.lng;
+            else if (t_dst == Double)  orig.dbl = orig.lng;
+            else if (t_dst == Float)   orig.flt = orig.lng;
+            else if (t_dst == Integer) orig.itg = orig.lng;
+            else if (t_dst == Short)   orig.sht = orig.lng;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else if   (t_src == Short) {
+            if      (t_dst == Char)    orig.chr = orig.sht;
+            else if (t_dst == Double)  orig.dbl = orig.sht;
+            else if (t_dst == Float)   orig.flt = orig.sht;
+            else if (t_dst == Integer) orig.itg = orig.sht;
+            else if (t_dst == Long)    orig.lng = orig.sht;
+            else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+        } else execerror("Bad conversion from %s to %s",
+                    t_src->name, t_dst->name);
+    } /* if */
+    return orig;
+} /* const_conv_val */
 
 bool
 code_conv_val(

@@ -9,11 +9,11 @@
  * digits it has. */
 func int narcissistic(long num, int n) \
 {
-    int renum = num, \
-        sum   = 0,   \
-        digit;
+    long renum = num, \
+         sum   = 0,   \
+         digit;
 
-    while (renum != 0 && sum <= num) {
+    while (renum > 0 && sum <= num) {
         digit  = renum % 10;
         renum -= digit;
         renum /= 10;
@@ -21,3 +21,16 @@ func int narcissistic(long num, int n) \
     }
     return sum == num;
 } /* narcissistic */
+
+proc search_narcis (int n_dig) {
+    int start = 10^^(n_dig - 1), end  = 10^^n_dig - 1, i = start;
+
+    while (i <= end) {
+        if (narcissistic(i, n_dig)) {
+            print i, "\n";
+        }
+        ++i;
+    }
+    print "Z'acabo!!\n";
+    # list;
+}

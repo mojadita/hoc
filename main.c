@@ -124,11 +124,12 @@ static void process(FILE *in)
 
 void init_plugins(void)
 {
-    DIR *d = opendir(pkglibdir);
+    const char *plugins_dir = pkgactivepluginsdir;
+    DIR *d = opendir(plugins_dir);
     if (d == NULL) {
         fprintf(stderr,
                 "directorio %s: %s\n",
-                pkgactivepluginsdir,
+                plugins_dir,
                 strerror(errno));
         return;
     }
