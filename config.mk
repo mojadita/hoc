@@ -75,5 +75,5 @@ FMT_CHAR                        ?= 0x%02hhx
 FMT_DOUBLE                      ?= %#.15lg
 FMT_FLOAT                       ?= %#.7g
 FMT_INT                         ?= %i
-FMT_LONG                        ?= %liL
+FMT_LONG                        ?= %li
 FMT_SHORT                       ?= 0x%04hx

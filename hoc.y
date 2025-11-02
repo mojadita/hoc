@@ -95,8 +95,6 @@ jmp_buf begin;
 # define PT(_fmt, ...)
 #endif
 
-/* LCU: Sat Oct 18 11:27:04 -05 2025
- * TODO: voy por aqui. */
 #define BEGIN_UNPATCHED_CODE()          \
         do {                            \
             PT(CYAN ">>>" ANSI_END      \
@@ -1071,7 +1069,10 @@ term
     ;
 
 const_term
-    : const_term const_op_mul const_fact
+    : const_term const_op_mul const_fact {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                            }
     | const_fact
     ;
 
@@ -1099,6 +1100,29 @@ fact: prim op_exp fact      {
 
 const_fact
     : const_prim EXP const_fact {
+                              if (       ($1.typ->t2i->flags & TYPE_IS_INTEGER)
+                                      && ($3.typ->t2i->flags & TYPE_IS_INTEGER))
+                              {
+                                  /* convert base to long */
+                                  $1.cel = const_conv_val($1.typ, Long, $1.cel);
+                                  /* convert exponent to int */
+                                  $3.cel = const_conv_val($3.typ, Integer, $3.cel);
+                                  $$.typ = Long;
+                                  $$.cel.lng = fast_pwr_l($1.cel.lng, $3.cel.itg);
+                              } else if (   ($1.typ->t2i->flags & TYPE_IS_FLOATING_POINT)
+                                         && ($3.typ->t2i->flags & TYPE_IS_FLOATING_POINT))
+                              {
+                                  /* convert base to double */
+                                  $1.cel = const_conv_val($1.typ, Double, $1.cel);
+                                  /* convert exponent to double */
+                                  $1.cel = const_conv_val($3.typ, Double, $3.cel);
+                                  $$.typ = Double;
+                                  $$.cel.dbl = pow($1.cel.dbl, $3.cel.dbl);
+                              } else {
+                                  execerror("arguments (%s & %s) must be integers or "
+                                          "floating point, but not mixed or other type",
+                                          $1.typ->name, $3.typ->name);
+                              }
                             }
     | const_prim
     ;
@@ -1704,6 +1728,52 @@ const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
     return exp2->typ;
 
 } /* check_op_bin */
+
+ConstExpr const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
+{
+    assert(exp1.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
+    assert(exp2.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
+
+    ConstExpr ret_val = { .typ =  exp1.typ };
+
+    if (exp1.typ->t2i->weight > exp2.typ->t2i->weight) {
+        exp2.cel = const_conv_val(exp2.typ, ret_val.typ, exp2.cel);
+    } else
+    if (exp1.typ->t2i->weight < exp2.typ->t2i->weight) {
+        ret_val.typ = exp2.typ;
+        exp1.cel = const_conv_val(exp1.typ, ret_val.typ, exp1.cel);
+    }
+
+    const type2inst *t2i = ret_val.typ->t2i;
+
+    switch (op.id) {
+    case AND: ret_val.cel = t2i->    and_binop(exp1.cel, exp2.cel); break;
+    case OR:  ret_val.cel = t2i->     or_binop(exp1.cel, exp2.cel); break;
+    case '-': ret_val.cel = t2i->  minus_binop(exp1.cel, exp2.cel); break;
+    case '*': ret_val.cel = t2i->   mult_binop(exp1.cel, exp2.cel); break;
+    case '/': ret_val.cel = t2i->   divi_binop(exp1.cel, exp2.cel); break;
+    case '&': ret_val.cel = t2i-> bitand_binop(exp1.cel, exp2.cel); break;
+    case '%': ret_val.cel = t2i->    mod_binop(exp1.cel, exp2.cel); break;
+    case '^': ret_val.cel = t2i-> bitxor_binop(exp1.cel, exp2.cel); break;
+    case '+': ret_val.cel = t2i->   plus_binop(exp1.cel, exp2.cel); break;
+    case '<': ret_val.cel = t2i->     lt_binop(exp1.cel, exp2.cel); break;
+    case '>': ret_val.cel = t2i->     gt_binop(exp1.cel, exp2.cel); break;
+    case '|': ret_val.cel = t2i->  bitor_binop(exp1.cel, exp2.cel); break;
+    case EQ:  ret_val.cel = t2i->     eq_binop(exp1.cel, exp2.cel); break;
+    case EXP: ret_val.cel = t2i->    exp_binop(exp1.cel, exp2.cel); break;
+    case GE:  ret_val.cel = t2i->     ge_binop(exp1.cel, exp2.cel); break;
+    case LE:  ret_val.cel = t2i->     le_binop(exp1.cel, exp2.cel); break;
+    case NE:  ret_val.cel = t2i->     ne_binop(exp1.cel, exp2.cel); break;
+    case SHIFT_LEFT:  ret_val.cel = t2i->shl_binop(exp1.cel, exp2.cel);
+            break;
+    case SHIFT_RIGHT: ret_val.cel = t2i->shr_binop(exp1.cel, exp2.cel);
+            break;
+    default: execerror("No operator selected: %s(%d)", op.lex, op.id);
+    } /* switch */
+
+    return ret_val;
+
+} /* const_eval_op_bin */
 
 void patch_block(Cell*patch_point)
 {

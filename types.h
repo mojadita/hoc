@@ -54,6 +54,8 @@ typedef const char *(*typeinfo_cb)(
         char         *buff,
         size_t        buff_sz);
 
+typedef Cell (*operator_cb)( Cell a, Cell b );
+
 struct type2inst_s {
     const instr
         *const constpush, *const add,       *const sub,
@@ -74,6 +76,13 @@ struct type2inst_s {
                       align;
     const int         flags;
     const int         weight;
+    operator_cb       or_binop, and_binop, bitor_binop,
+                      bitxor_binop, bitand_binop, shl_binop,
+                      shr_binop, eq_binop, ne_binop, gt_binop,
+                      ge_binop, lt_binop, le_binop, plus_binop,
+                      minus_binop, mult_binop, divi_binop,
+                      mod_binop, exp_binop;
+
 };
 
 extern type2inst t2i_c, t2i_s, t2i_i, t2i_l, t2i_f, t2i_d, t2i_str;

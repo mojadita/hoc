@@ -101,7 +101,7 @@ toclean += type2inst.c
 	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -c $< -o $@
 
 
-hoc.tab.h hoc.c: hoc.y
+hoc.c: hoc.y
 	$(YACC) -d $?
 	mv y.tab.c hoc.c
 	mv y.tab.h hoc.tab.h
@@ -113,6 +113,6 @@ toclean += hoc.1
 plugin0.pico: plugin0.c plugins.h builtins.h \
   instr.h instrucciones.h cell.h symbol.h \
   types.h config.h cellP.h code.h hoc.h lex.h \
-  hoc.tab.h
+  hoc.c
 
 -include .depend
