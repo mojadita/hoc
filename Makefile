@@ -107,6 +107,8 @@ hoc.c: hoc.y
 	mv y.tab.h hoc.tab.h
 toclean += hoc.tab.h hoc.c
 
+lex.o reserved_words.o scope.o: hoc.c
+
 hoc.1: hoc.1.in config.mk
 toclean += hoc.1
 

@@ -17,7 +17,7 @@ builtins.o: builtins.c /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
-  instrucciones.h lex.h cellP.h hoc.tab.h scope.h code.h symbolP.h \
+  instrucciones.h lex.h cellP.h hoc.c scope.h code.h symbolP.h \
   types.h builtinsP.h builtins.h plugins.h
 code.o: code.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/math.h /usr/include/sys/_types.h \
@@ -34,7 +34,7 @@ code.o: code.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
   instrucciones.h cell.h symbol.h symbolP.h types.h scope.h code.h hoc.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h lex.h hoc.tab.h math.h builtinsP.h \
+  /usr/include/x86/setjmp.h lex.h hoc.c math.h builtinsP.h \
   builtins.h plugins.h
 do_help.o: do_help.c /usr/include/errno.h /usr/include/sys/cdefs.h \
   /usr/include/stdio.h /usr/include/sys/_null.h \
@@ -63,7 +63,7 @@ error.o: error.c /usr/include/stdarg.h /usr/include/x86/stdarg.h \
   /usr/include/sys/_stdint.h /usr/include/sys/bitcount.h \
   /usr/include/sys/select.h /usr/include/sys/_sigset.h \
   /usr/include/sys/_timeval.h /usr/include/sys/timespec.h \
-  /usr/include/sys/_timespec.h instrucciones.h lex.h cellP.h hoc.tab.h \
+  /usr/include/sys/_timespec.h instrucciones.h lex.h cellP.h hoc.c \
   error.h
 hoc.o: hoc.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
@@ -82,7 +82,7 @@ hoc.o: hoc.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
-  instrucciones.h lex.h cellP.h hoc.tab.h error.h math.h init.h code.h \
+  instrucciones.h lex.h cellP.h hoc.c error.h math.h init.h code.h \
   types.h symbolP.h scope.h /usr/include/string.h /usr/include/strings.h \
   /usr/include/xlocale/_strings.h /usr/include/xlocale/_string.h
 init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
@@ -100,7 +100,7 @@ init.o: init.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_timespec.h instrucciones.h cell.h symbol.h symbolP.h \
   types.h scope.h code.h hoc.h /usr/include/setjmp.h \
   /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h \
-  /usr/include/stdio.h lex.h hoc.tab.h
+  /usr/include/stdio.h lex.h hoc.c
 instr.o: instr.c config.h code.h instr.h /usr/include/stdarg.h \
   /usr/include/x86/stdarg.h /usr/include/sys/_stdarg.h \
   /usr/include/sys/cdefs.h /usr/include/sys/_types.h \
@@ -114,7 +114,7 @@ instr.o: instr.c config.h code.h instr.h /usr/include/stdarg.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
   instrucciones.h cell.h symbol.h hoc.h /usr/include/setjmp.h \
   /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h \
-  /usr/include/stdio.h /usr/include/sys/_null.h lex.h cellP.h hoc.tab.h
+  /usr/include/stdio.h /usr/include/sys/_null.h lex.h cellP.h hoc.c
 intern.o: intern.c /usr/include/string.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_null.h /usr/include/sys/_types.h \
   /usr/include/machine/_types.h /usr/include/x86/_types.h \
@@ -143,7 +143,7 @@ lex.o: lex.c /usr/include/stdio.h /usr/include/sys/cdefs.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
-  instrucciones.h lex.h cellP.h hoc.tab.h code.h reserved_words.h \
+  instrucciones.h lex.h cellP.h hoc.c code.h reserved_words.h \
   scope.h intern.h symbolP.h types.h /usr/include/unistd.h \
   /usr/include/sys/unistd.h
 main.o: main.c /usr/include/fcntl.h /usr/include/sys/cdefs.h \
@@ -164,7 +164,7 @@ main.o: main.c /usr/include/fcntl.h /usr/include/sys/cdefs.h \
   colors.h do_help.h hoc.h /usr/include/setjmp.h \
   /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h cell.h \
   symbol.h instr.h /usr/include/stdarg.h /usr/include/x86/stdarg.h \
-  /usr/include/sys/_stdarg.h instrucciones.h lex.h cellP.h hoc.tab.h \
+  /usr/include/sys/_stdarg.h instrucciones.h lex.h cellP.h hoc.c \
   code.h init.h
 math.o: math.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdarg.h /usr/include/x86/stdarg.h \
@@ -192,7 +192,7 @@ plugin0.o: plugin0.c /usr/include/math.h /usr/include/sys/_types.h \
   /usr/include/sys/_stdarg.h instrucciones.h cell.h symbol.h types.h \
   config.h cellP.h code.h hoc.h /usr/include/setjmp.h \
   /usr/include/machine/setjmp.h /usr/include/x86/setjmp.h lex.h \
-  hoc.tab.h
+  hoc.c
 pwr.o: pwr.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdio.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -214,7 +214,7 @@ reserved_words.o: reserved_words.c /usr/include/stdlib.h \
   /usr/include/sys/bitcount.h /usr/include/sys/select.h \
   /usr/include/sys/_sigset.h /usr/include/sys/_timeval.h \
   /usr/include/sys/timespec.h /usr/include/sys/_timespec.h \
-  instrucciones.h lex.h cellP.h hoc.tab.h reserved_words.h
+  instrucciones.h lex.h cellP.h hoc.c reserved_words.h
 scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
   /usr/include/sys/_types.h /usr/include/machine/_types.h \
@@ -231,7 +231,7 @@ scope.o: scope.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_timeval.h /usr/include/sys/timespec.h \
   /usr/include/sys/_timespec.h instrucciones.h cell.h symbol.h hoc.h \
   /usr/include/setjmp.h /usr/include/machine/setjmp.h \
-  /usr/include/x86/setjmp.h /usr/include/stdio.h lex.h cellP.h hoc.tab.h \
+  /usr/include/x86/setjmp.h /usr/include/stdio.h lex.h cellP.h hoc.c \
   dynarray.h intern.h symbolP.h types.h
 symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/stdlib.h /usr/include/sys/_null.h \
@@ -249,7 +249,7 @@ symbol.o: symbol.c /usr/include/assert.h /usr/include/sys/cdefs.h \
   /usr/include/sys/_stdint.h /usr/include/sys/bitcount.h \
   /usr/include/sys/select.h /usr/include/sys/_sigset.h \
   /usr/include/sys/_timeval.h /usr/include/sys/timespec.h \
-  /usr/include/sys/_timespec.h instrucciones.h lex.h cellP.h hoc.tab.h \
+  /usr/include/sys/_timespec.h instrucciones.h lex.h cellP.h hoc.c \
   colors.h scope.h code.h symbolP.h types.h
 type2inst.o: type2inst.c /usr/include/sys/types.h \
   /usr/include/sys/cdefs.h /usr/include/machine/endian.h \

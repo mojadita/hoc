@@ -770,10 +770,10 @@ PRINT_INST(_s, sht,  FMT_SHORT)
 
 void bltin(const instr *i)
 {
-    int bltin_id = pc[0].param;
-    const builtin *bltin = get_builtin_info(bltin_id);
-    const Symbol *func_desc = bltin->sym;
-    Cell *saved_fp = fp; /* save fp to print arguments */
+    int            bltin_id  = pc[0].param;
+    const builtin *bltin     = get_builtin_info(bltin_id);
+    const Symbol  *func_desc = bltin->sym;
+    Cell          *saved_fp  = fp; /* save fp to print arguments */
 
     fp = sp;
 
@@ -782,14 +782,15 @@ void bltin(const instr *i)
     const char *sep = "";
     char workspace[100];
     for (int i = 0; i < func_desc->argums_len; ++i) {
-        const Symbol *param = func_desc->argums[i],
+        const Symbol *param      = func_desc->argums[i],
                      *param_type = param->typref;
         P_TAIL("%s%s=%s",
                sep,
                param->name,
-               param_type->t2i->printval(*getarg(param->offset),
-               workspace,
-               sizeof workspace));
+               param_type->t2i->printval(
+                       *getarg(param->offset),
+                       workspace,
+                       sizeof workspace));
         sep = ", ";
     }
     P_TAIL(")");
@@ -802,9 +803,10 @@ void bltin(const instr *i)
 #if UQ_CODE_DEBUG_EXEC /* { only if debug exec has been activated */
     if (func_desc->typref != NULL) {
         P_TAIL(" -> %s",
-               func_desc->typref->t2i->printval(top(),
-               workspace,
-               sizeof workspace));
+               func_desc->typref->t2i->printval(
+                       top(),
+                       workspace,
+                       sizeof workspace));
     }
 #endif /* UQ_CODE_DEBUG_EXEC } */
 
@@ -813,20 +815,27 @@ void bltin(const instr *i)
 
 void bltin_prt(const instr *i, const Cell *pc)
 {
-    int bltin_id = pc[0].param;
-    const builtin *bltin = get_builtin_info(bltin_id);
-    const Symbol *func_desc = bltin->sym;
+    int            bltin_id  = pc[0].param;
+    const builtin *bltin     = get_builtin_info(bltin_id);
+    const Symbol  *func_desc = bltin->sym;
     PR(" <%d> %s %s(",
         bltin_id,
         func_desc->typref
                 ? func_desc->typref->name
                 :"",
         func_desc->name);
+
     const char *sep = "";
-    for (int index = 0; index < func_desc->argums_len; ++index) {
-        const Symbol *param = func_desc->argums[index],
+    for (   int index = 0;
+            index < func_desc->argums_len;
+            ++index)
+    {
+        const Symbol *param      = func_desc->argums[index],
                      *param_type = param->typref;
-        PR_TAIL("%s%s %s", sep, param_type->name, param->name);
+        PR_TAIL("%s%s %s",
+                sep,
+                param_type->name,
+                param->name);
         sep = ", ";
     }
     PR_TAIL(")\n");
