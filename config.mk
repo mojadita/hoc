@@ -32,6 +32,8 @@ man1dir                  ?= $(mandir)/man1
 docdir                   ?= $(datarootdir)/doc/$(PACKAGE)
 vardir                   ?= $(exec_prefix)/var
 logdir                   ?= $(vardir)/log
+HOC_PLUGINS_PATH_VAR     ?= HOC_PLUGINS_PATH
+DEFAULT_HOC_PLUGINS_PATH ?= $(pkgactivepluginsdir)
 
 UQ_HOC_DEBUG             ?=  0
 UQ_HOC_TRACE_PATCHING    ?=  0
