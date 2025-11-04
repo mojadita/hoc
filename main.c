@@ -6,6 +6,7 @@
  * License: BSD
  */
 
+#include <assert.h>
 #include <fcntl.h>
 #include <dlfcn.h>
 #include <dirent.h>
@@ -23,6 +24,16 @@
 #include "hoc.h"
 #include "code.h"
 #include "init.h"
+
+#ifndef   HOC_PLUGINS_PATH_VAR /* { */
+#warning  HOC_PLUGINS_PATH_VAR should be defined in config.mk
+#define   HOC_PLUGINS_PATH_VAR "HOC_PLUGINS_PATH"
+#endif /* HOC_PLUGINS_PATH_VAR    } */
+
+#ifndef   DEFAULT_HOC_PLUGINS_PATH /* { */
+#warning  DEFAULT_HOC_PLUGINS_PATH should be defined in config.mk
+#define   DEFAULT_HOC_PLUGINS_PATH pkgactivepluginsdir
+#endif /* DEFAULT_HOC_PLUGINS_PATH    } */
 
 #ifndef   UQ_CODE_DEBUG_EXEC /* { */
 #warning  UQ_CODE_DEBUG_EXEC deberia ser configurado en config.mk
@@ -124,34 +135,50 @@ static void process(FILE *in)
 
 void init_plugins(void)
 {
-    DIR *d = opendir(pkglibdir);
-    if (d == NULL) {
-        fprintf(stderr,
-                "directorio %s: %s\n",
-                pkgactivepluginsdir,
-                strerror(errno));
-        return;
-    }
+    char *plugin_dirs = getenv(HOC_PLUGINS_PATH_VAR);
 
-    struct dirent *file;
-    int dir_fd = dirfd(d);
+    if (!plugin_dirs)
+        plugin_dirs = DEFAULT_HOC_PLUGINS_PATH;
 
-    while ((file = readdir(d)) != NULL) {
+    assert(plugin_dirs != NULL);
 
-            if (       !strcmp(file->d_name, "..")
-                    || !strcmp(file->d_name, "."))
-                continue;
+    plugin_dirs = strdup(plugin_dirs);
+
+    for (   const char *plugins_dir_name = strtok(plugin_dirs, ":\n");
+            plugins_dir_name != NULL;
+            plugins_dir_name = strtok(NULL, ":\n"))
+    {
+        /* let's open the directory to scan for plugins */
+        DIR *dir = opendir(plugins_dir_name);
+
+        if (dir == NULL) {
+            fprintf(stderr,
+                    "directorio %s: %s\n",
+                    plugins_dir_name,
+                    strerror(errno));
+            continue; /* skip to next dir */
+        }
+
+        struct dirent *file; /* search for files */
+
+        while ((file = readdir(dir)) != NULL) {
+
+            /* skip files starting with dot */
+            if (file->d_name[0] == '.') continue;
 
             char plugin_name[1024];
             snprintf(plugin_name, sizeof plugin_name,
-                     pkglibdir "/%s", file->d_name);
+                     "%s/%s", plugins_dir_name, file->d_name);
 
             void *plugin_so = dlopen(plugin_name, RTLD_LAZY);
             if (plugin_so == NULL) {
                 fprintf(stderr, "dlopen %s: %s\n",
                     plugin_name,
                     dlerror());
-                continue;
             }
-    }
+        } /* while */
+
+        /* close dir and go to next */
+        closedir(dir);
+    } /* for */
 } /* init_plugins */
