@@ -11,6 +11,7 @@
 #include "cellP.h"
 #include "instr.h"
 #include "symbol.h"
+#include "hoc.h"
 
 
 #ifndef   FMT_CHAR  /* { */
@@ -54,7 +55,10 @@ typedef const char *(*typeinfo_cb)(
         char         *buff,
         size_t        buff_sz);
 
-typedef Cell (*operator_cb)( Cell a, Cell b );
+typedef ConstExpr (*operator_cb)(
+        const Symbol *rtyp,
+        ConstExpr     a,
+        ConstExpr     b );
 
 struct type2inst_s {
     const instr

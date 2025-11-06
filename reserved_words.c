@@ -22,6 +22,8 @@
     }
 
 static const reserved_word reserved_words[] = {
+    RW(brkpt,      BRKPT),
+    RW(const,      CONST),
     RW(else,       ELSE),
     RW(func,       FUNC),
     RW(if,         IF),
@@ -29,9 +31,8 @@ static const reserved_word reserved_words[] = {
     RW(print,      PRINT),
     RW(proc,       PROC),
     RW(return,     RETURN),
-    RW(symbs,      SYMBS),
     RW(symbs_all,  SYMBS_ALL),
-    RW(brkpt,      BRKPT),
+    RW(symbs,      SYMBS),
     RW(while,      WHILE),
 
     { .name = NULL }

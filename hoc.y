@@ -187,9 +187,9 @@ size_t size_lvars = 0;
 
 %token        ERROR
 %token <lit>  DOUBLE FLOAT
-%token <sym>  VAR LVAR BLTIN_FUNC BLTIN_PROC CONST
+%token <sym>  VAR LVAR BLTIN_FUNC BLTIN_PROC CONSTANT
 %token <sym>  FUNCTION PROCEDURE
-%token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT
+%token        PRINT WHILE IF ELSE SYMBS SYMBS_ALL BRKPT CONST
 %token <tok>  OR AND GE LE EQ NE EXP
 %token <tok>  BIT_AND_EQ BIT_OR_EQ BIT_XOR_EQ
 %token <tok>  SHIFT_LEFT SHIFT_LEFT_EQ SHIFT_RIGHT SHIFT_RIGHT_EQ
@@ -206,11 +206,12 @@ size_t size_lvars = 0;
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_proc builtin_func
-%type  <str>  lvar_valid_ident gvar_valid_ident
+%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_proc builtin_func const_definable_ident
+%type  <str>  lvar_valid_ident gvar_valid_ident const_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
-%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign bitop_assign '&' '|' '^' '~'
+%type  <tok>  '+' '-' '*' '/' '%' '<' '>' op_assign bitop_assign
+%type  <tok>  '&' '|' '^' '~' const_op_mul const_op_sum const_op_rel
 %type  <opr>  op_rel op_sum op_mul op_exp binop_bitor binop_bitxor binop_bitand binop_shift
 %type  <const_expr> const_prim const_fact const_term const_expr_arit const_expr_rel
 %type  <const_expr> const_expr_shift const_expr_bitand const_expr_bitxor const_expr_bitor
@@ -289,6 +290,7 @@ stmt
     | SYMBS_ALL      ';'   { $$ = CODE_INST(symbs_all, get_current_symbol()); }
     | BRKPT          ';'   { $$ = CODE_INST(brkpt, get_current_symbol()); }
     | LIST           ';'   { $$ = CODE_INST(list); }
+    | const_decl     ';'   { $$ = progp; }
     | WHILE cond do stmt   { $$ = $2;
                              CODE_INST(Goto, $2);
                              BEGIN_PATCHING_CODE($3);
@@ -518,64 +520,35 @@ lvar_definable_ident
     | LVAR
     ;
 
-// /* DECLARACION DE CONSTANTES LOCALES/GLOBALES { */
-//
-// const_decl :  const_decl_list ';'
-//     ;
-//
-// const_decl_list
-//     : const_decl_list ',' const_init  {
-//
-//                                       $$ = $1;
-//                                       if ($$.start == NULL && $3.start != NULL) {
-//                                           $$.start = $3.start;
-//                                       }
-//
-//                                       /* see macro definition in
-//                                        * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
-//                                        * above */
-//                                       DO_VAR_REGISTRATION(
-//                                             $$.type_decl,
-//                                             register_local_const,
-//                                             $3.name,
-//                                             $3.type_expr_init,
-//                                             $3.start);
-//                                     }
-//
-//     | TYPE const_init                { $$.type_decl = $1;
-//                                       $$.start     = $2.start;
-//
-//                                       /* see macro definition in
-//                                        * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
-//                                        * above */
-//                                       DO_VAR_REGISTRATION(
-//                                             $$.type_decl,
-//                                             register_local_const,
-//                                             $2.name,
-//                                             $2.type_expr_init,
-//                                             $2.start);
-//                                     }
-//     ;
-//
-// const_init
-//     : const_valid_ident '=' const_expr {
-//                                   $$.name           = $1;
-//                                   $$.start          = $3.cel;
-//                                   $$.type_expr_init = $3.typ; }
-//     ;
-//
-// const_valid_ident
-//     : UNDEF
-//     | const_definable_ident { $$ = $1->name; }
-//     ;
-//
-// const_definable_ident
-//     : VAR
-//     | LVAR
-//     ;
-//
-// /* LCU: Fri Oct 31 13:29:27 -05 2025
-//  * TODO: voy por aqui  } */
+/* DECLARACION DE CONSTANTES LOCALES/GLOBALES { */
+
+const_decl : const_decl_list
+    ;
+
+const_decl_list
+    : const_decl_list ',' const_init
+    | CONST const_init
+    ;
+
+const_init
+    : const_valid_ident '=' const_expr {
+                                      register_const($1, $3.typ, $3.cel);
+                                    }
+    ;
+
+const_valid_ident
+    : UNDEF
+    | const_definable_ident { $$ = $1->name; }
+    ;
+
+const_definable_ident
+    : VAR
+    | LVAR
+    | CONSTANT
+    ;
+
+/* LCU: Fri Oct 31 13:29:27 -05 2025
+ * TODO: voy por aqui  } */
 
 do  :  /* empty */         {
                              BEGIN_UNPATCHED_CODE();
@@ -819,7 +792,11 @@ expr_or
     ;
 
 const_expr
-    : const_expr_and OR const_expr
+    : const_expr_and OR const_expr {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_and
     ;
 
@@ -876,7 +853,11 @@ and : AND                  {
     ;
 
 const_expr_and
-    : const_expr_bitor AND const_expr_and
+    : const_expr_bitor AND const_expr_and {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_bitor
     ;
 
@@ -916,7 +897,11 @@ binop_bitor
     ;
 
 const_expr_bitor
-    : const_expr_bitor '|' const_expr_bitxor
+    : const_expr_bitor '|' const_expr_bitxor {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_bitxor
     ;
 
@@ -930,7 +915,11 @@ expr_bitxor
     ;
 
 const_expr_bitxor
-    : const_expr_bitxor '^' const_expr_bitand
+    : const_expr_bitxor '^' const_expr_bitand {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_bitand
     ;
 
@@ -947,7 +936,11 @@ expr_bitand
     ;
 
 const_expr_bitand
-    : const_expr_bitand '&' const_expr_shift
+    : const_expr_bitand '&' const_expr_shift {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_shift
     ;
 
@@ -968,8 +961,16 @@ expr_shift
     ;
 
 const_expr_shift
-    : const_expr_shift SHIFT_LEFT  const_expr_rel
-    : const_expr_shift SHIFT_RIGHT const_expr_rel
+    : const_expr_shift SHIFT_LEFT  const_expr_rel {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
+    | const_expr_shift SHIFT_RIGHT const_expr_rel {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_rel
     ;
 
@@ -996,7 +997,11 @@ expr_rel
     ;
 
 const_expr_rel
-    : const_expr_rel const_op_rel const_expr_arit
+    : const_expr_rel const_op_rel const_expr_arit {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_expr_arit
     ;
 
@@ -1038,7 +1043,11 @@ expr_arit
     ;
 
 const_expr_arit
-    : const_expr_arit const_op_sum const_term
+    : const_expr_arit const_op_sum const_term {
+                              /* LCU: Sun Nov  2 11:41:18 -05 2025
+                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
+                            }
     | const_term
     ;
 
@@ -1070,8 +1079,7 @@ term
 
 const_term
     : const_term const_op_mul const_fact {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
+                              $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_fact
     ;
@@ -1271,7 +1279,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                               INCDEC_POST(argeval, sub, argassign,
                                           var->offset, var->name); }
 
-    | CONST                 { $$.cel = CODE_INST_TYP($1->typref,
+    | CONSTANT              { $$.cel = CODE_INST_TYP($1->typref,
                                                      constpush,
                                                      $1->cel);
                               $$.typ = $1->typref;
@@ -1373,7 +1381,7 @@ const_prim
                                           $2.typ->name);
                               }
                             }
-    | CONST                 { $$.typ = $1->typref;
+    | CONSTANT              { $$.typ = $1->typref;
                               $$.cel = $1->cel;
                             }
     ;
@@ -1734,44 +1742,46 @@ ConstExpr const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
     assert(exp1.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
     assert(exp2.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
 
-    ConstExpr ret_val = { .typ =  exp1.typ };
-
+    const Symbol *typ_res = exp1.typ;
     if (exp1.typ->t2i->weight > exp2.typ->t2i->weight) {
-        exp2.cel = const_conv_val(exp2.typ, ret_val.typ, exp2.cel);
+        exp2.cel = const_conv_val(exp2.typ, exp1.typ, exp2.cel);
     } else
     if (exp1.typ->t2i->weight < exp2.typ->t2i->weight) {
-        ret_val.typ = exp2.typ;
-        exp1.cel = const_conv_val(exp1.typ, ret_val.typ, exp1.cel);
+        typ_res = exp2.typ;
+        exp1.cel = const_conv_val(exp1.typ, exp2.typ, exp1.cel);
     }
 
-    const type2inst *t2i = ret_val.typ->t2i;
+    const type2inst *t2i = typ_res->t2i; /* tipo de los operandos */
+    /* LCU: Thu Nov  6 15:55:39 -05 2025
+     * TODO: voy por aqui.  Resolver el problema del tipo del resultado
+     * segun el operador */
 
     switch (op.id) {
-    case AND: ret_val.cel = t2i->    and_binop(exp1.cel, exp2.cel); break;
-    case OR:  ret_val.cel = t2i->     or_binop(exp1.cel, exp2.cel); break;
-    case '-': ret_val.cel = t2i->  minus_binop(exp1.cel, exp2.cel); break;
-    case '*': ret_val.cel = t2i->   mult_binop(exp1.cel, exp2.cel); break;
-    case '/': ret_val.cel = t2i->   divi_binop(exp1.cel, exp2.cel); break;
-    case '&': ret_val.cel = t2i-> bitand_binop(exp1.cel, exp2.cel); break;
-    case '%': ret_val.cel = t2i->    mod_binop(exp1.cel, exp2.cel); break;
-    case '^': ret_val.cel = t2i-> bitxor_binop(exp1.cel, exp2.cel); break;
-    case '+': ret_val.cel = t2i->   plus_binop(exp1.cel, exp2.cel); break;
-    case '<': ret_val.cel = t2i->     lt_binop(exp1.cel, exp2.cel); break;
-    case '>': ret_val.cel = t2i->     gt_binop(exp1.cel, exp2.cel); break;
-    case '|': ret_val.cel = t2i->  bitor_binop(exp1.cel, exp2.cel); break;
-    case EQ:  ret_val.cel = t2i->     eq_binop(exp1.cel, exp2.cel); break;
-    case EXP: ret_val.cel = t2i->    exp_binop(exp1.cel, exp2.cel); break;
-    case GE:  ret_val.cel = t2i->     ge_binop(exp1.cel, exp2.cel); break;
-    case LE:  ret_val.cel = t2i->     le_binop(exp1.cel, exp2.cel); break;
-    case NE:  ret_val.cel = t2i->     ne_binop(exp1.cel, exp2.cel); break;
-    case SHIFT_LEFT:  ret_val.cel = t2i->shl_binop(exp1.cel, exp2.cel);
-            break;
-    case SHIFT_RIGHT: ret_val.cel = t2i->shr_binop(exp1.cel, exp2.cel);
-            break;
-    default: execerror("No operator selected: %s(%d)", op.lex, op.id);
+    case OR:          return t2i->     or_binop(Integer, exp1, exp2);
+    case AND:         return t2i->    and_binop(Integer, exp1, exp2);
+    case '|':         return t2i->  bitor_binop(typ_res, exp1, exp2);
+    case '^':         return t2i-> bitxor_binop(typ_res, exp1, exp2);
+    case '&':         return t2i-> bitand_binop(typ_res, exp1, exp2);
+    case SHIFT_LEFT:  return t2i->    shl_binop(typ_res, exp1, exp2);
+    case SHIFT_RIGHT: return t2i->    shr_binop(typ_res, exp1, exp2);
+    case '<':         return t2i->     lt_binop(Integer, exp1, exp2);
+    case '>':         return t2i->     gt_binop(Integer, exp1, exp2);
+    case EQ:          return t2i->     eq_binop(Integer, exp1, exp2);
+    case GE:          return t2i->     ge_binop(Integer, exp1, exp2);
+    case LE:          return t2i->     le_binop(Integer, exp1, exp2);
+    case NE:          return t2i->     ne_binop(Integer, exp1, exp2);
+    case '+':         return t2i->   plus_binop(typ_res, exp1, exp2);
+    case '-':         return t2i->  minus_binop(typ_res, exp1, exp2);
+    case '*':         return t2i->   mult_binop(typ_res, exp1, exp2);
+    case '/':         return t2i->   divi_binop(typ_res, exp1, exp2);
+    case '%':         return t2i->    mod_binop(typ_res, exp1, exp2);
+    case EXP:         return t2i->    exp_binop(typ_res, exp1, exp2);
     } /* switch */
 
-    return ret_val;
+    execerror("No operator selected: %s(%d)", op.lex, op.id);
+    /* NOTREACHED */
+	ConstExpr ret_val = { .typ = NULL };
+	return ret_val;
 
 } /* const_eval_op_bin */
 

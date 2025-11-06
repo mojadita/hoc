@@ -81,7 +81,7 @@ void init(void)  /* install constants and built-ins in table */
             p->name != NULL;
             p++)
     {
-        Symbol *s = install(p->name, CONST, NULL);
+        Symbol *s = install(p->name, CONSTANT, NULL);
         s->typref = D;
         s->cel    = p->cval;
     }

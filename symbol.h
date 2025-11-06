@@ -32,4 +32,9 @@ Symbol *register_local_var(
         const char   *name,
         const Symbol *typref); /* registers a local variable */
 
+Symbol *register_const(
+        const char   *name,
+        const Symbol *typref,
+        Cell          value);  /* registers a constant (global or local) */
+
 #endif /* SYMBOL_H_c71f231c_acea_11f0_b3dd_0023ae68f329 */

@@ -152,6 +152,32 @@ Symbol *register_local_var(
     return sym;
 } /* register_local_var */
 
+Symbol *register_const(
+        const char   *name,
+        const Symbol *typref,
+        Cell          value)
+{
+    scope *scop = get_current_scope();
+    if (lookup_current_scope(name)) {
+        execerror(GREEN "%s" ANSI_END ": cannot define constant.  "
+                "Symbol already defined in same context.",
+                name);
+    }
+    Symbol *sym = install(name, CONSTANT, typref);
+    sym->cel    = value;
+    char workspace[256];
+    SYM("Symbol '%s', type=%s, typref=%s, value=%s\n",
+        sym->name,
+        lookup_type(sym->type),
+        typref->name,
+        sym->typref->t2i->printval(
+                sym->cel,
+                workspace,
+                sizeof workspace));
+    return sym;
+} /* register_const */
+
+
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
     char *name;
@@ -168,7 +194,7 @@ static struct type2char {
     V(BLTIN_FUNC),
     V(BLTIN_PROC),
     V(UNDEF),
-    V(CONST),
+    V(CONSTANT),
     V(PROCEDURE),
     V(FUNCTION),
     V(TYPE),
@@ -259,7 +285,7 @@ void list_symbols(void)
                             ws_2, sizeof ws_2));
             break;
 
-        case CONST:
+        case CONSTANT:
             snprintf(s, sz,
                      "(%s)",
                      sym->typref->t2i->printval(
@@ -333,7 +359,7 @@ void list_all_symbols(Symbol *from)
                     workplace,
                     sizeof workplace);
             break;
-        case CONST:
+        case CONSTANT:
             type->t2i->printval(
                     sym->cel,
                     workplace,
@@ -354,7 +380,7 @@ void list_all_symbols(Symbol *from)
             printf_ncols(UQ_COL4_SYMBS, "   pos [%04lx], ", sym->defn - prog);
             printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
             break;
-        case CONST:
+        case CONSTANT:
             printf_ncols(UQ_COL2_SYMBS, "typref %s, ",      type->name);
             printf_ncols(UQ_COL5_SYMBS, " value %s",        workplace);
             break;
@@ -419,7 +445,7 @@ void list_variables(Symbol *from)
                     workplace_2);
             break;
 
-        case CONST:
+        case CONSTANT:
 
             sym->typref->t2i->printval(
                     sym->cel,
