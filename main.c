@@ -189,4 +189,5 @@ void init_plugins(void)
         /* close dir and go to next */
         closedir(dir);
     } /* for */
+    free(plugin_dirs);
 } /* init_plugins */

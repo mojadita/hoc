@@ -21,7 +21,7 @@ LIBS             ?= -lm
 
 RM               ?= rm -f
 targets           = hoc hoc.1.gz ack
-plugins           = plugin0.so
+plugins           = plugin0.so plugin_edw_welcome.so
 toclean          += $(targets) $(plugins)
 
 .SUFFIXES: .out .so .o .pico .c .l .y
@@ -57,11 +57,18 @@ toclean           += $(hoc_objs) lex.c
 
 plugin0.so_objs    = plugin0.pico
 plugin0.so_ldfl    = -shared -soname=plugin0.so
-toclean           += $(plugin0.so_objs)
+toclean           += $(plugin0.so_objs) plugin0.so
+
+plugin_edw_welcome.so_objs = plugin_edw_welcome.pico
+plugin_edw_welcome.so_ldfl = -shared -soname=plugin_edw_welcome.so
+toclean                   += $(plugin_edw_welcome.so_objs) \
+                             plugin_edw_welcome.so
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets) $(plugins)
-	date > $@
+	@date > $@
+	@echo -n "Built on: "
+	@cat $@
 toclean += BUILD_DATE.txt
 
 include ./config-lib.mk
@@ -91,6 +98,9 @@ hoc hoc.out: $(hoc_objs)
 plugin0.so: $(plugin0.so_deps) $(plugin0.so_objs)
 	$(LD) $(LDFLAGS) $($@_ldfl) $($@_objs) -o $@
 
+plugin_edw_welcome.so: $(plugin_edw_welcome.so_deps) $(plugin_edw_welcome.so_objs)
+	$(LD) $(LDFLAGS) $($@_ldfl) $($@_objs) -o $@
+
 type2inst.c: instrucciones.h type2inst.sh
 	./type2inst.sh >$@
 toclean += type2inst.c
@@ -116,5 +126,8 @@ plugin0.pico: plugin0.c plugins.h builtins.h \
   instr.h instrucciones.h cell.h symbol.h \
   types.h config.h cellP.h code.h hoc.h lex.h \
   hoc.c
+
+plugin_edw_welcome.pico: plugin_edw_welcome.c \
+  config.h colors.h do_help.h
 
 -include .depend
