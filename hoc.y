@@ -1108,6 +1108,8 @@ fact: prim op_exp fact      {
 
 const_fact
     : const_prim EXP const_fact {
+                              $$ = const_eval_op_bin($1, $2, $3);
+#if 0 /* { */
                               if (       ($1.typ->t2i->flags & TYPE_IS_INTEGER)
                                       && ($3.typ->t2i->flags & TYPE_IS_INTEGER))
                               {
@@ -1131,6 +1133,7 @@ const_fact
                                           "floating point, but not mixed or other type",
                                           $1.typ->name, $3.typ->name);
                               }
+#endif /* } */
                             }
     | const_prim
     ;
@@ -1737,7 +1740,8 @@ const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2)
 
 } /* check_op_bin */
 
-ConstExpr const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
+ConstExpr
+const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
 {
     assert(exp1.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
     assert(exp2.typ->t2i->flags & (TYPE_IS_INTEGER | TYPE_IS_FLOATING_POINT));
@@ -1780,8 +1784,8 @@ ConstExpr const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
 
     execerror("No operator selected: %s(%d)", op.lex, op.id);
     /* NOTREACHED */
-	ConstExpr ret_val = { .typ = NULL };
-	return ret_val;
+    ConstExpr ret_val = { .typ = NULL };
+    return ret_val;
 
 } /* const_eval_op_bin */
 

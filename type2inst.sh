@@ -12,6 +12,18 @@ TARGET=type2inst.c
 DATE="$(LANG=C date)"
 YEAR="$(LANG=C date +%Y)"
 
+sp='[ 	]*'
+id='[a-zA-Z_][a-zA-Z0-9_]*'
+comma="${sp},${sp}"
+suff='_[cdfils]'
+
+binop_extract() {
+	grep "^\s*BINOP_EVAL(${sp}${id}${comma}${1}${comma}" <binop_evals.h \
+	| sed -E "s/^${sp}BINOP_EVAL\(${sp}(${id})${comma}(${suff})${comma}.*$/    .\1_binop = \1_binop\2,/"
+	grep "^\s*BINOP_EVAL_EXP(${1}${comma}" <binop_evals.h \
+	| sed -E "s/^${sp}BINOP_EVAL_EXP\((${suff})${comma}.*$/    .exp_binop = exp_binop\1,/"
+}
+
 add_suffix() {
     grep "^INST([a-zA-Z_][_A-Za-z0-9]*${1}," \
          instrucciones.h \
@@ -48,6 +60,8 @@ type2inst t2i_c = {
     .flags    = TYPE_IS_INTEGER,
     .weight   = 0,
 
+$(binop_extract _c)
+
 $(add_suffix _c)
 
 }, t2i_d = {
@@ -60,6 +74,8 @@ $(add_suffix _c)
     .align    = 1,
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 5,
+
+$(binop_extract _d)
 
 $(add_suffix _d)
 
@@ -74,6 +90,8 @@ $(add_suffix _d)
     .flags    = TYPE_IS_FLOATING_POINT,
     .weight   = 4,
 
+$(binop_extract _f)
+
 $(add_suffix _f)
 
 }, t2i_i = {
@@ -86,6 +104,8 @@ $(add_suffix _f)
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 2,
+
+$(binop_extract _i)
 
 $(add_suffix _i)
 
@@ -100,6 +120,8 @@ $(add_suffix _i)
     .flags    = TYPE_IS_INTEGER,
     .weight   = 3,
 
+$(binop_extract _l)
+
 $(add_suffix _l)
 
 },  t2i_s = {
@@ -112,6 +134,8 @@ $(add_suffix _l)
     .align    = 1,
     .flags    = TYPE_IS_INTEGER,
     .weight   = 1,
+
+$(binop_extract _s)
 
 $(add_suffix _s)
 

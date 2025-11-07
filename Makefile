@@ -48,7 +48,7 @@ toinstall     ?= $(bindir)/hoc \
 hoc_deps           =
 hoc_objs           = hoc.o symbol.o init.o error.o math.o code.o lex.o \
                      reserved_words.o main.o do_help.o instr.o scope.o \
-                     intern.o type2inst.o types.o builtins.o
+                     intern.o type2inst.o types.o builtins.o binop_eval.o
 hoc_ldfl           = -Wl,--export-dynamic
 hoc_libs-GNU/Linux = -ldl
 hoc_libs-FreeBSD   =

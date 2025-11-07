@@ -13,6 +13,7 @@
 #include "symbol.h"
 #include "hoc.h"
 
+#include "binop_eval.h"
 
 #ifndef   FMT_CHAR  /* { */
 #warning  FMT_CHAR should be defined in config.mk

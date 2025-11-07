@@ -9,11 +9,14 @@
 
 #include "cellP.h"
 
-#define BINOP_EVAL(_pfx, _sfx, _rfl, _ofl, _op) /* { */ \
-Cell _pfx##_binop_##_sfx(Symbol *rtyp, Cell lft, Cell rgt);
+#define BINOP_EVAL(_pfx, _sfx, _ifl, _ofl, _op) /* { */ \
+ConstExpr _pfx##_binop##_sfx(const Symbol *rtyp, ConstExpr lft, ConstExpr rgt);
+#define BINOP_EVAL_EXP(_sfx, _ifl, _ofl, _op, _func) /* { */ \
+    BINOP_EVAL(exp, _sfx, _ifl, _ofl, _op)
 
 #include "binop_evals.h"
 
-#undef BINOP_EVAL /*                         } */
+#undef BINOP_EVAL_EXP /*                           } */
+#undef BINOP_EVAL     /*                           } */
 
 #endif /* BINOP_EVAL_H_c633e2da_bb45_11f0_b673_0023ae68f329 */
