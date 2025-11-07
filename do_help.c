@@ -59,9 +59,9 @@ do_help(int exit_code)
 void do_version(int cod)
 {
 
-#define PD(V)      printf("%24s %g\n", #V, V)
-#define PS(V)      printf("%24s %s\n", #V, V)
-#define P(V)       printf("%24s %2d\n", #V, V)
+#define PD(V)      printf("%24s %.15g\n", #V, V)
+#define PS(V)      printf("%24s \"%s\"\n", #V, V)
+#define P(V)       printf("%24s %d\n", #V, V)
 
     printf("%s, %s: (C) %s %s.  All rights reserved\n\n",
             PROGRAM_NAME, VERSION, COPYRIGHT_YEARS,
@@ -88,19 +88,26 @@ void do_version(int cod)
     PS(sbindir);
     PS(datarootdir);
     PS(pkgdatadir);
+    PS(pkglibdir);
+    PS(pkgactivepluginsdir);
     PS(mandir);
     PS(man8dir);
     PS(man1dir);
     PS(docdir);
     PS(vardir);
     PS(logdir);
+    PS(HOC_PLUGINS_PATH_VAR);
+    PS(DEFAULT_HOC_PLUGINS_PATH);
 
     P(UQ_HOC_DEBUG);
     P(UQ_HOC_TRACE_PATCHING);
+    P(UQ_TRACE_SYMBS);
     P(UQ_LEX_DEBUG);
     P(UQ_LEX_COMMENTS);
     P(UQ_CODE_DEBUG_EXEC);
     P(UQ_CODE_DEBUG_PROG);
+    P(UQ_DEBUG_STACK);
+    P(UQ_TRACE_CONST_EXPR);
 
     P(UQ_USE_COLORS);
     P(UQ_USE_LOCUS);
@@ -129,6 +136,15 @@ void do_version(int cod)
     P(UQ_BRKPT_WIDTH1);
     P(UQ_BRKPT_WIDTH2);
     P(UQ_SIZE_FP_RETADDR);
+    P(UQ_SUB_CALL_INCRMNT);
+    P(UQ_BUILTINS_INCRMNT);
+
+    PS(FMT_CHAR);
+    PS(FMT_DOUBLE);
+    PS(FMT_FLOAT);
+    PS(FMT_INT);
+    PS(FMT_LONG);
+    PS(FMT_SHORT);
 
     exit(cod);
 #undef PS

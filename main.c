@@ -136,19 +136,21 @@ static void process(FILE *in)
 void init_plugins(void)
 {
 
-	char *plugin_dirs = getenv(HOC_PLUGINS_PATH_VAR);
-    if (!plugin_dirs)
-        plugin_dirs = DEFAULT_HOC_PLUGINS_PATH;
+    char *plugin_dirs = getenv(HOC_PLUGINS_PATH_VAR);
 
-	/* if we don't have a valid string for plugin_dirs, we will not be
-	 * able to load plugins, so we abandon all plugins interface */
-    if (plugin_dirs != NULL) {
-		fprintf(stderr,
-				"no default %s name and environment variable "
-				"undefined, refusing to load plugins\n",
-				HOC_PLUGINS_PATH_VAR);
-		return;
-	}
+    if (plugin_dirs  == NULL)
+        plugin_dirs   = DEFAULT_HOC_PLUGINS_PATH;
+
+    /* if we don't have a valid string for plugin_dirs, we will not be
+     * able to load plugins, so we abandon all plugins interface */
+    if (plugin_dirs == NULL) {
+        fprintf(stderr,
+                "no default '%s' plugin dir name and environment variable "
+                " %s undefined, refusing to load plugins\n",
+                DEFAULT_HOC_PLUGINS_PATH,
+                HOC_PLUGINS_PATH_VAR);
+        return;
+    }
 
     plugin_dirs = strdup(plugin_dirs);
 
@@ -161,7 +163,7 @@ void init_plugins(void)
 
         if (dir == NULL) {
             fprintf(stderr,
-                    "directorio %s: %s\n",
+                    "opendir: %s: %s\n",
                     plugins_dir_name,
                     strerror(errno));
             continue; /* skip to next dir */
