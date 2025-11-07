@@ -101,12 +101,34 @@
 * Tue Oct  7 12:32:40 -05 2025
   implementar operadores de bits |, &, ^, <<, >>, |=, &=, ^=, <<=, >>= y ~.
 
-* hacer una implemntacion modular para los builtin.
+* Fri Nov  7 14:23:20 -05 2025
+  hacer una implemntacion modular para los builtin.
+
+* Fri Nov  7 14:25:13 -05 2025
+  implementar las expresiones constantes, que seran utilizadas para definir
+  los tama;os de los arrays y para definir constantes dentro del programa.
+  Las constantes se inicializan con expresiones constantes que han de evaluarse
+  en la fase de analisis, y no se genera codigo para ellas, ya que el valor
+  de una constante se almacena en la informacion asociada al Symbol.
+
+* Incluir soporte para builtins que puedan operar sobre expresiones constantes.
+  La idea es incluir una doble funcionalidad:  Por un lado al registrar un builtin,
+  se implementa una funcion que ejecutara la parte correspondiente de la instruccion
+  bltin;  Por otro lado, se implementa una funcion que puede tomar un array de
+  ConstExpr (es decir, un par Cell -- con el valor, y un const Symbol *, que
+  representaran el valor pasado a la funcion y el tipo.  La funcion, a su vez,
+  retornara un valor Cell y un const Symbol *, que permitiran saber que tipo y que
+  valor devuelve la expresion.
+  LCU: Fri Nov  7 14:32:23 -05 2025
+  Nota: Este interface aun esta demasiado fresco.
   
 * traducir a ensamblador 'de verdad'.  Aun esta por definir como se realizara
   esta tarea.... parece que la opcion mas apropiada pueda ser la de llamar
   en cada instruccion a una funcion que emita las instrucciones correspondientes
   para la arquitectura propuesta, y permitir asi que esta sea modular.
+  LCU: Fri Nov  7 14:25:33 -05 2025
+  Creo que el ensamblador que generara el programa mas didactico y apropiado
+  es el de RISC-V.  (Continuara.)
   
 * implementar funciones anidadas, como en  pascal. Esto es comun en
   lenguajes tipo pascal,  modula 2, ada o en parte  en java (cuando
