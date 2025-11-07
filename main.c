@@ -135,20 +135,20 @@ static void process(FILE *in)
 
 void init_plugins(void)
 {
-    const char *plugins_dir = pkgactivepluginsdir;
-    DIR *d = opendir(plugins_dir);
-    if (d == NULL) {
-        fprintf(stderr,
-                "directorio %s: %s\n",
-                plugins_dir,
-                strerror(errno));
-        return;
-    }
 
+	char *plugin_dirs = getenv(HOC_PLUGINS_PATH_VAR);
     if (!plugin_dirs)
         plugin_dirs = DEFAULT_HOC_PLUGINS_PATH;
 
-    assert(plugin_dirs != NULL);
+	/* if we don't have a valid string for plugin_dirs, we will not be
+	 * able to load plugins, so we abandon all plugins interface */
+    if (plugin_dirs != NULL) {
+		fprintf(stderr,
+				"no default %s name and environment variable "
+				"undefined, refusing to load plugins\n",
+				HOC_PLUGINS_PATH_VAR);
+		return;
+	}
 
     plugin_dirs = strdup(plugin_dirs);
 
