@@ -113,7 +113,7 @@ int _init()
 {
 
 #define REGISTER_BUILTIN(_ret_type, _name, ...) \
-    register_builtin(#_name, _ret_type, _name##_cb, ##__VA_ARGS__, NULL, NULL)
+    register_builtin(#_name, _ret_type, _name##_cb, NULL, ##__VA_ARGS__, NULL, NULL)
 
     REGISTER_BUILTIN(Double,  abs,   "x", Double);
     REGISTER_BUILTIN(Double,  acos,  "x", Double);

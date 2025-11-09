@@ -126,6 +126,7 @@ void do_version(int cod)
     P(UQ_RETURNS_TO_PATCH_INCRMNT);
     P(UQ_INTERN_INCRMNT);
     P(UQ_ARGUMS_INCRMNT);
+    P(UQ_CONST_EXPR_INCRMNT);
 
     P(UQ_COL1_SYMBS);
     P(UQ_COL2_SYMBS);

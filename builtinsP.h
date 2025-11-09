@@ -13,8 +13,9 @@
 #include "builtins.h"
 
 struct builtin_s {
-    Symbol   *sym;
-    bltin_cb  subr;
+    Symbol         *sym;
+    bltin_cb        subr;
+    bltin_const_cb  subr_eval;
 }; /* struct builtin_s */
 
 const builtin *get_builtin_info(int id);

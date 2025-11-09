@@ -10,16 +10,18 @@
 #include "instr.h"
 #include "symbol.h"
 #include "plugins.h"
+#include "hoc.h"
 
 typedef struct builtin_s builtin;
 
-typedef void (*bltin_cb)(int bltin_id);
+typedef void      (*bltin_cb)(      int bltin_id);
 
 int
 register_builtin(
-        const char   *name,
-        const Symbol *type,
-        bltin_cb      function_ref,
+        const char     *name,
+        const Symbol   *type,
+        bltin_cb        function_ref,
+        bltin_const_cb  const_function_ref,
         ...); /* ...parameter_name, parameter_type, ... */
 
 #endif /* BUILTINS_H_f92b2754_a84c_11f0_a2b7_0023ae68f329 */

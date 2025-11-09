@@ -27,9 +27,10 @@ static size_t   builtins_len,
 
 int
 register_builtin(
-        const char   *name,
-        const Symbol *type,
-        bltin_cb      function_ref,
+        const char     *name,
+        const Symbol   *type,
+        bltin_cb        function_ref,
+        bltin_const_cb  const_function_ref,
         ...)
 {
     va_list args;
@@ -50,11 +51,11 @@ register_builtin(
                 ? BLTIN_FUNC
                 : BLTIN_PROC,
             type);
-
-    bltin->subr             = function_ref;
     bltin->sym->bltin_index = ret_val;
+    bltin->subr             = function_ref;
+    bltin->subr_eval        = const_function_ref;
 
-    va_start(args, function_ref);
+    va_start(args, const_function_ref);
 
     const Symbol *par_type;
     const char   *par_name;

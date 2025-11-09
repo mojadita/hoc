@@ -54,6 +54,14 @@ typedef struct OpRel_s {
     token         tok;
 } OpRel;
 
+typedef struct ConstArglist_s {
+    ConstExpr    *expr_list;
+    size_t        expr_list_len,
+                  expr_list_cap;
+} ConstArglist;
+
+typedef ConstExpr (*bltin_const_cb)(int bltin_id, const ConstArglist args[]);
+
 #include "hoc.tab.h"
 
 /* inicializa la tabla de simbolos con las funciones builtin y las

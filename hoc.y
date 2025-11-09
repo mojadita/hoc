@@ -39,10 +39,22 @@ void yyerror( char * msg );
 static void patch_block(Cell*patch_point);
 static void add_patch_return(Symbol *subr, Cell *patch_point);
 static void patch_returns(const Symbol *subr, Cell *target);
-static OpRel code_unpatched_op(token op);
+static OpRel code_unpatchedop(token op);
 static const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2);
 static bool code_conv_val(const Symbol *t_src, const Symbol *t_dst);
 static void patching_subr(const Symbol *subr, Cell *preamb, const char *what);
+static ConstArglist const_arglist_add(
+        ConstArglist  list,
+        const Symbol *bltin,
+        ConstExpr     const_expr);
+static ConstExpr eval_const_builtin_func(
+        const Symbol *bltin,  /* builtin to be called */
+        ConstArglist  args);  /* arglist as an array (allocated with DYNARRAY_GROW) */
+static Cell
+const_conv_val(
+        const Symbol *t_src,
+        const Symbol *t_dst,
+        Cell          orig);
 
 /*  Necersario para hacer setjmp y longjmp */
 jmp_buf begin;
@@ -81,6 +93,11 @@ jmp_buf begin;
 #warning  UQ_SUB_CALL_INCRMNT deberia ser configurado en config.mk
 #define   UQ_SUB_CALL_INCRMNT    (8)
 #endif /* UQ_SUB_CALL_INCRMNT    } */
+
+#ifndef   UQ_CONST_EXPR_INCRMNT /* { */
+#warning  UQ_CONST_EXPR_INCRMNT deberia ser configurado en config.mk
+#define   UQ_CONST_EXPR_INCRMNT    (4)
+#endif /* UQ_CONST_EXPR_INCRMNT    } */
 
 #if       UQ_HOC_DEBUG /* {{ */
 # define P(_fmt, ...)             \
@@ -181,6 +198,7 @@ size_t size_lvars = 0;
     var_init      vi;   /* global var name & initializer */
     Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
     ConstExpr     const_expr; /* tipo de una expresion constante */
+    ConstArglist  const_arglist; /* constant expression argument lists for builtins */
     token         tok;  /* tipo asociado a un operador, con todo el token */
     OpRel         opr;  /* tipo del operador relacional. */
 }
@@ -216,6 +234,7 @@ size_t size_lvars = 0;
 %type  <const_expr> const_prim const_fact const_term const_expr_arit const_expr_rel
 %type  <const_expr> const_expr_shift const_expr_bitand const_expr_bitxor const_expr_bitor
 %type  <const_expr> const_expr_and const_expr
+%type  <const_arglist> const_arglist const_arglist_opt
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -1387,6 +1406,27 @@ const_prim
     | CONSTANT              { $$.typ = $1->typref;
                               $$.cel = $1->cel;
                             }
+    | builtin_func '(' const_arglist ')' {
+                              $$ = eval_const_builtin_func($1, $3);
+                              pop_sub_call_stack();
+                            }
+    | builtin_func '('  ')' {
+                              const ConstArglist empty = {
+                                  .expr_list = NULL, .expr_list_len = 0, .expr_list_cap = 0, };
+                              $$ = eval_const_builtin_func($1, empty);
+                              pop_sub_call_stack();
+                            }
+    ;
+
+const_arglist
+    : const_arglist ',' const_expr {
+                              $$ = const_arglist_add($1, top_sub_call_stack(), $3);
+                            }
+    | const_expr            { $$.expr_list     = NULL;
+                              $$.expr_list_len = $$.expr_list_cap
+                                               = 0;
+                              $$ = const_arglist_add($$, top_sub_call_stack(), $1);
+                            }
     ;
 
 builtin_func
@@ -1535,6 +1575,44 @@ func_head
 
 %%
 
+static ConstArglist
+const_arglist_add(ConstArglist list, const Symbol *bltin, ConstExpr const_expr)
+{
+    int i = list.expr_list_len;  /* argument position */
+    if (i >= bltin->argums_len) {
+        execerror("passing more arguments than bltin '%s' "
+                "requires (%d)\n",
+                bltin->name, bltin->argums_len);
+    }
+    const Symbol *expr_type     = const_expr.typ,
+                 *bltin_arg     = bltin->argums[i],
+                 *arg_type      = bltin_arg->typref;
+    const char   *bltin_argname = bltin_arg->name,
+                 *bltin_name    = bltin->name,
+                 *arg_typename  = arg_type->name,
+                 *expr_typename = expr_type->name;
+
+    if (expr_type != arg_type) {
+        printf("bltin '%s': arg #%d(%s)'s "
+               "type(%s) != expr's type (%s) converting\n",
+               bltin_name, i, bltin_argname,
+               arg_typename, expr_typename);
+        const_expr.cel = const_conv_val(
+                expr_type,
+                arg_type,
+                const_expr.cel);
+        const_expr.typ = arg_type;
+    }
+
+    DYNARRAY_GROW(
+            list.expr_list,
+            ConstExpr, 1,
+            UQ_CONST_EXPR_INCRMNT);
+    list.expr_list[list.expr_list_len++] = const_expr;
+
+    return list;
+} /* const_arglist_add */
+
 void patching_subr(
         const Symbol *subr,
         Cell         *preamb,
@@ -1584,7 +1662,7 @@ void pop_sub_call_stack(void)
     --sub_call_stack_len;
 }
 
-Cell
+static Cell
 const_conv_val(
         const Symbol *t_src,
         const Symbol *t_dst,
@@ -1788,6 +1866,47 @@ const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
     return ret_val;
 
 } /* const_eval_op_bin */
+
+ConstExpr eval_const_builtin_func(
+        const Symbol *bltin,
+        ConstArglist  args)
+{
+    printf(F("%s("), bltin->name);
+    char *sep = "";
+    char workbench[256];
+    ConstExpr *p = args.expr_list;
+    for (int i = 0; i < args.expr_list_len; ++i, ++p) {
+        const Symbol *p_typ = p->typ;
+        printf("%s(%s) %s",
+                sep,
+                p_typ->name,
+                p_typ->t2i->printval(
+                        p->cel,
+                        workbench,
+                        sizeof workbench));
+        sep = ", ";
+    } /* for */
+
+    /* LCU: Sun Nov  9 13:48:28 -05 2025
+     * TODO: llamar a function builtin (evaluada, no programada) */
+
+    ConstExpr ret_val = {
+        .cel = bltin->typref->t2i->zero,
+        .typ = bltin->typref
+    };
+    if (bltin->subr_eval == NULL) {
+        execerror("builtin %s cannot be called in a constant expression",
+                bltin->name);
+    }
+    printf(") -> %s (unimplemented yet, see %s:%d)\n",
+            ret_val.typ->t2i->printval(
+                    ret_val.cel,
+                    workbench,
+                    sizeof workbench),
+            __FILE__, __LINE__);
+    return ret_val;
+} /* eval_const_builtin_fun */
+
 
 void patch_block(Cell*patch_point)
 {

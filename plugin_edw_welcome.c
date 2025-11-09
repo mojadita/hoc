@@ -45,7 +45,7 @@ void _init(void);
  * de hecho. Esto se hace asi en el Makefile ahora. */
 void _init(void)
 {
-    printf( "Hello Hoc'User !!. Arriba cachipurriana\n" );
+    printf( "Hello Hoc'User !!\n" );
     fprintf( stderr,
         "Welcome to '" BRIGHT "%s" ANSI_END " v%.1f' Calculator, "
         "Compiler and Executable language.\n",
