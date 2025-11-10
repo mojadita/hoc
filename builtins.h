@@ -24,4 +24,9 @@ register_builtin(
         bltin_const_cb  const_function_ref,
         ...); /* ...parameter_name, parameter_type, ... */
 
+ConstExpr
+eval_const_builtin_func(
+        int                  id,     /* builtin id to be called */
+        const ConstArglist  *args);  /* arglist as an array (allocated with DYNARRAY_GROW) */
+
 #endif /* BUILTINS_H_f92b2754_a84c_11f0_a2b7_0023ae68f329 */

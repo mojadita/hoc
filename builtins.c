@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 #include "config.h"
+#include "colors.h"
 #include "dynarray.h"
 #include "hoc.h"
 #include "scope.h"
@@ -89,6 +90,47 @@ register_builtin(
     return ret_val;
 
 } /* register_builtin */
+
+ConstExpr
+eval_const_builtin_func(
+        int                  id,
+        const ConstArglist  *args)
+{
+    const builtin *bltin = get_builtin_info(id);
+    const Symbol  *sym   = bltin->sym;
+    const Symbol  *typ   = sym->typref;
+    printf(F("%s %s("), typ->name, sym->name);
+    char *sep = "";
+    char workbench[256];
+    ConstExpr *p = args->expr_list; /* parameter */
+    for (int i = 0; i < args->expr_list_len; ++i, ++p) {
+        const Symbol *p_typ = p->typ;
+        printf("%s(%s) %s",
+                sep,
+                p_typ->name,
+                p_typ->t2i->printval(
+                        p->cel,
+                        workbench,
+                        sizeof workbench));
+        sep = ", ";
+    } /* for */
+    printf(") -> ");
+
+    /* LCU: Sun Nov  9 13:48:28 -05 2025
+     * TODO: llamar a function builtin (evaluada, no programada) */
+
+    if (bltin->subr_eval == NULL) {
+        execerror("builtin " GREEN "%s" ANSI_END " cannot be used in "
+                  "a constant expression",
+                  sym->name);
+    }
+    ConstExpr ret_val = bltin->subr_eval(sym->bltin_index, args);
+    puts(ret_val.typ->t2i->printval(
+                   ret_val.cel,
+                   workbench,
+                   sizeof workbench));
+    return ret_val;
+} /* eval_const_builtin_fun */
 
 const builtin *get_builtin_info(int id)
 {

@@ -43,6 +43,7 @@ IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 toinstall     ?= $(bindir)/hoc \
                  $(man1dir)/hoc.1.gz \
                  $(pkglibdir)/plugin0.so \
+                 $(pkglibdir)/plugin_edw_welcome.so \
                  $(pkgactivepluginsdir)
 
 hoc_deps           =
@@ -79,7 +80,8 @@ uninstall:
 	$(RM) $(toinstall)
 
 $(bindir)/hoc \
-$(pkglibdir)/plugin0.so: $(@:T) $(@:H)
+$(pkglibdir)/plugin0.so \
+$(pkglibdir)/plugin_edw_welcome.so : $(@:T) $(@:H)
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $(@:T) $@
 
 $(man1dir)/hoc.1.gz: $(@:T)

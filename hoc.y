@@ -31,6 +31,7 @@
 #include "symbolP.h"
 #include "cellP.h"
 #include "scope.h"
+#include "builtins.h"
 
 void warning( const char *fmt, ...);
 void vwarning( const char *fmt, va_list args );
@@ -47,9 +48,6 @@ static ConstArglist const_arglist_add(
         ConstArglist  list,
         const Symbol *bltin,
         ConstExpr     const_expr);
-static ConstExpr eval_const_builtin_func(
-        const Symbol *bltin,  /* builtin to be called */
-        ConstArglist  args);  /* arglist as an array (allocated with DYNARRAY_GROW) */
 static Cell
 const_conv_val(
         const Symbol *t_src,
@@ -1047,7 +1045,7 @@ expr_arit
                                * LBL: 9966c546_a5cf_11f0_b8f9_0023ae68f329
                                * determinar el tipo de la expr_arit, a partir de los
                                * tipos de $1 y $3. En caso de que los tipos sean
-                               * distintos, generar codigo para converti el tipo de
+                               * distintos, generar codigo para convertir el tipo de
                                * $3 si $3 debe convertirse al tipo de $1 y parchear
                                * op_add si el que debe convertirse es $1 al tipo
                                * de $3 */
@@ -1407,13 +1405,16 @@ const_prim
                               $$.cel = $1->cel;
                             }
     | builtin_func '(' const_arglist ')' {
-                              $$ = eval_const_builtin_func($1, $3);
+                              $$ = eval_const_builtin_func($1->bltin_index, &$3);
                               pop_sub_call_stack();
                             }
     | builtin_func '('  ')' {
                               const ConstArglist empty = {
-                                  .expr_list = NULL, .expr_list_len = 0, .expr_list_cap = 0, };
-                              $$ = eval_const_builtin_func($1, empty);
+                                  .expr_list     = NULL,
+                                  .expr_list_len = 0,
+                                  .expr_list_cap = 0,
+                              };
+                              $$ = eval_const_builtin_func($1->bltin_index, &empty);
                               pop_sub_call_stack();
                             }
     ;
@@ -1574,44 +1575,6 @@ func_head
     ;
 
 %%
-
-static ConstArglist
-const_arglist_add(ConstArglist list, const Symbol *bltin, ConstExpr const_expr)
-{
-    int i = list.expr_list_len;  /* argument position */
-    if (i >= bltin->argums_len) {
-        execerror("passing more arguments than bltin '%s' "
-                "requires (%d)\n",
-                bltin->name, bltin->argums_len);
-    }
-    const Symbol *expr_type     = const_expr.typ,
-                 *bltin_arg     = bltin->argums[i],
-                 *arg_type      = bltin_arg->typref;
-    const char   *bltin_argname = bltin_arg->name,
-                 *bltin_name    = bltin->name,
-                 *arg_typename  = arg_type->name,
-                 *expr_typename = expr_type->name;
-
-    if (expr_type != arg_type) {
-        printf("bltin '%s': arg #%d(%s)'s "
-               "type(%s) != expr's type (%s) converting\n",
-               bltin_name, i, bltin_argname,
-               arg_typename, expr_typename);
-        const_expr.cel = const_conv_val(
-                expr_type,
-                arg_type,
-                const_expr.cel);
-        const_expr.typ = arg_type;
-    }
-
-    DYNARRAY_GROW(
-            list.expr_list,
-            ConstExpr, 1,
-            UQ_CONST_EXPR_INCRMNT);
-    list.expr_list[list.expr_list_len++] = const_expr;
-
-    return list;
-} /* const_arglist_add */
 
 void patching_subr(
         const Symbol *subr,
@@ -1867,46 +1830,47 @@ const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
 
 } /* const_eval_op_bin */
 
-ConstExpr eval_const_builtin_func(
-        const Symbol *bltin,
-        ConstArglist  args)
+static ConstArglist
+const_arglist_add(
+		ConstArglist  list,
+		const Symbol *bltin,
+		ConstExpr     const_expr)
 {
-    printf(F("%s("), bltin->name);
-    char *sep = "";
-    char workbench[256];
-    ConstExpr *p = args.expr_list;
-    for (int i = 0; i < args.expr_list_len; ++i, ++p) {
-        const Symbol *p_typ = p->typ;
-        printf("%s(%s) %s",
-                sep,
-                p_typ->name,
-                p_typ->t2i->printval(
-                        p->cel,
-                        workbench,
-                        sizeof workbench));
-        sep = ", ";
-    } /* for */
-
-    /* LCU: Sun Nov  9 13:48:28 -05 2025
-     * TODO: llamar a function builtin (evaluada, no programada) */
-
-    ConstExpr ret_val = {
-        .cel = bltin->typref->t2i->zero,
-        .typ = bltin->typref
-    };
-    if (bltin->subr_eval == NULL) {
-        execerror("builtin %s cannot be called in a constant expression",
-                bltin->name);
+    int i = list.expr_list_len;  /* argument position */
+    if (i >= bltin->argums_len) {
+        execerror("passing more arguments than bltin '%s' "
+                "requires (%d)\n",
+                bltin->name, bltin->argums_len);
     }
-    printf(") -> %s (unimplemented yet, see %s:%d)\n",
-            ret_val.typ->t2i->printval(
-                    ret_val.cel,
-                    workbench,
-                    sizeof workbench),
-            __FILE__, __LINE__);
-    return ret_val;
-} /* eval_const_builtin_fun */
+    const Symbol *expr_type     = const_expr.typ,
+                 *bltin_arg     = bltin->argums[i],
+                 *arg_type      = bltin_arg->typref;
+    const char   *bltin_argname = bltin_arg->name,
+                 *bltin_name    = bltin->name,
+                 *arg_typename  = arg_type->name,
+                 *expr_typename = expr_type->name;
 
+    if (expr_type != arg_type) {
+        printf("bltin '%s': arg #%d(%s)'s "
+               "type(%s) != expr's type (%s) converting to (%s)\n",
+               bltin_name, i, bltin_argname,
+               arg_typename, expr_typename,
+               arg_typename);
+        const_expr.cel = const_conv_val(
+                expr_type,
+                arg_type,
+                const_expr.cel);
+        const_expr.typ = arg_type;
+    }
+
+    DYNARRAY_GROW(
+            list.expr_list,
+            ConstExpr, 1,
+            UQ_CONST_EXPR_INCRMNT);
+    list.expr_list[list.expr_list_len++] = const_expr;
+
+    return list;
+} /* const_arglist_add */
 
 void patch_block(Cell*patch_point)
 {

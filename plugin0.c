@@ -38,7 +38,20 @@ void _name##_cb(int plugin_id)                     \
     Cell   par    = pop();                         \
     Cell   result = { ._rfld = _func(par._rfld) }; \
     push(result);                                  \
-} /* _name##_cb                          }{ */
+} /* _name##_cb                          }{ */     \
+                                                   \
+ConstExpr                                          \
+_name##_const_cb(                                  \
+        int plugin_id,                             \
+        const ConstArglist *args)                  \
+{                                                  \
+    ConstExpr result = {                           \
+        .typ   = Double,                           \
+        .cel   = { ._rfld =                        \
+            _func(args->expr_list[0].cel._rfld) }, \
+    };                                             \
+    return result;                                 \
+} /* _name##_const_cb                    }{ */     \
 
 DOUBLE_F(dbl, abs,   fabs)
 DOUBLE_F(dbl, acos,  acos)
@@ -71,7 +84,22 @@ void _name##_cb(int plugin_id)              \
     Cell result = { .dbl  = _name _expr };  \
                                             \
     push(result); /*                     }{ */\
-} /* _name##_cb */
+} /* _name##_cb */                          \
+                                            \
+ConstExpr                                   \
+_name##_const_cb(                           \
+        int                 plugin_id,      \
+        const ConstArglist *args)           \
+{                                           \
+    double x = args->expr_list[0].cel.dbl,  \
+           y = args->expr_list[1].cel.dbl;  \
+    ConstExpr result = {                    \
+        .typ = Double,                      \
+        .cel = { .dbl  = _name _expr },     \
+    };                                      \
+                                            \
+    return result; /*                    }{ */\
+} /* _name##_const_cb */                    \
 
 DOUBLE_F2(atan2, (y, x))
 DOUBLE_F2(pow,   (x, y))
@@ -113,7 +141,20 @@ int _init()
 {
 
 #define REGISTER_BUILTIN(_ret_type, _name, ...) \
-    register_builtin(#_name, _ret_type, _name##_cb, NULL, ##__VA_ARGS__, NULL, NULL)
+    register_builtin(#_name,                    \
+                      _ret_type,                \
+                      _name##_cb,               \
+                      _name##_const_cb,         \
+                      ##__VA_ARGS__,            \
+                      NULL, NULL)
+
+/* these callbacks (expanded from macro above) don't exist,
+ * so we define them as the constant NULL to make register
+ * not to register the const_ callback. */
+#define random_const_cb  NULL
+#define srandom_const_cb NULL
+#define time_const_cb    NULL
+#define exit_const_cb    NULL
 
     REGISTER_BUILTIN(Double,  abs,   "x", Double);
     REGISTER_BUILTIN(Double,  acos,  "x", Double);
@@ -140,7 +181,7 @@ int _init()
     REGISTER_BUILTIN(Double,  tan,   "x", Double);
     REGISTER_BUILTIN(Double,  tanh,  "x", Double);
     REGISTER_BUILTIN(Long,    time);
-    REGISTER_BUILTIN(NULL,    exit, "x", Integer);
+    REGISTER_BUILTIN(NULL,    exit,  "x", Integer);
 
     return 0;
 } /* _init() */
