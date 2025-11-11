@@ -51,6 +51,16 @@ BINOP_EVAL(bitxor, _i, itg, itg, ^)
 BINOP_EVAL(bitxor, _l, lng, lng, ^)
 BINOP_EVAL(bitxor, _s, sht, sht, ^)
 
+BINOP_EVAL(shl, _c, chr, chr, <<)
+BINOP_EVAL(shl, _i, itg, itg, <<)
+BINOP_EVAL(shl, _l, lng, lng, <<)
+BINOP_EVAL(shl, _s, sht, sht, <<)
+
+BINOP_EVAL(shr, _c, chr, chr, >>)
+BINOP_EVAL(shr, _i, itg, itg, >>)
+BINOP_EVAL(shr, _l, lng, lng, >>)
+BINOP_EVAL(shr, _s, sht, sht, >>)
+
 BINOP_EVAL(plus, _c, chr, chr, +)
 BINOP_EVAL(plus, _d, dbl, dbl, +)
 BINOP_EVAL(plus, _f, flt, flt, +)

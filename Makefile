@@ -103,7 +103,7 @@ plugin0.so: $(plugin0.so_deps) $(plugin0.so_objs)
 plugin_edw_welcome.so: $(plugin_edw_welcome.so_deps) $(plugin_edw_welcome.so_objs)
 	$(LD) $(LDFLAGS) $($@_ldfl) $($@_objs) -o $@
 
-type2inst.c: instrucciones.h type2inst.sh
+type2inst.c: instrucciones.h binop_evals.h type2inst.sh
 	./type2inst.sh >$@
 toclean += type2inst.c
 

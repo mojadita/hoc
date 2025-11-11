@@ -127,7 +127,7 @@ Cell top(void)   /* returns the top of the stack */
 Cell *code_inst(instr_code ins, ...) /* install one instruction of operand */
 {
 
-    if (ins >= instruction_set_len) {
+    if ((ins < 0) || (ins >= instruction_set_len)) { /* invalid instruction */
         execerror("invalid instruction code [%d]",
             ins);
     }

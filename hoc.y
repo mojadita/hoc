@@ -1832,9 +1832,9 @@ const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
 
 static ConstArglist
 const_arglist_add(
-		ConstArglist  list,
-		const Symbol *bltin,
-		ConstExpr     const_expr)
+        ConstArglist  list,
+        const Symbol *bltin,
+        ConstExpr     const_expr)
 {
     int i = list.expr_list_len;  /* argument position */
     if (i >= bltin->argums_len) {
