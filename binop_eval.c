@@ -65,8 +65,12 @@ ConstExpr exp_binop##_sfx(                                    \
         .typ = rtype,                                         \
         .cel = { ._ofl = _func(lft.cel._ifl, rgt.cel._ifl) }, \
     };                                                        \
-    TRACE(_op, _sfx);                                                  \
+    TRACE(_op, _sfx);                                         \
     return ret_val;                                           \
 } /* exp_binop##_sfx                            } */
 
 #include "binop_evals.h"
+
+#undef BINOP_EVAL
+#undef BINOP_EVAL_EXP
+#undef TRACE

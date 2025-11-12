@@ -798,7 +798,7 @@ void bltin(const instr *i)
 
     fp = saved_fp; /* restore fp */
 
-    bltin->subr(bltin_id);  /* execute */
+	bltin->subr(bltin_id);  /* execute */
 
 #if UQ_CODE_DEBUG_EXEC /* { only if debug exec has been activated */
     if (func_desc->typref != NULL) {

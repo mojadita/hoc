@@ -111,7 +111,8 @@
   en la fase de analisis, y no se genera codigo para ellas, ya que el valor
   de una constante se almacena en la informacion asociada al Symbol.
 
-* Incluir soporte para builtins que puedan operar sobre expresiones constantes.
+* Wed Nov 12 11:24:26 -05 2025
+  Incluir soporte para builtins que puedan operar sobre expresiones constantes.
   La idea es incluir una doble funcionalidad:  Por un lado al registrar un builtin,
   se implementa una funcion que ejecutara la parte correspondiente de la instruccion
   bltin;  Por otro lado, se implementa una funcion que puede tomar un array de
@@ -119,7 +120,6 @@
   representaran el valor pasado a la funcion y el tipo.  La funcion, a su vez,
   retornara un valor Cell y un const Symbol *, que permitiran saber que tipo y que
   valor devuelve la expresion.
-  LCU: Fri Nov  7 14:32:23 -05 2025
   Nota: Este interface aun esta demasiado fresco.
   
 * traducir a ensamblador 'de verdad'.  Aun esta por definir como se realizara

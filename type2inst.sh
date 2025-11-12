@@ -16,18 +16,18 @@ sp='[ 	]*'
 id='[a-zA-Z_][a-zA-Z0-9_]*'
 comma="${sp},${sp}"
 suff='_[cdfils]'
+in='    '
 
 binop_extract() {
 	grep "^\s*BINOP_EVAL(${sp}${id}${comma}${1}${comma}" <binop_evals.h \
-	| sed -E "s/^${sp}BINOP_EVAL\(${sp}(${id})${comma}(${suff})${comma}.*$/    .\1_binop = \1_binop\2,/"
+	| sed -E "s/^${sp}BINOP_EVAL\(${sp}(${id})${comma}(${suff})${comma}.*$/${in}.\1_binop = \1_binop\2,/"
 	grep "^\s*BINOP_EVAL_EXP(${1}${comma}" <binop_evals.h \
-	| sed -E "s/^${sp}BINOP_EVAL_EXP\((${suff})${comma}.*$/    .exp_binop = exp_binop\1,/"
+	| sed -E "s/^${sp}BINOP_EVAL_EXP\(${sp}(${suff})${comma}.*$/${in}.exp_binop = exp_binop\1,/"
 }
 
 add_suffix() {
-    grep "^INST([a-zA-Z_][_A-Za-z0-9]*${1}," \
-         instrucciones.h \
-    | sed -e "s/INST(\([a-zA-Z_][_A-Za-z0-9]*\)${1},.*/    .\1        = instruction_set + INST_\1${1},/"
+    grep "^${sp}INST(${id}${1}," < instrucciones.h \
+    | sed -e "s/INST(\(${id}\)${1},.*/${in}.\1 = instruction_set + INST_\1${1},/"
 }
 
 cat <<EOF_b549d7fa-9e0c-11f0-9aa0-0023ae68f329
