@@ -232,7 +232,7 @@ size_t size_lvars = 0;
 %type  <const_expr> const_prim const_fact const_term const_expr_arit const_expr_rel
 %type  <const_expr> const_expr_shift const_expr_bitand const_expr_bitxor const_expr_bitor
 %type  <const_expr> const_expr_and const_expr
-%type  <const_arglist> const_arglist const_arglist_opt
+%type  <const_arglist> const_arglist
 
 %%
 /*  Area de definicion de reglas gramaticales */
@@ -1409,7 +1409,7 @@ const_prim
                               pop_sub_call_stack();
                             }
     | builtin_func '('  ')' {
-                              const ConstArglist empty = {
+                              static const ConstArglist empty = {
                                   .expr_list     = NULL,
                                   .expr_list_len = 0,
                                   .expr_list_cap = 0,
@@ -1801,26 +1801,36 @@ const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
      * TODO: voy por aqui.  Resolver el problema del tipo del resultado
      * segun el operador */
 
+#define CHECK_N_GO(_name, _type) do {                     \
+            if (!t2i->_name##_binop)  {                   \
+                execerror("no " GREEN #_name ANSI_END     \
+                        " operator for "                  \
+                        GREEN "%s" ANSI_END " operands",  \
+                        typ_res->name);                   \
+            }                                             \
+            return t2i->_name##_binop(_type, exp1, exp2); \
+        } while (0) /* CHECK_N_GO */
+
     switch (op.id) {
-    case OR:          return t2i->     or_binop(Integer, exp1, exp2);
-    case AND:         return t2i->    and_binop(Integer, exp1, exp2);
-    case '|':         return t2i->  bitor_binop(typ_res, exp1, exp2);
-    case '^':         return t2i-> bitxor_binop(typ_res, exp1, exp2);
-    case '&':         return t2i-> bitand_binop(typ_res, exp1, exp2);
-    case SHIFT_LEFT:  return t2i->    shl_binop(typ_res, exp1, exp2);
-    case SHIFT_RIGHT: return t2i->    shr_binop(typ_res, exp1, exp2);
-    case '<':         return t2i->     lt_binop(Integer, exp1, exp2);
-    case '>':         return t2i->     gt_binop(Integer, exp1, exp2);
-    case EQ:          return t2i->     eq_binop(Integer, exp1, exp2);
-    case GE:          return t2i->     ge_binop(Integer, exp1, exp2);
-    case LE:          return t2i->     le_binop(Integer, exp1, exp2);
-    case NE:          return t2i->     ne_binop(Integer, exp1, exp2);
-    case '+':         return t2i->   plus_binop(typ_res, exp1, exp2);
-    case '-':         return t2i->  minus_binop(typ_res, exp1, exp2);
-    case '*':         return t2i->   mult_binop(typ_res, exp1, exp2);
-    case '/':         return t2i->   divi_binop(typ_res, exp1, exp2);
-    case '%':         return t2i->    mod_binop(typ_res, exp1, exp2);
-    case EXP:         return t2i->    exp_binop(typ_res, exp1, exp2);
+    case OR:          CHECK_N_GO(or,     Integer);
+    case AND:         CHECK_N_GO(and,    Integer);
+    case '|':         CHECK_N_GO(bitor,  typ_res);
+    case '^':         CHECK_N_GO(bitxor, typ_res);
+    case '&':         CHECK_N_GO(bitand, typ_res);
+    case SHIFT_LEFT:  CHECK_N_GO(shl,    typ_res);
+    case SHIFT_RIGHT: CHECK_N_GO(shr,    typ_res);
+    case '<':         CHECK_N_GO(lt,     Integer);
+    case '>':         CHECK_N_GO(gt,     Integer);
+    case EQ:          CHECK_N_GO(eq,     Integer);
+    case GE:          CHECK_N_GO(ge,     Integer);
+    case LE:          CHECK_N_GO(le,     Integer);
+    case NE:          CHECK_N_GO(ne,     Integer);
+    case '+':         CHECK_N_GO(plus,   typ_res);
+    case '-':         CHECK_N_GO(minus,  typ_res);
+    case '*':         CHECK_N_GO(mult,   typ_res);
+    case '/':         CHECK_N_GO(divi,   typ_res);
+    case '%':         CHECK_N_GO(mod,    typ_res);
+    case EXP:         CHECK_N_GO(exp,    typ_res);
     } /* switch */
 
     execerror("No operator selected: %s(%d)", op.lex, op.id);
