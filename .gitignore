@@ -11,8 +11,8 @@ lex.c
 BUILD_DATE.txt
 *~
 ack
-config.h
-config.h.in
+/config.h
+/config.h.in
 tags
 hoc.1
 type2inst.c

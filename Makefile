@@ -27,6 +27,8 @@ toclean          += $(targets) $(plugins)
 .SUFFIXES: .out .so .o .pico .c .l .y
 .PHONY: clean install uninstal deinstall
 
+SUBDIRS           = plugins
+
 OWN-GNU/Linux ?= root
 GRP-GNU/Linux ?= bin
 
@@ -41,10 +43,7 @@ INSTALL       ?= install
 IFLAGS        ?= -o $(OWN-$(OS)) -g $(GRP-$(OS))
 
 toinstall     ?= $(bindir)/hoc \
-                 $(man1dir)/hoc.1.gz \
-                 $(pkglibdir)/plugin0.so \
-                 $(pkglibdir)/plugin_edw_welcome.so \
-                 $(pkgactivepluginsdir)
+                 $(man1dir)/hoc.1.gz
 
 hoc_deps           =
 hoc_objs           = hoc.o symbol.o init.o error.o math.o code.o lex.o \
@@ -56,32 +55,34 @@ hoc_libs-FreeBSD   =
 hoc_libs           = $(hoc_libs-$(OS))
 toclean           += $(hoc_objs) lex.c
 
-plugin0.so_objs    = plugin0.pico
-plugin0.so_ldfl    = -shared -soname=plugin0.so
-toclean           += $(plugin0.so_objs) plugin0.so
-
-plugin_edw_welcome.so_objs = plugin_edw_welcome.pico
-plugin_edw_welcome.so_ldfl = -shared -soname=plugin_edw_welcome.so
-toclean                   += $(plugin_edw_welcome.so_objs) \
-                             plugin_edw_welcome.so
-
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
-BUILD_DATE.txt: $(targets) $(plugins)
+BUILD_DATE.txt: $(targets) $(SUBDIRS)
 	@date > $@
 	@echo -n "Built on: "
 	@cat $@
 toclean += BUILD_DATE.txt
 
+$(SUBDIRS)::
+	$(MAKE) -C $@
+
 include ./config-lib.mk
 
 install: $(toinstall)
+	-@for i in $(SUBDIRS); \
+	do \
+		echo $(MAKE) -C $$i install; \
+		$(MAKE) -C $$i install; \
+	done
 
 uninstall:
 	$(RM) $(toinstall)
+	-@for i in $(SUBDIRS); \
+	do \
+		echo $(MAKE) -C $$i $@; \
+		$(MAKE) -C $$i $@; \
+	done
 
-$(bindir)/hoc \
-$(pkglibdir)/plugin0.so \
-$(pkglibdir)/plugin_edw_welcome.so : $(@:T) $(@:H)
+$(bindir)/hoc: $(@:T) $(@:H)
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $(@:T) $@
 
 $(man1dir)/hoc.1.gz: $(@:T)
@@ -109,10 +110,6 @@ toclean += type2inst.c
 
 # REGLAS IMPLICITAS
 
-.c.pico:
-	$(CC) $(CFLAGS) $($@_cflgs) -fPIC -c $< -o $@
-
-
 hoc.c: hoc.y
 	$(YACC) -d $?
 	mv y.tab.c hoc.c
@@ -123,13 +120,5 @@ lex.o reserved_words.o scope.o: hoc.c
 
 hoc.1: hoc.1.in config.mk
 toclean += hoc.1
-
-plugin0.pico: plugin0.c plugins.h builtins.h \
-  instr.h instrucciones.h cell.h symbol.h \
-  types.h config.h cellP.h code.h hoc.h lex.h \
-  hoc.c
-
-plugin_edw_welcome.pico: plugin_edw_welcome.c \
-  config.h colors.h do_help.h
 
 -include .depend
