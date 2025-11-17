@@ -82,7 +82,7 @@ uninstall:
 		$(MAKE) -C $$i $@; \
 	done
 
-$(bindir)/hoc: $(@:T) $(@:H)
+$(bindir)/hoc: $(@:T)
 	-$(INSTALL) $(IFLAGS) -m $(XMOD) $(@:T) $@
 
 $(man1dir)/hoc.1.gz: $(@:T)

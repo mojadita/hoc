@@ -82,7 +82,7 @@
 /* se llama al definir una funcion (o procedimiento) */
 Symbol *register_subr(
         const char   *name,   /* nombre de la funcion/procedimiento */
-        int           type,   /* tipo de symbolo (PROCEDURE/FUNCTION) */
+        int           type,   /* symbol type (PROCEDURE/FUNCTION) */
         const Symbol *typref, /* simbolo del tipo del valor devuelto por la
                              * funcion, NULL para proc */
         Cell         *entry)  /* punto de entrada a la funcion */

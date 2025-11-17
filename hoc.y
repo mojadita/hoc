@@ -202,6 +202,7 @@ size_t size_lvars = 0;
 }
 
 %token        ERROR
+%token        ARROW
 %token <lit>  DOUBLE FLOAT
 %token <sym>  VAR LVAR BLTIN_FUNC BLTIN_PROC CONSTANT
 %token <sym>  FUNCTION PROCEDURE
@@ -212,8 +213,8 @@ size_t size_lvars = 0;
 %token <tok>  PLS_PLS MIN_MIN PLS_EQ MIN_EQ MUL_EQ DIV_EQ MOD_EQ PWR_EQ
 %token <num>  FUNC PROC
 %token <lit>  CHAR SHORT INTEGER LONG
-%token        RETURN
-%token <str>  STRING UNDEF
+%token        RETURN STRUCT TYPEDEF UNION
+%token <str>  STRING UNDEF FIELD
 %token        LIST
 %token <sym>  TYPE
 %type  <cel>  stmt cond stmtlist

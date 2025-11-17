@@ -86,6 +86,7 @@ oct         (0[0-7]*)
 dec         ([1-9][0-9]*)
 dbl         (([0-9]+\.|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?)
 chr         ([^\n\\]|\\[\\\"\'abfnrtv]|\\[0-7]{1,3}|\\[xX][0-9a-fA-F]{2})
+idnt        ([A-Za-z_][A-Za-z0-9_]*)
 
 suf         [hHlL]?
 flt         [fF]?
@@ -93,6 +94,7 @@ sufd        {flt}?
 
 %option noyywrap
 %x COMMENT
+%x IN_FIELD
 
 %%
 
@@ -261,8 +263,7 @@ sufd        {flt}?
                 col_no += yyleng;
               }
 
-[a-zA-Z_][a-zA-Z0-9_]*  {
-            /* PALABRA RESERVADA */
+{idnt}  {   /* PALABRA RESERVADA */
             int saved_col_no = col_no;
             col_no          += yyleng;
             const char *lexema = intern(yytext);
@@ -298,6 +299,31 @@ sufd        {flt}?
 
             return UNDEF;
         }
+
+<IN_FIELD>{idnt} {
+            const char *lexema = intern(yytext);
+            P("Field name <%s> -> (FIELD/%d)\n",
+                lexema, FIELD);
+            add_token(FIELD, lineno, col_no, yyleng, lexema);
+            BEGIN INITIAL;
+            yylval.str = lexema;
+            col_no += yyleng;
+            return FIELD;
+        }
+
+<IN_FIELD>[ \t]*    { col_no += yyleng; }
+<IN_FIELD>\n        { lineno++; }
+
+<IN_FIELD>. {
+            const char *lexema = intern(yytext);
+            P("ERROR <%s> -> (ERROR/%d)\n",
+                lexema, ERROR);
+            add_token(ERROR, lineno, col_no, yyleng, lexema);
+            col_no += yyleng;
+            BEGIN INITIAL;
+            return ERROR;
+        }
+
 
 \"([^\"\n]|\\.)*\" {
             /* CADENA DE CARACTERES */
@@ -421,6 +447,18 @@ sufd        {flt}?
           yylval.tok  = *add_token(SHIFT_RIGHT_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return SHIFT_RIGHT_EQ; }
+
+"."     { P("operador %s (%d)\n", yytext, '.');
+          yylval.tok  = *add_token('.', lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          BEGIN(IN_FIELD);
+          return '.'; }
+
+"->"    { P("operador '%s' (%d)\n", yytext, ARROW);
+          yylval.tok  = *add_token(ARROW, lineno, col_no, yyleng, yytext);
+          col_no     += yyleng;
+          BEGIN(IN_FIELD);
+          return ARROW; }
 
 \n      {
             add_token('\n', lineno, col_no, 2, "\\n");

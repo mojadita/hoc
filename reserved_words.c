@@ -33,6 +33,9 @@ static const reserved_word reserved_words[] = {
     RW(return,     RETURN),
     RW(symbs_all,  SYMBS_ALL),
     RW(symbs,      SYMBS),
+    RW(struct,     STRUCT),
+    RW(typedef,    TYPEDEF),
+    RW(union,      UNION),
     RW(while,      WHILE),
 
     { .name = NULL }
