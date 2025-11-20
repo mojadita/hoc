@@ -222,7 +222,8 @@ size_t size_lvars = 0;
 %type  <cel>  mark
 %type  <cel>  expr_seq item do else and or preamb create_scope
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
-%type  <sym>  proc_head func_head lvar_definable_ident function procedure builtin_proc builtin_func const_definable_ident
+%type  <sym>  proc_head func_head lvar_definable_ident function procedure
+%type  <sym>  builtin_proc builtin_func const_definable_ident
 %type  <str>  lvar_valid_ident gvar_valid_ident const_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init

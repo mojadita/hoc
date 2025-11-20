@@ -58,7 +58,7 @@ toclean           += $(hoc_objs) lex.c
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets) $(SUBDIRS)
 	@date > $@
-	@echo -n "Built on: "
+	@echo -n "$(.CURDIR): Built on: "
 	@cat $@
 toclean += BUILD_DATE.txt
 

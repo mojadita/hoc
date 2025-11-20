@@ -57,7 +57,7 @@ toclean                   += $(plugin_edw_welcome.so_objs) \
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
 BUILD_DATE.txt: $(targets) $(plugins)
 	@date > $@
-	@echo -n "Built on: "
+	@echo -n "$(.CURDIR): Built on: "
 	@cat $@
 toclean += BUILD_DATE.txt
 
