@@ -521,6 +521,10 @@ lvar_decl_list
     ;
 
 lvar_init
+	/* LCU: Thu Nov 20 15:52:50 -05 2025
+	 * implementacion de arrays para ma;ana cuando demos clase.
+	 * TODO: voy por aqui.
+	 */
     : lvar_valid_ident          { $$.name           = $1;
                                   $$.start          = NULL;
                                   $$.type_expr_init = NULL; }
@@ -565,9 +569,6 @@ const_definable_ident
     | LVAR
     | CONSTANT
     ;
-
-/* LCU: Fri Oct 31 13:29:27 -05 2025
- * TODO: voy por aqui  } */
 
 do  :  /* empty */         {
                              BEGIN_UNPATCHED_CODE();
@@ -812,8 +813,6 @@ expr_or
 
 const_expr
     : const_expr_and OR const_expr {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_and
@@ -873,8 +872,6 @@ and : AND                  {
 
 const_expr_and
     : const_expr_bitor AND const_expr_and {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_bitor
@@ -917,8 +914,6 @@ binop_bitor
 
 const_expr_bitor
     : const_expr_bitor '|' const_expr_bitxor {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_bitxor
@@ -935,8 +930,6 @@ expr_bitxor
 
 const_expr_bitxor
     : const_expr_bitxor '^' const_expr_bitand {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_bitand
@@ -956,8 +949,6 @@ expr_bitand
 
 const_expr_bitand
     : const_expr_bitand '&' const_expr_shift {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_shift
@@ -981,13 +972,9 @@ expr_shift
 
 const_expr_shift
     : const_expr_shift SHIFT_LEFT  const_expr_rel {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_shift SHIFT_RIGHT const_expr_rel {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_rel
@@ -1017,8 +1004,6 @@ expr_rel
 
 const_expr_rel
     : const_expr_rel const_op_rel const_expr_arit {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_expr_arit
@@ -1063,8 +1048,6 @@ expr_arit
 
 const_expr_arit
     : const_expr_arit const_op_sum const_term {
-                              /* LCU: Sun Nov  2 11:41:18 -05 2025
-                               * TODO: voy por aqui. */
                               $$ = const_eval_op_bin($1, $2, $3);
                             }
     | const_term
@@ -1799,9 +1782,6 @@ const_eval_op_bin(ConstExpr exp1, token op, ConstExpr exp2)
     }
 
     const type2inst *t2i = typ_res->t2i; /* tipo de los operandos */
-    /* LCU: Thu Nov  6 15:55:39 -05 2025
-     * TODO: voy por aqui.  Resolver el problema del tipo del resultado
-     * segun el operador */
 
 #define CHECK_N_GO(_name, _type) do {                     \
             if (!t2i->_name##_binop)  {                   \
