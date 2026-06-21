@@ -1,8 +1,8 @@
 /* code.h -- prototipos y definiciones para el modulo code.c
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Thu Apr 17 12:58:58 EEST 2025
- * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef CODE_H_56139530_ac78_11f0_b0d7_0023ae68f329

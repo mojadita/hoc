@@ -1,8 +1,8 @@
 /* hoc.h -- tipos y funciones relacionados con la tabla de simbolos.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Dec 27 14:57:20 -05 2024
- * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD.
  */
 #ifndef HOC_H_f2663572_ace7_11f0_939a_0023ae68f329

@@ -1,8 +1,8 @@
 /* scope.h -- Scope object.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Jul  4 07:07:08 -05 2025
- * Copyright: (c) 2025 Edward Rivas & Luis Colorado.  All
- *       rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  *
  * Scope is needed to handle the value of the
@@ -49,16 +49,18 @@
 #ifndef SCOPE_H_ac8e7764_acea_11f0_b273_0023ae68f329
 #define SCOPE_H_ac8e7764_acea_11f0_b273_0023ae68f329
 
-/* La tabla de simbolos se gestiona como una lista
- * de simbolos, encadenados a traves de un puntero
- * en la estructura Symbol (.next)
- * Los Symbol solo pueden a;adirse a la lista, y
- * no se ha previsto ninguna funcion para borrarlos
- * con lo que da igual por donde los insertamos
- * (lo hacemos insertandolos al comienzo, que nos
- * permite hacerlo con mayor facilidad, y asi,
- * los simbolos recientes son mas accesibles que
- * los antiguos) */
+/* Symbol table is managed as a linked list of Symbol,
+ * chained through a pointer in the Symbol struct (.next)
+ * The Symbol objects can only be added to the list,
+ * and no provision has been taken to erase them once
+ * used.  This allows to make them accessible while the
+ * program is running, as the instruction symbs_all allows
+ * to get a pointer to the context so all the available
+ * symbols in that context can be accessed and printed.
+ * The new symbols are inserted to the beginning of the
+ * context list, so the most recent ones are the first
+ * found in the chain, making local context better accessed
+ * than parent ones. */
 
 typedef struct scope_s scope;
 
@@ -66,110 +68,109 @@ typedef struct scope_s scope;
 #include "symbol.h"
 
 struct scope_s {
-    Symbol *sentinel;    /* este Symbol marca el
-                          * final del scope. */
-    int     base_offset; /* offset base del scope,
-                          * aumenta a medida que se
-                          * a;aden variables al
-                          * mismo. */
-    int     size;        /* tama;o del scope. */
+    Symbol *sentinel;    /* This symbol marks the start
+						  * of the next context. */
+    int     base_offset; /* offset base for this
+						  * scope.  Local variables add
+						  * to stack offsets starting
+						  * at this offset. */
+    int     size;        /* scope size.  This is
+						  * computed as the file is
+						  * being parsed, and so, it
+						  * registers the amount of
+						  * space used by local variables
+						  * at end of parsing the routine. */
 }; /* struct scope_s */
 
 /**
- * @brief obtiene el simbolo mas recientemente
- *        definido.
- * @return la referencia al simbolo mas reciente
- *         o NULL si no hay ningun simbolo definido
- *         (Esto no deberia ocurrir ya que el programa
- *         en la inicializacion define varios simbolos
- *         "predefinidos")
+ * @brief gets the first symbol found in the scope (the
+ *        one defined most recently.
+ * @return the reference to the most recent Symbol or
+ *         NULL if no symbol with that name is found.
+ *         This only happens in compilation time.
  */
 Symbol *get_current_symbol();
 
 /**
- * @brief obtiene el ambito actual.
+ * @brief gets the current scope.
  *
- * @return el ambito actualmente activo.
+ * @return a reference to the current scope.
  */
 scope  *get_current_scope(void);
 
 /**
- * @brief obtiene el ambito raiz.
+ * @brief gets the root scope.
  *
- * El ambito raiz es el ambito primero creado
- * cuando se define una funcion o un
- * procedimiento.
+ * The root scope is a predefined scope in which
+ * builtins and special variables (like prev) are
+ * defined.
  *
- * @return la referencia al scope mas profundo
- *         actual o NULL si no estamos en una
- *         definicion de funcion o procedimiento
+ * @return the refernec to the most depthly defined
+ *         subroutine scope, or NULL if we are not
+ *         in a function/procedure definition scope.
  */
 scope  *get_root_scope(void);
 
 /**
- * @brief Crea un nuevo ambito para variables
- *        locales.
- * @return retorna el ambito recien creado.
+ * @brief creates a new scope for local symbols.
+ * @return a reference to the scope just created.
  */
 scope  *start_scope(void);
 
 /**
- * @brief Calcula el offset de una variable de tipo type
- *        en el scope actual.
- * @param type es el Symbol asociado al tipo del
- *             parametro/variable local.
+ * @brief Gets the offset of a variable of type
+ *        'type' in the current scope.
+ * @param type is the Symbol associated to the
+ *             local variable/parameter.
  */
 int scope_calculate_offset(Symbol *type);
 
 /**
- * @brief Destruye el ambito mas reciente.
- * @return el simbolo definido en ultimo lugar en el scope
- * que se ha eliminado (este simbolo ya no se encontrara
- * en la tabla de simbolos)
+ * @brief Destroys the current scope.
+ * @return the symbol defined last in the current scope.
+ *         This scope is not deleted, but unlinked from
+ *         the symbol table visibility.  It is still usable
+ *         (e.g. in the symbs_all instruction to get the
+ *         scope of variables to be consulted)
  */
 Symbol *end_scope(void);
 
 /**
- * @brief Busca un simbolo en la tabla de simbolos.
- * @param sym_name es la cadena representando el nombre
- *        del simbolo que se busca.  Debe ser una
- *        cadena de caracteres previamente internalizada.
- * @return El Symbol encontrado o NULL si no existe.
+ * @brief Locates a Symbol in the symbol table.
+ * @param sym_name is the string that represents the
+ *        Symbol's name.  It must be a previously internalized
+ *        string, as no allocation is provided from the symbol
+ *        table for symbol names. 
+ * @return the Symbol found or NULL if it's not in the table.
  */
 Symbol *lookup(
         const char *sym_name);
 
 /**
- * @brief Busca un simbolo en la tabla de simbolos.
+ * @brief searches a Symbol in the symbol table.
  *
- * La busqueda se reduce al ambito actual y la funcion
- * se usa cuando queremos saber si la definicion de un
- * simbolo resultara en una redefinicion del mismo en
- * el ambito actual o se trata de una ocultacion de un
- * simbolo de un ambito mas externo.
- * @param sym_name es el nombre del simbolo a buscar.
- *        Este debe haber sido internalizado
- *        anteriormente.
- * @return el simbolo encontrado o NULL si no existe en
- *         el ambito actual.
+ * The search reduces to the current scope, so the function
+ * stops searching when the next scope is found.  The reason
+ * is to locate an already defined symbol in the current scope
+ * before redefining it with another definition.
+ * @param sym_name is the name of the symbol.
+ * @return the Symbol found or NULL if there's no such reference
+ *         in the current scope.
  */
 Symbol *lookup_current_scope(
         const char *sym_name);
 
 /**
- * @brief instala un simbolo nuevo en la tabla
- *        de simbolos.
+ * @brief Installs a new symbol in the Symbol table.
  *
- * @param name es el nombre del nuevo simbolo
- * @param typ es el tipo del simbolo.
- * @param val es el valor a asignar al nuevo
- *            simbolo, cuando el tipo es VAR.
- * @param ptr es el puntero a la funcion que
- *            calculara el valor de la expre-
- *            sion cuando se seleccione este
- *            simbolo.
- * @return La funcion retorna un puntero al
- *         nuevo Symbol creado. */
+ * @param name the name of the new Symbol.  Must be
+ *             previously internalized.  See intern().
+ * @param typ is the Symbol type.
+ * @param val value to assigne to the new symbol.
+ * @param ptr pointer to the function that calculates
+ *            the value of the expression when this
+ *            symbol is selected.
+ * @return a reference to the new Symbol created. */
 Symbol *install(
         const char   *sym_name,
         int           sym_type,

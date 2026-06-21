@@ -1,7 +1,8 @@
 /* types.h -- type definitions used by type related things.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>,
+ *         Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Sep 29 04:48:19 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef TYPES_H_9fc2bf3a_9d19_11f0_8203_0023ae68f329

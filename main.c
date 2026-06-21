@@ -1,8 +1,8 @@
 /* main.c -- Codigo principal de hoc.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Thu Apr 17 13:08:32 EEST 2025
- * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

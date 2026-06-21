@@ -1,5 +1,6 @@
 /* binop_eval.c -- evaluation of binary operators.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Thu Nov  6 14:20:19 -05 2025
  * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
  * License: BSD

@@ -1,8 +1,9 @@
 /* binop_evals.h -- evaluation of macros BINOP_EVAL for the
  *                  different functions.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Thu Nov  6 14:30:14 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Edward Rivas.  All rights reserved.
  * License: BSD
  */
 BINOP_EVAL(and, _c, chr, chr, &&)

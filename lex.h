@@ -1,8 +1,8 @@
 /* lex.h -- definiciones y tipos del scanner.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Sun Apr  6 11:35:09 -05 2025
- * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef LEX_H_4384dee8_acea_11f0_bfa1_0023ae68f329

@@ -1,7 +1,8 @@
 /* symbol.h -- tipo symbol para la tabla de simbolos.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Aug  4 11:03:09 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef SYMBOL_H_c71f231c_acea_11f0_b3dd_0023ae68f329
@@ -15,11 +16,11 @@ void list_all_symbols(Symbol *current_symbol);
 void list_variables(Symbol *current_symbol);
 
 Symbol *register_subr(
-        const char   *name,    /* nombre de la funcion/procedimiento */
-        int           type,    /* tipo de symbolo (PROCEDURE/FUNCTION) */
-        const Symbol *typref,  /* simbolo del tipo del valor devuelto por la
-                                * funcion, NULL para proc */
-        Cell         *entry);  /* punto de entrada a la funcion */
+        const char   *name,    /* name of the function/procedure */
+        int           type,    /* Symbol type (PROCEDURE/FUNCTION) */
+        const Symbol *typref,  /* Symbol of the type of the returned value
+								* by this function of NULL for a procedure */
+        Cell         *entry);  /* entry point to the function */
 
 void end_register_subr(        /* end subroutine definition */
         const Symbol *subr);   /* the symbol given by register_subr */

@@ -1,8 +1,8 @@
 /* symbol.c -- tabla de simbolos.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Dec 27 15:16:22 -05 2024
- * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

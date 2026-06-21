@@ -2,9 +2,10 @@
  * la impresion del dato de cada tipo determinado.
  * Metodo virtual.
  *
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Sun Oct 12 11:54:03 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

@@ -1,8 +1,9 @@
 /* builtinsP.h -- acceso privado a los detalles del tipo builtin
  * y subr_cb.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Oct 13 12:30:09 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef BUILTINSP_H_650fa348_a85a_11f0_9d05_0023ae68f329

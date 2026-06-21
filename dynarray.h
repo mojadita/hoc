@@ -1,7 +1,7 @@
 /* dynarray.h -- dynamic growing array (malloc based) via macros.
  * Author: Luis Colorado <luis.colorado@spindrive.fi>
  * Date: Mon Dec 16 13:35:35 EET 2024
- * Copyright: (c) 2024 SpinDrive Oy, FI.  All rights reserved.
+ * Copyright: (c) 2024-2026 Luis Colorado.  All rights reserved.
  */
 #ifndef DYNARRAY_H_ab61a4e0_ace7_11f0_9280_0023ae68f329
 #define DYNARRAY_H_ab61a4e0_ace7_11f0_9280_0023ae68f329

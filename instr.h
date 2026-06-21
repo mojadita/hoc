@@ -1,9 +1,9 @@
 /* instr.h -- definiciones de tipos y constantes para
  * el modulo instr.c
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Sat Mar 22 12:49:24 -05 2025
- * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef INSTR_H_c9973130_ace9_11f0_aae7_0023ae68f329
@@ -16,14 +16,13 @@ typedef enum   instr_code_e instr_code;
 typedef struct instr        instr;
 
 /* LCU: Mon Mar 24 12:27:57 -05 2025
- * este tipo enumerado se introduce a partir de la macro
- * INST(_nom) y del fichero de instrucciones "instrucciones.h"
- * Cada instruccion se  define como una constante de nombre
- * INST_<_nom> en dicha enumeracion, que permite crear un
- * y asignar los datos de cada instruccion en la posicion
- * correcta, correspondiente segun el orden en que se han
- * definido las instrucciones en el fichero mencionado
- * "instrucciones.h" */
+ * This enumeration is introduced from the macro INST(_name)
+ * and the instructions file "instrucciones.h".
+ * Each instruction is defined as a constant of name
+ * INST_<_name> in this enum, and it allows to create a
+ * unique value for it and to assign all the related data of
+ * the instruction in the correct position, in the order that
+ * the values are defined in the named file. */
 enum instr_code_e {
 #define INST(_nom,_n, ...) INST_##_nom,
 #define SUFF(_typ, _p1,_p2)

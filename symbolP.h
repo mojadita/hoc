@@ -1,7 +1,8 @@
 /* symbolP.h -- tipo symbol para la tabla de simbolos.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>,
+ *         Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Aug  4 11:03:09 -05 2025
- * Copyright: (c) 2025 Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef SYMBOLP_H_f49099c0_acea_11f0_a250_0023ae68f329
@@ -17,51 +18,47 @@
 #include "scope.h"
 
 struct Symbol_s {                         /* Symbol table entry */
-    const char    *name;                  /* nombre del simbolo */
-    int            type;                  /* tipo del simbolo:
+    const char    *name;                  /* symbol name */
+    int            type;                  /* symbol type:
                                            * VAR, BLTIN[012], UNDEF */
-    const char    *help;                  /* help text (optional) */
-    const Symbol  *typref;                /* ref al tipo de la
-                                           * variable/func/builtin... */
+    const char    *help;                  /* help text (optional, for builtins) */
+    const Symbol  *typref;                /* ref to the function/variable/builtin
+											 returned value type. */
     union {
-        Cell       cel;                   /* si el tipo es CONST */
-        struct {                          /* si el tipo es FUNC, PROC o
-                                           * VAR o BLTIN_PROC o BLTIN_FUNC */
-            Cell       *defn;             /* donde empieza el codigo de la funcion */
-            scope      *main_scope;       /* scope principal */
+        Cell       cel;                   /* if type is CONST */
+        struct {                          /* if type is FUNC, PROC,
+                                           * VAR, BLTIN_PROC or BLTIN_FUNC */
+            Cell       *defn;             /* function entry point */
+            scope      *main_scope;       /* main scope for this function */
 
             /* Datos necesarios para la macro DYNARRAY() */
-            Symbol    **argums;           /* puntero a array de punteros a Symbol * */
-            size_t      argums_len;       /* longitud del array de Symbol * argums */
-            size_t      argums_cap;       /* capacidad del array anterior */
+            Symbol    **argums;           /* reference to the array of Symbol ptrs */
+            size_t      argums_len;       /* array length of the array of argument symbols */
+            size_t      argums_cap;       /* capacity of the previous array */
 
-            Cell      **returns_to_patch; /* lista de returns que hay que parchear */
-            size_t      returns_to_patch_len, /* num elementos en la lista */
-                        returns_to_patch_cap; /* capacidad de la lista */
+            Cell      **returns_to_patch; /* list of returns that must be patched in subroutine */
+            size_t      returns_to_patch_len, /* number of entries in array */
+                        returns_to_patch_cap; /* actual capacity of the array. */
 
-            int         size_args;        /* tama;o de los argumentos */
-            int         size_lvars;       /* tama;o de las variables locales */
-            int         bltin_index;      /* indice del builtin, para los builtins */
-            int         ret_val_offset;   /* offset del valor a retornar */
+            int         size_args;        /* stack size of subroutine parameters */
+            int         size_lvars;       /* local variables size (including alignment) */
+            int         bltin_index;      /* builtin index, for builtins. */
+            int         ret_val_offset;   /* offset of the return value in the stack */
         };
-        struct {                          /* si el tipo es LVAR */
-            int         offset;           /* variables locales y argumentos (LVAR),
-                                           * offset respecto al frame pointer (fp). */
+        struct {                          /* if type is LVAR */
+            int         offset;           /* offset of the local variable (LVAR),
+                                           * all offsets are relative to the frmae pointer (fp). */
         };
-        struct {                          /* si el tipo es TYPE */
+        struct {                          /* if type is TYPE */
             const type2inst
-                       *t2i;              /* ej. sym->typref->t2i->constpush->code_id
-                                           * nos dara para cada tipo, la instruccion
-                                           * constpush que opera con datos de ese tipo
+                       *t2i;              /* e.g. sym->typref->t2i->constpush->code_id
+                                           * will give data relative to each type.
                                            */
         };
-    }  /* no hay nombre de campo */ ;
-       /* union anonima, el nombre del campo no existe, de forma que los
-        * nombres de los campos de la union pueden usarse directamente desde
-        * la estructura Symbol.  Esto ***solo*** es valido en C, y no en
-        * C++ */
-    Symbol        *next;                  /* enlace al siguiente
-                                           * simbolo de la tabla.*/
+    }  /* no name */ ;
+       /* anonymous union, so all fields must have unique names.  This is not handled
+		* in C++ so this code is not compatible with C++ */
+    Symbol        *next;                  /* link to next Symbol. */
 };
 
 const char *lookup_type(int typ);

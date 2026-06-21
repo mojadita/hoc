@@ -1,8 +1,8 @@
 /* do_help.c -- help routine.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Nov  8 12:05:30 EET 2024
- * Copyright: (c) 2024 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2024-2026 Luis Colorado.  All rights reserved.
  */
 
 #include <errno.h>

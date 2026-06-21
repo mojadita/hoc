@@ -2,7 +2,7 @@
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *         Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Aug  5 10:49:57 -05 2025
- * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

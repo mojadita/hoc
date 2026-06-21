@@ -1,8 +1,8 @@
 /* ack.c -- Program to calculate Ackerman function.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Wed Mar 19 11:43:01 EET 2025
- * Copyright: (c) 2025 Luis Colorado y Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 
@@ -12,7 +12,7 @@ unsigned long n_calls;
 
 unsigned long ack(unsigned long a, unsigned long b)
 {
-    n_calls++;
+    n_calls++; /* each call to ack is counted */
     if (a == 0) return b+1;
     if (b == 0) return ack(a-1, 1);
     return ack(a-1, ack(a, b-1));

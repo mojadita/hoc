@@ -1,7 +1,8 @@
 /* init.h -- inicializacion de variables globales.
- * Author: Edward Rivas <rivastkw@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Sep 15 13:20:12 -05 2025
- * Copyright: (c) 2025 Luis Colorado & Edward Rivas.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef INIT_H_1c182308_ace8_11f0_b3f6_0023ae68f329

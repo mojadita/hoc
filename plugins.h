@@ -1,8 +1,9 @@
 /* plugins.h -- definiciones y constantes para el desarrollo
  * de plugins.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Oct 14 14:47:50 -05 2025
- * copyright: (c) 2025 Luis Colorado.  All rights reserved.
+ * copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 #ifndef PLUGINS_H_bf736efa_a936_11f0_9bf4_0023ae68f329

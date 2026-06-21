@@ -1,8 +1,8 @@
 /* colors.h -- ANSI escape sequences to colourize output.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Jan 21 13:39:23 EET 2025
- * Copyright: (c) 2024-2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2024-2026 Luis Colorado.  All rights reserved.
  */
 #ifndef COLORS_H_1734472e_ace6_11f0_af09_0023ae68f329
 #define COLORS_H_1734472e_ace6_11f0_af09_0023ae68f329

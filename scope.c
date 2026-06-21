@@ -1,7 +1,8 @@
 /* scope.c -- implementation of module scope.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *         Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Jul  4 07:25:10 -05 2025
- * Copyright: (c) 2025 Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD
  */
 

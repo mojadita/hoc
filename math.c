@@ -1,9 +1,9 @@
 /* math.c -- funciones matematicas y wrappers de funciones con
  * chequeo del dominio.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Dec 31 17:36:17 -05 2024
- * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD.
  */
 
