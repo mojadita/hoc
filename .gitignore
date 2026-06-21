@@ -4,7 +4,7 @@ hoc.c
 hoc
 hoc.1.gz
 hoc.1.pdf
-hoc.tab.h
+/hoc.tab.h
 hoc-sin-prec.tab.h
 lex.c
 *.o
