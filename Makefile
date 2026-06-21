@@ -35,6 +35,9 @@ GRP-GNU/Linux ?= bin
 OWN-FreeBSD   ?= bin
 GRP-FreeBSD   ?= wheel
 
+OWN-Cygwin    ?= ${USER}
+GRP-Cygwin    ?= Administrators
+
 FMOD          ?= 0644
 XMOD          ?= 0755
 DMOD          ?= 0755
@@ -56,16 +59,18 @@ hoc_libs           = $(hoc_libs-$(OS))
 toclean           += $(hoc_objs) lex.c
 
 ##  Crea un fichero donde se guarda la fecha hora de compilacion.
+all: BUILD_DATE.txt
+
 BUILD_DATE.txt: $(targets) $(SUBDIRS)
 	@date > $@
 	@echo -n "$(.CURDIR): Built on: "
 	@cat $@
 toclean += BUILD_DATE.txt
 
-$(SUBDIRS)::
-	$(MAKE) -C $@
-
 include ./config-lib.mk
+
+$(SUBDIRS)::
+	$(MAKE) -C $@ all
 
 install: $(toinstall)
 	-@for i in $(SUBDIRS); \
@@ -94,6 +99,11 @@ $(pkglibdir):
 
 clean:
 	$(RM) $(toclean)
+	-@for sd in $(SUBDIRS); \
+    do \
+        echo $(MAKE) -C $${sd} $@; \
+        $(MAKE) -C $${sd} $@;\
+    done
 
 hoc hoc.out: $(hoc_objs)
 	$(CC) $(LDFLAGS) $($@_ldfl) -o $@ $(hoc_objs) $(hoc_libs) $(LIBS)
