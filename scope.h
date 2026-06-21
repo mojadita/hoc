@@ -69,17 +69,17 @@ typedef struct scope_s scope;
 
 struct scope_s {
     Symbol *sentinel;    /* This symbol marks the start
-						  * of the next context. */
+                          * of the next context. */
     int     base_offset; /* offset base for this
-						  * scope.  Local variables add
-						  * to stack offsets starting
-						  * at this offset. */
+                          * scope.  Local variables add
+                          * to stack offsets starting
+                          * at this offset. */
     int     size;        /* scope size.  This is
-						  * computed as the file is
-						  * being parsed, and so, it
-						  * registers the amount of
-						  * space used by local variables
-						  * at end of parsing the routine. */
+                          * computed as the file is
+                          * being parsed, and so, it
+                          * registers the amount of
+                          * space used by local variables
+                          * at end of parsing the routine. */
 }; /* struct scope_s */
 
 /**
@@ -140,7 +140,7 @@ Symbol *end_scope(void);
  * @param sym_name is the string that represents the
  *        Symbol's name.  It must be a previously internalized
  *        string, as no allocation is provided from the symbol
- *        table for symbol names. 
+ *        table for symbol names.
  * @return the Symbol found or NULL if it's not in the table.
  */
 Symbol *lookup(

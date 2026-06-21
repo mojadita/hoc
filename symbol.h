@@ -19,7 +19,7 @@ Symbol *register_subr(
         const char   *name,    /* name of the function/procedure */
         int           type,    /* Symbol type (PROCEDURE/FUNCTION) */
         const Symbol *typref,  /* Symbol of the type of the returned value
-								* by this function of NULL for a procedure */
+                                * by this function of NULL for a procedure */
         Cell         *entry);  /* entry point to the function */
 
 void end_register_subr(        /* end subroutine definition */

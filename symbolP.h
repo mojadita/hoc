@@ -23,7 +23,7 @@ struct Symbol_s {                         /* Symbol table entry */
                                            * VAR, BLTIN[012], UNDEF */
     const char    *help;                  /* help text (optional, for builtins) */
     const Symbol  *typref;                /* ref to the function/variable/builtin
-											 returned value type. */
+                                             returned value type. */
     union {
         Cell       cel;                   /* if type is CONST */
         struct {                          /* if type is FUNC, PROC,
@@ -57,7 +57,7 @@ struct Symbol_s {                         /* Symbol table entry */
         };
     }  /* no name */ ;
        /* anonymous union, so all fields must have unique names.  This is not handled
-		* in C++ so this code is not compatible with C++ */
+        * in C++ so this code is not compatible with C++ */
     Symbol        *next;                  /* link to next Symbol. */
 };
 

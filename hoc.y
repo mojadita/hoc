@@ -167,17 +167,18 @@ jmp_buf begin;
 #define CODE_INST_TYP(_typ, _iname, ...) \
         code_inst(_typ->t2i->_iname->code_id, ##__VA_ARGS__)
 
-Symbol *indef;  /* != NULL si estamos en una definicion de procedimiento/funcion */
+Symbol *indef;  /* != NULL if we are defining a subroutine (PROC/FUNC) */
 
-/* en una llamada a funcion/procedimiento, almacena el simbolo a
- * llamar para tener acceso a la lista de argumentos del proc/func
- * y poder chequear al vuelo los tipos de estos y las expresiones
- * que se le pasan. */
+/* in a subroutine call, holds the Symbol reference to the subroutine
+ * for quick access to the parameter list and to check that the types
+ * of parameters and expressions that are passed are of the proper types
+ * or compatible to compile the corresponding casts before storing the
+ * values in the stack with the proper types. */
 static Symbol *top_sub_call_stack(void);
 static void push_sub_call_stack(Symbol *sym);
 static void pop_sub_call_stack(void);
 
-size_t size_lvars = 0;
+size_t size_lvars = 0; /* holds the size of local variables */
 
 %}
 /* continuamos el area de definicion y configuracion
@@ -186,19 +187,19 @@ size_t size_lvars = 0;
 /*  Declaracion tipos de datos de los objetos
     (TOKENS, SYMBOLOS no terminales)  */
 %union {
-    const instr  *inst; /* instruccion maquina */
-    Symbol       *sym;  /* puntero a simbolo */
-    Cell         *cel;  /* referencia a Cell */
-    Cell          lit;  /* literal */
-    unsigned long num;  /* valor entero, para $<num> */
-    const char   *str;  /* cadena de caracteres */
+    const instr  *inst; /* reference to an instruction */
+    Symbol       *sym;  /* reference to Symbol */
+    Cell         *cel;  /* reference to memory Cell */
+    Cell          lit;  /* literal value */
+    unsigned long num;  /* integer value for offsets */
+    const char   *str;  /* string literal */
     var_decl_list vdl;  /* global var declaration list */
     var_init      vi;   /* global var name & initializer */
-    Expr          expr; /* tipo con un puntero a Cell y una referencia a un tipo. */
-    ConstExpr     const_expr; /* tipo de una expresion constante */
+    Expr          expr; /* Cell/Type pair reference. */
+    ConstExpr     const_expr; /* Constant expression type. */
     ConstArglist  const_arglist; /* constant expression argument lists for builtins */
-    token         tok;  /* tipo asociado a un operador, con todo el token */
-    OpRel         opr;  /* tipo del operador relacional. */
+    token         tok;  /* token value read from input.  Has several fields */
+    OpRel         opr;  /* relational operator info. */
 }
 
 %token        ERROR
