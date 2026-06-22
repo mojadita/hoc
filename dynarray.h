@@ -1,5 +1,5 @@
 /* dynarray.h -- dynamic growing array (malloc based) via macros.
- * Author: Luis Colorado <luis.colorado@spindrive.fi>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Mon Dec 16 13:35:35 EET 2024
  * Copyright: (c) 2024-2026 Luis Colorado.  All rights reserved.
  */

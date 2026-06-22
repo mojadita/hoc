@@ -1,10 +1,10 @@
 %{
 /* hoc.y -- programa para implementar una calculadora.
  * Esta version no tiene precedencia de operadores.
- * Author: Edward Rivas <rivastkw@gmail.com>
- *       y Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>
+ *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Dec 30 14:06:56 -05 2024
- * Copyright: (c) 2025 Edward Rivas y Luis Colorado.  All rights reserved.
+ * Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
  * License: BSD.
  */
 

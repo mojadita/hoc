@@ -1,10 +1,10 @@
 # type2inst.sh -- busca instrucciones de tipo _x en el fichero
 #                 instrucciones.h e imprime a la salida los inicializadores
 #                 de las tablas de conversion de tipo -> instruccion.
-# Author: Edward Rivas <rivastkw@gmail.com>,
-#         Luis Colorado <luiscoloradourcola@gmail.com>
+# Author: Luis Colorado <luiscoloradourcola@gmail.com>,
+#         Edward Rivas <rivastkw@gmail.com>
 # Date: Tue Sep 23 13:26:19 -05 2025
-# Copyright: (c) 2025 Edward Rivas & Luis Colorado.  All rights reserved.
+# Copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.
 # License: BSD
 #
 
@@ -33,10 +33,10 @@ add_suffix() {
 cat <<EOF_b549d7fa-9e0c-11f0-9aa0-0023ae68f329
 /* ${TARGET} -- tablas de punteros a instrucciones para
  *                cada tipo.
- * Author: Edward Rivas <rivastkw@gmail.com>,
- *         Luis Colorado <luiscoloradourcola@gmail.com>
+ * Author: Luis Colorado <luiscoloradourcola@gmail.com>,
+ *         Edward Rivas <rivastkw@gmail.com>
  * Date: ${DATE}
- * Copyright: (c) ${YEAR} Edward Rivas & Luis Colorado.
+ * Copyright: (c) ${YEAR} Luis Colorado.
  *            All rights reserved.
  * License: BSD
  * NOTE: This file generated automatically, don't edit.
