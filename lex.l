@@ -535,6 +535,10 @@ const token *
 get_last_token(
         unsigned pos)
 {
+   if (pos >= UQ_LAST_TOKENS_SZ)
+       return NULL;
+   const token *ret_val = last_token + pos;
+   if (ret_val >= last_tokens_buffer + UQ_LAST_TOKENS_SZ) {
 
         if (!token_buffer_full)
             return NULL;
