@@ -1,4 +1,5 @@
-/* reserved_words.h -- types and functions of reserved_words module.
+/* reserved_words.h -- types and functions defined for reserved_words
+ *                     compilation unit.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Feb 24 08:12:02 EET 2025

@@ -1,4 +1,4 @@
-/* hoc.h -- tipos y funciones relacionados con la tabla de simbolos.
+/* hoc.h -- types and functions related to symbol table.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Dec 27 14:57:20 -05 2024
@@ -26,17 +26,16 @@
 #define OUTPUT_FMT   "%32.8g"
 
 typedef struct var_decl_list_s {
-    Cell         *start;          /* codigo de inicializacion de la
-                                   * secuencia de inicializadores */
-    const Symbol *type_decl;      /* tipo de la lista de variables */
+    Cell         *start;          /* initialization code for the
+                                   * initializers sequence. */
+    const Symbol *type_decl;      /* variable list type */
 } var_decl_list;
 
 typedef struct var_init_s {
     const char   *name;
-    Cell         *start;          /* posicion absoluta de la variable
-                                   * en memoria (variables globales) */
-    const Symbol *type_expr_init; /* tipo de la expression que calcula
-                                   * el codigo de inicializacion */
+    Cell         *start;          /* absolute position of var in memory. */
+    const Symbol *type_expr_init; /* type of the expression that calculates
+                                   * the initialization code. */
 } var_init;
 
 typedef struct expr_s {
@@ -64,8 +63,8 @@ typedef ConstExpr (*bltin_const_cb)(int bltin_id, const ConstArglist args[]);
 
 #include "hoc.tab.h"
 
-/* inicializa la tabla de simbolos con las funciones builtin y las
- * variables predefinidas. */
+/* initializes the symbol table with the predefined variable prev (and the
+ * builtins entries (initialized from plugin initialization code) */
 
 void execerror(const char *fmt, ...);
 

@@ -1,5 +1,5 @@
-/* math.c -- funciones matematicas y wrappers de funciones con
- * chequeo del dominio.
+/* math.c -- mathematical functions not provided by the math.h
+ *           library.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Dec 31 17:36:17 -05 2024

@@ -9,7 +9,7 @@
 #include <assert.h>  /* for assert macro */
 #include <stdlib.h>  /* for realloc */
 
-/* the following macro will realloc a pointer to an array _arry
+/* The following macro will realloc a pointer to an array _arry
  * of _type elements (dynamically allocated) by calculating the
  * needed number of elements (assuming a grow granularity of
  * _inc) the resize consists in a multiple of _inc elements

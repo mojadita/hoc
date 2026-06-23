@@ -1,4 +1,4 @@
-/* symbol.c -- tabla de simbolos.
+/* symbol.c -- symbol table
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Fri Dec 27 15:16:22 -05 2024
@@ -67,25 +67,23 @@
 #define   UQ_BRKPT_WIDTH2        (-17)
 #endif /* UQ_BRKPT_WIDTH2    } */
 
-/* La tabla de simbolos se gestiona como una lista
- * de simbolos, encadenados a traves de un puntero
- * en la estructura Symbol (.next)
- * Los Symbol solo pueden a;adirse a la lista, y
- * no se ha previsto ninguna funcion para borrarlos
- * con lo que da igual por donde los insertamos
- * (lo hacemos insertandolos al comienzo, que nos
- * permite hacerlo con mayor facilidad, y asi,
- * los simbolos recientes son mas accesibles que
- * los antiguos) */
+/* Symbol table is managed as a list of symbols, chained
+ * through a pointer (unidirectional linked list) .next.
+ * The symbols can only be added to the list, and are pushed
+ * inseting them before the first element in the list.
+ * this makes the most recencly defined symbols the ones
+ * closer to the beginning and the ones that will be found
+ * more quickly. */
 
 
-/* se llama al definir una funcion (o procedimiento) */
+/* called to define a function (or procedure) */
 Symbol *register_subr(
-        const char   *name,   /* nombre de la funcion/procedimiento */
+        const char   *name,   /* name of function/procedure  */
         int           type,   /* symbol type (PROCEDURE/FUNCTION) */
-        const Symbol *typref, /* simbolo del tipo del valor devuelto por la
-                             * funcion, NULL para proc */
-        Cell         *entry)  /* punto de entrada a la funcion */
+        const Symbol *typref, /* reference to the type (as it is
+                               * registered in the symbol table) of
+                               * the value returned by the function */
+        Cell         *entry)  /* entry point to the function.  */
 {
     SYM("%s(\"%s\", %s, %s, [%04lx]);\n",
             __func__,
@@ -100,8 +98,7 @@ Symbol *register_subr(
     return symb;
 }
 
-/* se llama al terminar la definicion de una funcion
- * (o prodecimiento) */
+/* called on end of a function/procedure definition. */
 void end_register_subr(const Symbol *subr)
 {
     /* adjust progbase to point to the code starting point */
@@ -178,6 +175,7 @@ Symbol *register_const(
 } /* register_const */
 
 
+/* these are the predefined types */
 #define V(_nam) { .name = #_nam, .type = _nam, }
 static struct type2char {
     char *name;
@@ -202,6 +200,7 @@ static struct type2char {
     {NULL, 0,}
 };
 
+/* searches for a type */
 const char *lookup_type(int typ)
 {
     for (struct type2char *p = tab_types; p->name; p++) {

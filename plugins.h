@@ -1,5 +1,5 @@
-/* plugins.h -- definiciones y constantes para el desarrollo
- * de plugins.
+/* plugins.h -- Constant declarations and types for the development
+ *              of plugins.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Oct 14 14:47:50 -05 2025

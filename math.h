@@ -1,5 +1,5 @@
-/* math.h -- funciones a;adidas y wrappers para las funciones matematicas
- * a;adidas a la calculadora hoc.
+/* math.h -- Added functions and wrappers for mathematical
+ *           functions.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Dec 31 17:38:20 -05 2024

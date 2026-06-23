@@ -1,4 +1,4 @@
-/* init.c -- funciones de inicializacion.
+/* init.c -- initialization module.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Sat Dec 28 14:06:39 -05 2024
@@ -44,12 +44,12 @@ static struct predefined_types { /* predefined types */
     const char       *fmt;     /* format string */
 } builtin_types [] = /* { */ {
     /* LCU: Tue Sep 30 11:35:26 -05 2025
-     * Los tipos de esta tabla estan ordenados por pesos,
-     * a fin de calcular que operando debe ser promocionado
-     * a la hora de usarlo con un operador.  Si bien se
-     * puede cambiar el orden, es mejor no hacerlo para
-     * evitar errores al renumerar los tipos en caso de
-     * tener que hacer una insercion. */
+     * the types on this table are sorted by weight, in order
+     * to calculate which operator must be promoted at the time
+     * of using it for an operator.  As the order can be changed,
+     * it's better not to do it, to avoid errors on renumbering
+     * the types in case of an insertion.
+     */
     { .name = "string", .sym_ref = &String, .t2i = &t2i_str, },
     { .name = "char",   .sym_ref = &Char,   .t2i = &t2i_c, },
     { .name = "short",  .sym_ref = &Short,  .t2i = &t2i_s, },
@@ -62,8 +62,6 @@ static struct predefined_types { /* predefined types */
 
 void init(void)  /* install constants and built-ins in table */
 {
-
-    /* vamos con los tipos */
 
     for ( struct predefined_types *p = builtin_types;
             p->name;

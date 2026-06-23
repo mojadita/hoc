@@ -46,14 +46,13 @@ int     stacksize(void);                /* return the stack size */
 Cell   *getarg(int arg);                /* return a pointer to argument */
 
 /* instructions */
-/* LCU: Esta macro define dos prototipos por cada instruccion:
- * * el prototipo de la instruccion propiamente dicha (el que
- *   se ejecuta cuando se invoca la instruccion.
- * * el prototipo de impresion de la instruccion (el que se
- *   ejecuta para imprimir la instruccion)
- * Se invoca la macro una vez por cada instruccion, generandose
- * ambos prototipos (estos deben implementarse normalmente en la
- * unidad de compiladion code.c) */
+/* LCU: This macro deines two prototypes for each instruction:
+ * * the prototype for the function implementing the instruction.
+ * * printing prototype that is used when tracing instructions as
+ *   they are executed.
+ * The macro is used once per instruction, generating both prototypes.
+ * (these should be implemented later in the code.c compilation unit.)
+ */
 #define INST(_nom,_n, ...) \
         void _nom(         \
             const instr *);\

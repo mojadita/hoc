@@ -1,5 +1,5 @@
 %{
-/* lex.l -- scanner lexico para hoc.
+/* lex.l -- lexical scanner for hoc.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Sat Apr  5 13:31:10 -05 2025
@@ -22,22 +22,22 @@
 #include "cellP.h"
 
 #ifndef   UQ_LEX_DEBUG
-#warning  UQ_LEX_DEBUG deberia ser configurado en config.mk
+#warning  UQ_LEX_DEBUG should be configured in config.mk
 #define   UQ_LEX_DEBUG 0
 #endif
 
 #ifndef   UQ_LEX_COMMENTS /* {{ */
-#warning  UQ_LEX_COMMENTS deberia ser configurado en config.mk
+#warning  UQ_LEX_COMMENTS should be configured in config.mk
 #define   UQ_LEX_COMMENTS 0
 #endif /* UQ_LEX_COMMENTS    }} */
 
 #ifndef   UQ_LAST_TOKENS_SZ /* {{ */
-#warning  UQ_LAST_TOKENS_SZ deberia ser configurado en config.mk
+#warning  UQ_LAST_TOKENS_SZ should be configured in config.mk
 #define   UQ_LAST_TOKENS_SZ   (16)
 #endif /* UQ_LAST_TOKENS_SZ    }} */
 
 #ifndef   UQ_TAB_SIZE  /* {{ */
-#warning  UQ_TAB_SIZE deberia ser configurado en config.mk
+#warning  UQ_TAB_SIZE should be configured in config.mk
 #define   UQ_TAB_SIZE    (8)
 #endif /* UQ_TAB_SIZE     }} */
 
@@ -76,7 +76,7 @@ add_token(
 int lineno = 1;
 int col_no = 1;
 
-/* declaracion adelantada */
+/* forward declaration (defined below) */
 static char *deescape(char *in);
 
 %}
@@ -98,22 +98,22 @@ sufd        {flt}?
 
 %%
 
-" "+          {  col_no += yyleng; /* saltar blancos y tabuladores */ }
+" "+          {  col_no += yyleng; /* skip blanks and tabs */ }
 \t            {  col_no += UQ_TAB_SIZE; col_no -= col_no % UQ_TAB_SIZE; }
 \\\n          {  col_no = 1; lineno++; }
 
 {hex}{suf}    {
 
-                 /* numero entero hex */
+                 /* hex integer literal */
 #define INTEGER_BASE(_base)  do {                                         \
                     char *p;                                              \
                     int   tok = INTEGER;                                  \
                     Cell  lit;                                            \
                                                                           \
-                    /* OJO, p se inicializa en esta llamada */            \
+                    /* WARNING: p pointeris initialized below.*/          \
                     lit.lng = strtoul(yytext, &p, _base);                 \
                                                                           \
-                    /* comprobamos el siguiente caracter tras literal */  \
+                    /* check next character */                            \
                     switch (toupper(*p)) {                                \
                                                                           \
                     case 'L':                                             \
@@ -126,7 +126,7 @@ sufd        {flt}?
                         tok = SHORT; break;                               \
                                                                           \
                     default:                                              \
-                        lit.itg = lit.lng;                               \
+                        lit.itg = lit.lng;                                \
                         P("integer " FMT_INT " (%d)\n", lit.itg, INTEGER);\
                         break;                                            \
                     }                                                     \
@@ -143,16 +143,16 @@ sufd        {flt}?
 
                 INTEGER_BASE(16);
 
-              }   /* Un numero integer (hex) */
+              }   /* integer (hex) */
 
-{oct}{suf}  {
+{oct}{suf}    {
                 INTEGER_BASE(8);
-              }   /* Un numero integer (octal) */
+              }   /* integer (octal) */
 
-{dec}{suf}  {
+{dec}{suf}    {
                 INTEGER_BASE(10);
-              }   /* Un numero integer (decimal) */
-'{chr}'     {
+              }   /* integer (decimal) */
+'{chr}'       {
                 char *p   = yytext + 1;
                 int   c;
                 int dat   = 0;
@@ -215,10 +215,10 @@ sufd        {flt}?
                 yylval.lit.chr = dat;
 
                 return CHAR;
-            }
+            } /* char literal */
 
 {dbl}{sufd} {
-                /* numero en punto flotante */
+                /* floating point number */
                 char *p;
                 int   tok = DOUBLE;
 
@@ -242,9 +242,9 @@ sufd        {flt}?
 
                 return tok;
 
-              } /* Un numero punto flotante  */
+              } /* floating point number  */
 
-"/*"          { /* comienzo de un comentario */
+"/*"          { /* block comment starting sequence */
                 BEGIN COMMENT;
                 C(     "%s", yytext);
                 col_no += yyleng;
@@ -257,13 +257,13 @@ sufd        {flt}?
                 lineno++;
                 col_no = 1;
               }
-<COMMENT>"*/" { /* FIN DE UN COMENTARIO */
+<COMMENT>"*/" { /* block comment ending sequence */
                 C_TAIL("%s\n", yytext);
                 BEGIN INITIAL;
                 col_no += yyleng;
               }
 
-{idnt}  {   /* PALABRA RESERVADA */
+{idnt}  {   /* RESERVED WORD/IDENT */
             int saved_col_no = col_no;
             col_no          += yyleng;
             const char *lexema = intern(yytext);
@@ -276,7 +276,7 @@ sufd        {flt}?
                 return rw->tokn;
             }
 
-            /* BUSCAMOS EN LA TABLA DE SIMBOLOS */
+            /* LOCATE IT IN THE SYMBOL TABLE */
             Symbol *s;
             if ((s = lookup(lexema)) != NULL) {
                 yylval.sym = s;
@@ -286,8 +286,8 @@ sufd        {flt}?
                 return s->type;
             }
 
-            /* NI UNA COSA NI OTRA, no creamos el symbol
-             * y devolvemos un token UNDEF */
+            /* NONE OF THE ABOVE, create a Symbol and return it as
+             * UNDEF */
 
             const token * t = add_token(UNDEF,
                     lineno, saved_col_no, yyleng, lexema);
@@ -326,135 +326,135 @@ sufd        {flt}?
 
 
 \"([^\"\n]|\\.)*\" {
-            /* CADENA DE CARACTERES */
+            /* STRING LITERAL */
             const token *t = add_token(STRING, lineno, col_no, yyleng, yytext);
             col_no += yyleng;
             const char *s;
             yylval.str = intern(s = deescape(yytext));
             free((void *)s);
-            P("cadena de caracteres: %s -> [%s]\n",
+            P("string literal: %s -> [%s]\n",
                 t->lex, yylval.str);
 
             return STRING;
         }
 \"([^\"\n]|\\.)*\n {
-            /* CADENA DE CARACTERES NO TERMINADA --> ERROR */
+            /* UNFINISHED STRING LITERAL --> ERROR */
             add_token(ERROR, lineno, col_no, yyleng, yytext);
             col_no           = 1;
             return ERROR;
         }
 
-">="    { P("operador %s (%d)\n", yytext, GE);
+">="    { P("operator %s (%d)\n", yytext, GE);
           yylval.tok  = *add_token(GE, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return GE;  }
-"<="    { P("operador %s (%d)\n", yytext, LE);
+"<="    { P("operator %s (%d)\n", yytext, LE);
           yylval.tok  = *add_token(LE, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return LE;  }
-"=="    { P("operador %s (%d)\n", yytext, EQ);
+"=="    { P("operator %s (%d)\n", yytext, EQ);
           yylval.tok  = *add_token(EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return EQ;  }
-"!="    { P("operador %s (%d)\n", yytext, NE);
+"!="    { P("operator %s (%d)\n", yytext, NE);
           yylval.tok  = *add_token(NE, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return NE;  }
-"&&"    { P("operador %s (%d)\n", yytext, AND);
+"&&"    { P("operator %s (%d)\n", yytext, AND);
           yylval.tok  = *add_token(AND, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return AND; }
-"||"    { P("operador %s (%d)\n", yytext, OR);
+"||"    { P("operator %s (%d)\n", yytext, OR);
           yylval.tok  = *add_token(OR, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return OR;  }
-"^^"    { P("operador %s (%d)\n", yytext, EXP);
+"^^"    { P("operator %s (%d)\n", yytext, EXP);
           yylval.tok  = *add_token(EXP, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return EXP; }
 
-"<<"    { P("operador %s (%d)\n", yytext, SHIFT_LEFT);
+"<<"    { P("operator %s (%d)\n", yytext, SHIFT_LEFT);
           yylval.tok  = *add_token(SHIFT_LEFT, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return SHIFT_LEFT; }
 
-">>"    { P("operador %s (%d)\n", yytext, SHIFT_RIGHT);
+">>"    { P("operator %s (%d)\n", yytext, SHIFT_RIGHT);
           yylval.tok  = *add_token(SHIFT_RIGHT, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return SHIFT_RIGHT; }
 
-"++"    { P("operador %s (%d)\n", yytext, PLS_PLS);
+"++"    { P("operator %s (%d)\n", yytext, PLS_PLS);
           yylval.tok  = *add_token(EXP, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return PLS_PLS; }
 
-"--"    { P("operador %s (%d)\n", yytext, MIN_MIN);
+"--"    { P("operator %s (%d)\n", yytext, MIN_MIN);
           yylval.tok  = *add_token(MIN_MIN, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return MIN_MIN; }
 
-"+="    { P("operador %s (%d)\n", yytext, PLS_EQ);
+"+="    { P("operator %s (%d)\n", yytext, PLS_EQ);
           yylval.tok  = *add_token(PLS_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return PLS_EQ; }
 
-"-="    { P("operador %s (%d)\n", yytext, MIN_EQ);
+"-="    { P("operator %s (%d)\n", yytext, MIN_EQ);
           yylval.tok  = *add_token(MIN_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return MIN_EQ; }
 
-"*="    { P("operador %s (%d)\n", yytext, MUL_EQ);
+"*="    { P("operator %s (%d)\n", yytext, MUL_EQ);
           yylval.tok  = *add_token(MUL_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return MUL_EQ; }
 
-"/="    { P("operador %s (%d)\n", yytext, DIV_EQ);
+"/="    { P("operator %s (%d)\n", yytext, DIV_EQ);
           yylval.tok  = *add_token(DIV_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return DIV_EQ; }
 
-"%="    { P("operador %s (%d)\n", yytext, MOD_EQ);
+"%="    { P("operator %s (%d)\n", yytext, MOD_EQ);
           yylval.tok  = *add_token(MOD_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return MOD_EQ; }
 
-"^^="   { P("operador %s (%d)\n", yytext, PWR_EQ);
+"^^="   { P("operator %s (%d)\n", yytext, PWR_EQ);
           yylval.tok  = *add_token(PWR_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return PWR_EQ; }
 
-"|="   { P("operador %s (%d)\n", yytext, BIT_OR_EQ);
+"|="   { P("operator %s (%d)\n", yytext, BIT_OR_EQ);
           yylval.tok  = *add_token(BIT_OR_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return BIT_OR_EQ; }
 
-"&="   { P("operador %s (%d)\n", yytext, BIT_AND_EQ);
+"&="   { P("operator %s (%d)\n", yytext, BIT_AND_EQ);
           yylval.tok  = *add_token(BIT_AND_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return BIT_AND_EQ; }
 
-"^="   { P("operador %s (%d)\n", yytext, BIT_XOR_EQ);
+"^="   { P("operator %s (%d)\n", yytext, BIT_XOR_EQ);
           yylval.tok  = *add_token(BIT_XOR_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return BIT_XOR_EQ; }
 
-"<<="   { P("operador %s (%d)\n", yytext, SHIFT_LEFT_EQ);
+"<<="   { P("operator %s (%d)\n", yytext, SHIFT_LEFT_EQ);
           yylval.tok  = *add_token(SHIFT_LEFT_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return SHIFT_LEFT_EQ; }
 
-">>="   { P("operador %s (%d)\n", yytext, SHIFT_RIGHT_EQ);
+">>="   { P("operator %s (%d)\n", yytext, SHIFT_RIGHT_EQ);
           yylval.tok  = *add_token(SHIFT_RIGHT_EQ, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           return SHIFT_RIGHT_EQ; }
 
-"."     { P("operador %s (%d)\n", yytext, '.');
+"."     { P("operator %s (%d)\n", yytext, '.');
           yylval.tok  = *add_token('.', lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           BEGIN(IN_FIELD);
           return '.'; }
 
-"->"    { P("operador '%s' (%d)\n", yytext, ARROW);
+"->"    { P("operator '%s' (%d)\n", yytext, ARROW);
           yylval.tok  = *add_token(ARROW, lineno, col_no, yyleng, yytext);
           col_no     += yyleng;
           BEGIN(IN_FIELD);
@@ -464,7 +464,7 @@ sufd        {flt}?
             add_token('\n', lineno, col_no, 2, "\\n");
             lineno++;
             col_no = 1;
-            P("salto de linea (%d)\n", '\n');
+            P("new line (10)'\\n'\n");
             return '\n';
         }
 
@@ -535,10 +535,6 @@ const token *
 get_last_token(
         unsigned pos)
 {
-    if (pos >= UQ_LAST_TOKENS_SZ)
-        return NULL;
-    const token *ret_val = last_token + pos;
-    if (ret_val >= last_tokens_buffer + UQ_LAST_TOKENS_SZ) {
 
         if (!token_buffer_full)
             return NULL;
@@ -588,7 +584,7 @@ deescape(char *in)
                     case '0': case '1': case '2': case '3':
                     case '4': case '5': case '6': case '7': {
                             c = c - '0';
-                            P("leemos digito %d\n", c);
+                            P("read digit %d\n", c);
                             int i;
                             for (i = 0; i < 2; i++) {
                                 src++;
@@ -613,8 +609,8 @@ deescape(char *in)
 } /* deescape */
 
 #if 0
-/*  Si esta funcion no se escribe, debemos enlazar con -ll
- *  o poner la opcion %option noyywrap arriba. */
+/* if we don't use the next function, we should link with -ll
+ * or to put %option noyywrap above. */
 int yywrap()
 {
     return 1;

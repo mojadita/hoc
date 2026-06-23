@@ -1,4 +1,4 @@
-/* symbolP.h -- tipo symbol para la tabla de simbolos.
+/* symbolP.h -- Symbol definition (opaque to the outide)
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>,
  *         Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Aug  4 11:03:09 -05 2025

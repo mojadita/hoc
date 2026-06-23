@@ -1,4 +1,4 @@
-/* main.c -- Codigo principal de hoc.
+/* main.c -- Main routine and main code of hoc.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Thu Apr 17 13:08:32 EEST 2025
@@ -121,11 +121,10 @@ static void process(FILE *in)
     for (initcode(); parse(); initcode()) {
         /* EDW: Mon Sep  8 11:35:06 -05 2025
          *
-         * La funcion initexec() debe ponerse aqui, porque de ser llamada
-         * antes ejecutar antes de ejecutar execute().
-         * initexec() inicializa sp y fp para ejecutar el codigo.
-         * initcode() inicializa progp para preparar la memoria
-         * para generar codigo.
+         * The function initeec() must be put here, as it has to be called
+         * before executing execute() for the first time.
+         * initexec() initializes sp and fp to start executing the code.
+         * initcode() initializes progp to prepare memory for work.
          */
         initexec();
         execute(progbase);
@@ -154,9 +153,12 @@ void init_plugins(void)
 
     plugin_dirs = strdup(plugin_dirs);
 
+    /* LCU: Tue Jun 23 20:14:25 EEST 2026
+     * strtok is not reentrant, so nor is this routine.
+     * TODO: chenge call to strtok into strtok_r. */
     for (   const char *plugins_dir_name = strtok(plugin_dirs, ":\n");
-            plugins_dir_name != NULL;
-            plugins_dir_name = strtok(NULL, ":\n"))
+            plugins_dir_name            != NULL;
+            plugins_dir_name             = strtok(NULL, ":\n"))
     {
         /* let's open the directory to scan for plugins */
         DIR *dir = opendir(plugins_dir_name);

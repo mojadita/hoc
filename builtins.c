@@ -1,4 +1,4 @@
-/* builtins.c -- Gestion de funciones builtin.
+/* builtins.c -- management of builtin modules.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Oct 13 10:49:48 -05 2025
@@ -118,7 +118,7 @@ eval_const_builtin_func(
     printf(") -> ");
 
     /* LCU: Sun Nov  9 13:48:28 -05 2025
-     * TODO: llamar a function builtin (evaluada, no programada) */
+     * TODO: call to the builtin function (evaluated, not programmed) */
 
     if (bltin->subr_eval == NULL) {
         execerror("builtin " GREEN "%s" ANSI_END " cannot be used in "

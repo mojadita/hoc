@@ -13,11 +13,11 @@
 typedef struct token token;
 
 struct token {
-    const char *lex;  /* lexema */
-    size_t      len;  /* longitud */
-    int         lin,  /* linea de comienzo */
-                col;  /* columna de comienzo */
-    int         id;   /* tipo de token */
+    const char *lex;  /* lexeme */
+    size_t      len;  /* length */
+    int         lin,  /* start line */
+                col;  /* start column in line */
+    int         id;   /* token type. */
 };
 
 const token *get_last_token(

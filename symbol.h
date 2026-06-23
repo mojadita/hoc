@@ -1,4 +1,4 @@
-/* symbol.h -- tipo symbol para la tabla de simbolos.
+/* symbol.h -- Symbol type for the symbol table.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Aug  4 11:03:09 -05 2025

@@ -1,7 +1,6 @@
-/* types.c -- funciones especificas de cada tipo, como
- * la impresion del dato de cada tipo determinado.
- * Metodo virtual.
- *
+/* types.c -- Specific functions of each type.
+ *            To print data of that type, etc.
+ *            Implemented as a virtual method.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Sun Oct 12 11:54:03 -05 2025

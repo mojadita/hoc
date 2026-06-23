@@ -1,4 +1,4 @@
-/* code.c -- instrucciones y rutinas de traza.
+/* code.c -- tracing instructions and routines.
  * Author: Edward Rivas <rivastkw@gmail.com>
  *       y Luis Colorado <luiscoloradourcola@gmail.com>
  * Date: Sat Mar 22 14:20:43 -05 2025
@@ -25,16 +25,16 @@
 #include "scope.h"
 
 #ifndef  UQ_CODE_DEBUG_EXEC
-#warning UQ_CODE_DEBUG_EXEC deberia ser incluido en config.mk
+#warning UQ_CODE_DEBUG_EXEC should be configured in config.mk
 #define  UQ_CODE_DEBUG_EXEC 1
 #endif
 #ifndef  UQ_CODE_DEBUG_PROG
-#warning UQ_CODE_DEBUG_PROG deberia ser incluido en config.mk
+#warning UQ_CODE_DEBUG_PROG should be configured in config.mk
 #define  UQ_CODE_DEBUG_PROG 1
 #endif
 
 #ifndef   UQ_DEBUG_STACK /* { */
-#warning  UQ_DEBUG_STACK deberia ser incluido en config.mk
+#warning  UQ_DEBUG_STACK should be configured in config.mk
 #define   UQ_DEBUG_STACK    0
 #endif /* UQ_DEBUG_STACK    } */
 
@@ -69,7 +69,7 @@
 
 #ifndef  UQ_NPROG
 #warning UQ_NPROG debe definirse en config.mk
-#define  UQ_NPROG 10000 /* 65536 celdas para instrucciones/datos/pila */
+#define  UQ_NPROG 10000 /* 65536 cells to instructions/data/stack  */
 #endif
 
 Cell  prog[UQ_NPROG];  /* the machine memory */
@@ -100,8 +100,7 @@ int stacksize(void) /* return the stack size */
 
 void push(Cell d)  /* push d onto stack */
 {
-    /*  Verificamos si el puntero apunta a una direccion mas alla
-        del final de la pila  */
+    /* Verify that the pointer points to an address inside the stack */
     if (sp <= progp)
         execerror("stack overflow: "GREEN"progp=[%04lx], sp=[%04lx]",
                 progp - prog, sp - prog);
@@ -350,7 +349,7 @@ OP(mul, _s, chr,  *, FMT_SHORT)
     {                                               \
         Cell p2  = pop();                           \
         if (!p2._fld)                               \
-            execerror("Division por 0");            \
+            execerror("Division by 0");            \
         Cell p1  = pop(),                           \
              res = { ._fld = p1._fld _op p2._fld }; \
                                                     \
@@ -1014,7 +1013,7 @@ void list(const instr *i)
             printf("START:\n");
         }
         i->print(i, ip); /* LCU: Thu Apr 10 14:52:23 -05 2025
-                          * Aqui es donde Edward desaparecio en el rio Orinoco. */
+                          * Here is when Edward dissapear in the Orinoco river. */
         ip += i->n_cells;
     }
 

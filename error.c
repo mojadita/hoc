@@ -1,4 +1,4 @@
-/* error.c -- rutinas de impresion de errores
+/* error.c -- error printing routines.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Tue Dec 31 16:19:19 -05 2024
@@ -40,11 +40,11 @@ void vwarning(const char *fmt, va_list args)
     /*
     fprintf(stderr,  "%s:", progname);
     vfprintf(stderr, fmt, args);
-    fprintf(stderr,  " cerca de la linea %d\n", lineno);
+    fprintf(stderr,  " on line %d\n", lineno);
     */
     printf(BRIGHT YELLOW "\n%s: " ANSI_END, progname);
     vprintf(fmt, args);
-    printf(" " BRIGHT YELLOW "cerca de la linea %d" ANSI_END "\n", lineno);
+    printf(" " BRIGHT YELLOW "on line %d" ANSI_END "\n", lineno);
 } /* vwarning */
 
 void defnonly(int cual, const char *name, ...)
@@ -56,7 +56,7 @@ void defnonly(int cual, const char *name, ...)
     va_end(args);
 
     if (!cual) {
-        execerror("'%s': debe usarse dentro de una definicion proc/func.\n",
+        execerror("'%s': must be used in a proc/func definition.\n",
                   buffer);
     }
 } /* defnonly */

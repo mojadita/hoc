@@ -1,6 +1,7 @@
 %{
-/* hoc.y -- programa para implementar una calculadora.
- * Esta version no tiene precedencia de operadores.
+/* hoc.y -- Program to implement a simple calculator.
+ * This version doesn't use operator precedence of yacc.
+ * (operator precedence is derived from grammar rules)
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       & Edward Rivas <rivastkw@gmail.com>
  * Date: Mon Dec 30 14:06:56 -05 2024
@@ -22,9 +23,9 @@
 #include "hoc.h"
 #include "lex.h"
 #include "error.h"
-#include "math.h"   /* Modulo personalizado con nuevas funciones */
+#include "math.h"   /* convenience module for new mathematical functions. */
 #include "instr.h"
-#include "init.h"   /* por los punteros a los tipos fundamentales */
+#include "init.h"   /* access to the pointers of fundamental types. */
 #include "code.h"
 #include "types.h"
 
@@ -33,18 +34,46 @@
 #include "scope.h"
 #include "builtins.h"
 
-void warning( const char *fmt, ...);
-void vwarning( const char *fmt, va_list args );
-void yyerror( char * msg );
+void
+warning(
+        const char   *fmt,
+        ...);
+void vwarning(
+        const char   *fmt,
+        va_list       args );
+void yyerror(
+        char         *msg );
 
-static void patch_block(Cell*patch_point);
-static void add_patch_return(Symbol *subr, Cell *patch_point);
-static void patch_returns(const Symbol *subr, Cell *target);
-static OpRel code_unpatchedop(token op);
-static const Symbol *check_op_bin(const Expr *exp1, OpRel *op, const Expr *exp2);
-static bool code_conv_val(const Symbol *t_src, const Symbol *t_dst);
-static void patching_subr(const Symbol *subr, Cell *preamb, const char *what);
-static ConstArglist const_arglist_add(
+static void
+patch_block(
+        Cell         *patch_point);
+static void
+add_patch_return(
+        Symbol       *subr,
+        Cell         *patch_point);
+static void
+patch_returns(
+        const Symbol *subr,
+        Cell         *target);
+static OpRel
+code_unpatchedop(
+        token         op);
+static const Symbol *
+check_op_bin(
+        const Expr   *exp1,
+        OpRel        *op,
+        const Expr   *exp2);
+static bool
+code_conv_val(
+        const Symbol *t_src,
+        const Symbol *t_dst);
+static void
+patching_subr(
+        const Symbol *subr,
+        Cell         *preamb,
+        const char   *what);
+static ConstArglist
+const_arglist_add(
         ConstArglist  list,
         const Symbol *bltin,
         ConstExpr     const_expr);
@@ -54,46 +83,46 @@ const_conv_val(
         const Symbol *t_dst,
         Cell          orig);
 
-/*  Necersario para hacer setjmp y longjmp */
+/*  needed to use setjmp and longjmp */
 jmp_buf begin;
 
 #ifndef   UQ_HOC_DEBUG /* { */
-#warning  UQ_HOC_DEBUG deberia ser configurado en config.mk
+#warning  UQ_HOC_DEBUG should be configured in config.mk
 #define   UQ_HOC_DEBUG                     1
 #endif /* UQ_HOC_DEBUG    } */
 
 #ifndef   UQ_HOC_TRACE_PATCHING /* { */
-#warning  UQ_HOC_TRACE_PATCHING deberia ser configurado en config.mk
+#warning  UQ_HOC_TRACE_PATCHING should be configured in config.mk
 #define   UQ_HOC_TRACE_PATCHING            1
 #endif /* UQ_HOC_TRACE_PATCHING    } */
 
 #ifndef   UQ_MAX_SYMBOLS_PER_DECLARATION /* { */
-#warning  UQ_MAX_SYMBOLS_PER_DECLARATION deberia ser configurado en config.mk
+#warning  UQ_MAX_SYMBOLS_PER_DECLARATION should be configured in config.mk
 #define   UQ_MAX_SYMBOLS_PER_DECLARATION  20
 #endif /* UQ_MAX_SYMBOLS_PER_DECLARATION    } */
 
 #ifndef   UQ_RETURNS_TO_PATCH_INCRMNT /* { */
-#warning  UQ_RETURNS_TO_PATCH_INCRMNT deberia ser configurado en config.mk
+#warning  UQ_RETURNS_TO_PATCH_INCRMNT should be configured in config.mk
 #define   UQ_RETURNS_TO_PATCH_INCRMNT  4
 #endif /* UQ_RETURNS_TO_PATCH_INCRMNT    } */
 
 #ifndef   UQ_ARGUMS_INCRMNT /* { */
-#warning  UQ_ARGUMS_INCRMNT deberia ser configurado en config.mk
+#warning  UQ_ARGUMS_INCRMNT should be configured in config.mk
 #define   UQ_ARGUMS_INCRMNT      (8)
 #endif /* UQ_ARGUMS_INCRMNT    } */
 
 #ifndef   UQ_SIZE_FP_RETADDR /* { */
-#warning  UQ_SIZE_FP_RETADDR deberia ser configurado en config.mk
+#warning  UQ_SIZE_FP_RETADDR should be configured in config.mk
 #define   UQ_SIZE_FP_RETADDR     (2)
 #endif /* UQ_SIZE_FP_RETADDR    } */
 
 #ifndef   UQ_SUB_CALL_INCRMNT /* { */
-#warning  UQ_SUB_CALL_INCRMNT deberia ser configurado en config.mk
+#warning  UQ_SUB_CALL_INCRMNT should be configured in config.mk
 #define   UQ_SUB_CALL_INCRMNT    (8)
 #endif /* UQ_SUB_CALL_INCRMNT    } */
 
 #ifndef   UQ_CONST_EXPR_INCRMNT /* { */
-#warning  UQ_CONST_EXPR_INCRMNT deberia ser configurado en config.mk
+#warning  UQ_CONST_EXPR_INCRMNT should be configured in config.mk
 #define   UQ_CONST_EXPR_INCRMNT    (4)
 #endif /* UQ_CONST_EXPR_INCRMNT    } */
 
@@ -181,11 +210,9 @@ static void pop_sub_call_stack(void);
 size_t size_lvars = 0; /* holds the size of local variables */
 
 %}
-/* continuamos el area de definicion y configuracion
- * de yacc */
+/* configuration and definitions for yacc. */
 
-/*  Declaracion tipos de datos de los objetos
-    (TOKENS, SYMBOLOS no terminales)  */
+/*  TOKENS, SYMBOLS and nonterminal declarations.  */
 %union {
     const instr  *inst; /* reference to an instruction */
     Symbol       *sym;  /* reference to Symbol */
@@ -238,18 +265,18 @@ size_t size_lvars = 0; /* holds the size of local variables */
 %type  <const_arglist> const_arglist
 
 %%
-/*  Area de definicion de reglas gramaticales */
+/*  parser grammar rules are defined here */
 
 list: /* empty */
-    | list       '\n'
+    | list           '\n'
 
-    | list defn  '\n'
+    | list defn      '\n'
     | list gvar_decl '\n' {
                          CODE_INST(STOP);
                          return 1;
                        }
 
-    | list stmt  '\n'  { CODE_INST(STOP);  /* para que execute() pare al final */
+    | list stmt  '\n'  { CODE_INST(STOP);  /* STOP vm. */
                          return 1; }
     | list expr  '\n'  { bool expr_type_ne_prev_type = ($2.typ != Prev->typref);
                          if (expr_type_ne_prev_type) {
@@ -261,9 +288,10 @@ list: /* empty */
                             CODE_INST(drop);
                          }
                          CODE_INST_TYP($2.typ, print);
-                         CODE_INST(STOP);  /* para que execute() pare al final */
+                         CODE_INST(STOP);  /* STOP vm. */
                          return 1; }
-    | list error error_end {  yyerrok;
+    | list error error_end {
+                         yyerrok;
                          CODE_INST(STOP);
                          while (get_current_scope()) {
                             end_scope();
@@ -277,7 +305,7 @@ error_end
     ;
 
 stmt
-    :             ';'      { $$ = progp; } /* null statement */
+    :             ';'      { $$ = progp; } /* null statement, nothing assembled nor executed. */
     | expr        ';'      { $$ = $1.cel;
                              CODE_INST(drop); }
     | RETURN      ';'      { defnonly((indef != NULL) && (indef->type == PROCEDURE),
@@ -290,8 +318,8 @@ stmt
     | RETURN expr ';'      { defnonly((indef != NULL) && (indef->type == FUNCTION),
                                       "return <expr>;");
                              $$ = $2.cel;
-                             /* asigno a la direccion de retorno de la funcion, en la
-                              * cima de la lista de parametros */
+                             /* Assign to the function return value, at the top of
+                              * the parameter list.  */
                              code_conv_val($2.typ, indef->typref);
                              CODE_INST_TYP(
                                        indef->typref,
@@ -332,7 +360,7 @@ stmt
                              END_PATCHING_CODE();
                            }
 
-    | builtin_proc mark '(' arglist_opt ')' ';' {
+    | builtin_proc mark '(' arglist_opt ')' ';' {  /* builtin procedure call */
                              $$ = $2;
                              if ($4 != $1->argums_len) {
                                  execerror(" " BRIGHT GREEN "%s"
@@ -346,7 +374,7 @@ stmt
                              }
                              pop_sub_call_stack(); }
 
-    | procedure mark '(' arglist_opt ')' ';' {
+    | procedure mark '(' arglist_opt ')' ';' { /* software defined procedure call */
                              $$ = $2;
                              if ($4 != $1->argums_len) {
                                  execerror(" " BRIGHT GREEN "%s"
@@ -361,7 +389,7 @@ stmt
                              pop_sub_call_stack();
                            }
 
-    | '{' create_scope stmtlist '}'  {
+    | '{' create_scope stmtlist '}'  { /* scoped block */
                              $$ = $2;
                              scope *cs = get_current_scope();
                              if (cs->base_offset + cs->size > size_lvars) {
@@ -395,7 +423,7 @@ create_scope
                            }
     ;
 
-/* DECLARACION DE VARIABLES GLOBALES */
+/* GLOBAL VARIABLES DECLARATION */
 gvar_decl
     : gvar_decl_list ';'
     ;
@@ -409,7 +437,9 @@ gvar_decl_list
  * coding of initialization code on
  * initialization expressions. This serves
  * here, and below, in the places marqued
- * REF: ... */
+ *
+ * REF: ea69df38_a5c4_11f0_a46c_0023ae68f329
+ */
 #define DO_VAR_REGISTRATION(        /* { */  \
         _type_decl,                          \
         _f_to_call,                          \
@@ -477,7 +507,7 @@ gvar_valid_ident
     : UNDEF
     ;
 
-/* DECLARACION DE VARIABLES LOCALES */
+/* LOCAL VARIABLE DECLARATION. */
 
 lvar_decl :  lvar_decl_list ';'
     ;
@@ -522,10 +552,6 @@ lvar_decl_list
     ;
 
 lvar_init
-	/* LCU: Thu Nov 20 15:52:50 -05 2025
-	 * implementacion de arrays para ma;ana cuando demos clase.
-	 * TODO: voy por aqui.
-	 */
     : lvar_valid_ident          { $$.name           = $1;
                                   $$.start          = NULL;
                                   $$.type_expr_init = NULL; }
@@ -544,7 +570,7 @@ lvar_definable_ident
     | LVAR
     ;
 
-/* DECLARACION DE CONSTANTES LOCALES/GLOBALES { */
+/* LOCAL/GLOBAL CONSTANT DECLARATIONS.  */
 
 const_decl : const_decl_list
     ;
@@ -1031,12 +1057,12 @@ const_op_rel
 expr_arit
     : expr_arit op_sum term { /* LCU: Mon Sep 15 12:31:40 -05 2025
                                * LBL: 9966c546_a5cf_11f0_b8f9_0023ae68f329
-                               * determinar el tipo de la expr_arit, a partir de los
-                               * tipos de $1 y $3. En caso de que los tipos sean
-                               * distintos, generar codigo para convertir el tipo de
-                               * $3 si $3 debe convertirse al tipo de $1 y parchear
-                               * op_add si el que debe convertirse es $1 al tipo
-                               * de $3 */
+                               * Determine the type of expr_arit, from the types on
+                               * $1 and $3.  In case that types are different,
+                               * generate code to convert the valur from the type
+                               * of $3 if $3 has to be converted to the type of $1 and
+                               * patch op_add if the one that has to be converted is
+                               * the one in $1 to the type of $3. */
                               $$.cel = $1.cel;
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.tok.id) {
@@ -1067,8 +1093,8 @@ const_op_sum
 term
     : term op_mul fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver 9966c546_a5cf_11f0_b8f9_0023ae68f329,
-                               * arriba. */
+                               * see 9966c546_a5cf_11f0_b8f9_0023ae68f329,
+                               * above. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               switch($2.tok.id) {
                               case '*': CODE_INST_TYP($$.typ, mul);  break;
@@ -1101,8 +1127,8 @@ const_op_mul
 
 fact: prim op_exp fact      {
                               /* LCU: Mon Sep 15 12:36:54 -05 2025
-                               * ver 9966c546_a5cf_11f0_b8f9_0023ae68f329,
-                               * arriba. */
+                               * see 9966c546_a5cf_11f0_b8f9_0023ae68f329,
+                               * above. */
                               $$.typ = check_op_bin(&$1, &$2, &$3);
                               CODE_INST_TYP($$.typ, pwr);
                             }
@@ -1148,23 +1174,22 @@ op_exp
 prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                                         ANSI_END " undefined", $1); }
     | '(' TYPE ')' prim     { $$.cel = $4.cel;
-                              $$.typ = $2; /* generamos el tipo del resultado y la
-                                            * posicion de comienzo del codigo. */
-                              code_conv_val($4.typ, $2); /* Insercion del codigo
-                                                          * a ejecutar */
+                              $$.typ = $2; /* generate the type of the result and
+                                            * start position of code.  */
+                              code_conv_val($4.typ, $2);
                             }
     | '(' expr ')'          { $$ = $2; }
-    | FLOAT                 { $$.cel = CODE_INST_TYP(Float,  constpush, $1);
+    | FLOAT                 { $$.cel = CODE_INST_TYP(Float,   constpush, $1);
                               $$.typ = Float; }
     | DOUBLE                { $$.cel = CODE_INST_TYP(Double,  constpush, $1);
                               $$.typ = Double; }
     | CHAR                  { $$.cel = CODE_INST_TYP(Char,    constpush, $1);
                               $$.typ = Char; }
-    | SHORT                 { $$.cel = CODE_INST_TYP(Short, constpush, $1);
+    | SHORT                 { $$.cel = CODE_INST_TYP(Short,   constpush, $1);
                               $$.typ = Short; }
     | INTEGER               { $$.cel = CODE_INST_TYP(Integer, constpush, $1);
                               $$.typ = Integer; }
-    | LONG                  { $$.cel = CODE_INST_TYP(Long, constpush, $1);
+    | LONG                  { $$.cel = CODE_INST_TYP(Long,    constpush, $1);
                               $$.typ = Long; }
     | VAR                   { $$.cel = CODE_INST_TYP($1->typref, eval,    $1);
                               $$.typ = $1->typref; }
@@ -1314,7 +1339,7 @@ prim: UNDEF                 { execerror("Symbol " BRIGHT GREEN "%s"
                                             $1->name, $1->argums_len, $4);
                               }
                               CODE_INST(call,  $1);            /* instruction */
-                              CODE_INST(spadd, $1->size_args); /* eliminando argumentos */
+                              CODE_INST(spadd, $1->size_args); /* deleting arguments after the call. */
                               pop_sub_call_stack();
                             }
     ;
@@ -1423,7 +1448,7 @@ builtin_func
 function
     : FUNCTION              { push_sub_call_stack($1);
 
-                              /* PUSH espacio para el valor a retornar */
+                              /* PUSH enough space for the value to return. */
                               CODE_INST(spadd, -$1->typref->t2i->size);
                             }
     ;
@@ -1459,12 +1484,12 @@ arglist
     ;
 
 defn: proc_head '(' formal_arglist_opt ')' preamb block {
-                              /* PARCHEO DE CODIGO */
+                              /* PATCHING CODE */
                               patching_subr($1, $5, "PROCEDIMIENTO");
                             }
 
     | func_head '(' formal_arglist_opt ')' preamb block {
-                              /* PARCHEO DE CODIGO */
+                              /* PATCHING CODE */
                               patching_subr($1, $5, "FUNCION");
                             }
     ;
@@ -1489,10 +1514,11 @@ block
 formal_arglist_opt
     : formal_arglist        {
                               PT("*** formal_arg_list_opt == %ld\n", $1);
-                              /* cambiando los offsets para que se refieran a las
-                               * posiciones de las expresiones calculadas antes de
-                               * entrar a la funcion (sumando a sus offsets la cantidad
-                               * indef->size_args */
+                              /* updating the offsets, so they refer to the
+                               * actual positions before entering to the function
+                               * (adding indef->size_args to the offsets, so they
+                               * refer correctly to the position calculated before
+                               * entering the function.  */
                               for (int i = 0; i < indef->argums_len; ++i) {
                                     indef->argums[i]->offset += indef->size_args
                                                               + UQ_SIZE_FP_RETADDR;
@@ -1544,7 +1570,7 @@ proc_head
     : PROC UNDEF            {
                               $$ = register_subr($2, PROCEDURE, NULL, progp);
                               $$->main_scope = start_scope();
-                              P("DEFINIENDO EL PROCEDIMIENTO '%s' @ [%04lx]\n",
+                              P("DEFINING PROCEDURE '%s' @ [%04lx]\n",
                                         $2, progp - prog);
                               indef = $$;
                             }
@@ -1554,8 +1580,8 @@ func_head
     : FUNC TYPE UNDEF       {
                               $$ = register_subr($3, FUNCTION, $2, progp);
                               $$->main_scope = start_scope();
-                              P("DEFINIENDO LA FUNCION '%s' @ [%04lx]\n",
-                                $3, progp - prog);
+                              P("DEFINING FUNCTION '%s' @ [%04lx]\n",
+                                        $3, progp - prog);
                               indef = $$;
                             }
     ;
@@ -1578,19 +1604,19 @@ void patching_subr(
                                  * block */
     patch_block(preamb);        /* parcheamos el spadd, 0 de preamb */
 
-    /* CODIGO A INSERTAR PARA TERMINAR (POSTAMBULO) */
+    /* CODE TO INSERT TO FINISH (POSTAMBLE) */
     CODE_INST(pop_fp);
     CODE_INST(ret);
     end_scope();
     end_register_subr(subr);
     indef = NULL;
-    P("FIN DEFINICION %s\n", what);
+    P("END DEFINITION %s\n", what);
 } /* patching_subr */
 
-/* en una llamada a funcion/procedimiento, almacena el simbolo a
- * llamar para tener acceso a la lista de argumentos del proc/func
- * y poder chequear al vuelo los tipos de estos y las expresiones
- * que se le pasan. */
+/* in a call to function/procedure, store the symbol to call, so we
+ * have access to the argument list of proc/func and we can test
+ * on the fly the argument types and the types of the expressions
+ * passed to it. */
 static Symbol **sub_call_stack     = NULL;
 static size_t   sub_call_stack_len = 0,
                 sub_call_stack_cap = 0;

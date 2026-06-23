@@ -1,4 +1,5 @@
-/* intern.h -- Internalizacion de cadenas de caracteres.
+/* intern.h -- Internalizes a string literal so they can be
+ * compared through the references instead of using strcmp.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *         Edward Rivas <rivastkw@gmail.com>
  * copyright: (c) 2025-2026 Luis Colorado.  All rights reserved.

@@ -1,5 +1,5 @@
-/* instr.h -- definiciones de tipos y constantes para
- * el modulo instr.c
+/* instr.h -- definitions for types and constants of the
+ * instr.c module.
  * Author: Luis Colorado <luiscoloradourcola@gmail.com>
  *       y Edward Rivas <rivastkw@gmail.com>
  * Date: Sat Mar 22 12:49:24 -05 2025
@@ -37,7 +37,7 @@ enum instr_code_e {
 
 struct instr {
     instr_code    code_id;
-    int           n_cells; /* numero de celdas que ocupa la instruccion */
+    int           n_cells; /* number of cells used by the instruccion. */
     const char   *name;
     void        (*exec)(const instr *);
     void        (*print)(const instr *, const Cell *);
