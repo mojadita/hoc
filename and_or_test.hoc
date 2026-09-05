@@ -1,31 +1,31 @@
 #!hoc
 /* default associativity */
-func int default( \
-        int a, int b, int c, int d,      \
-        double e, int f, int g, int h,      \
-        int i, int j, float k, int l,      \
-        int m)          {                \
-    return a && b && c && d || e || f || \
+func int default(
+        int a, int b, int c, int d,
+        double e, int f, int g, int h,
+        int i, int j, float k, int l,
+        int m)          {
+    return a && b && c && d || e || f ||
            g || h && i && j || k || l || m;
 }
 
 /* left associativity */
-func int left_asoc(                          \
-        int a, int b, double c, int d,          \
-        int e, int f, int g, int h,          \
-        int i, int j, float k, int l,          \
-        int m)          {                    \
-    return (((((((((a&&b)&&c)&&d)||e)||f)||g)\
+func int left_asoc(
+        int a, int b, double c, int d,
+        int e, int f, int g, int h,
+        int i, int j, float k, int l,
+        int m)          {
+    return (((((((((a&&b)&&c)&&d)||e)||f)||g)
            ||((h&&i)&&j))||k)||l)||m;
 }
 
 /* right associativity */
-func int right_asoc(                     \
-        int a, int b, int c, double d,      \
-        int e, int f, int g, int h,      \
-        int i, float j, int k, int l,      \
-        int m)         {                 \
-    return (a&&(b&&(c&&d)))||(e||(f||(g \
+func int right_asoc(
+        int a, int b, int c, double d,
+        int e, int f, int g, int h,
+        int i, float j, int k, int l,
+        int m)         {
+    return (a&&(b&&(c&&d)))||(e||(f||(g
            ||((h&&(i&&j))||(k||(l||m))))));
 }
 

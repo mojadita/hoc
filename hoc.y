@@ -253,6 +253,7 @@ size_t size_lvars = 0; /* holds the size of local variables */
 %type  <num>  arglist_opt arglist formal_arglist_opt formal_arglist
 %type  <sym>  proc_head func_head lvar_definable_ident function procedure
 %type  <sym>  builtin_proc builtin_func const_definable_ident
+%type  <sym>  type_or_void
 %type  <str>  lvar_valid_ident gvar_valid_ident const_valid_ident
 %type  <vdl>  gvar_decl_list gvar_decl lvar_decl_list lvar_decl
 %type  <vi>   gvar_init lvar_init
@@ -268,17 +269,17 @@ size_t size_lvars = 0; /* holds the size of local variables */
 /*  parser grammar rules are defined here */
 
 list: /* empty */
-    | list           '\n'
+    | list       '@'
 
-    | list defn      '\n'
-    | list gvar_decl '\n' {
+    | list defn
+    | list gvar_decl   {
                          CODE_INST(STOP);
                          return 1;
                        }
 
-    | list stmt  '\n'  { CODE_INST(STOP);  /* STOP vm. */
+    | list stmt        { CODE_INST(STOP);  /* STOP vm. */
                          return 1; }
-    | list expr  '\n'  { bool expr_type_ne_prev_type = ($2.typ != Prev->typref);
+    | list expr  '@'   { bool expr_type_ne_prev_type = ($2.typ != Prev->typref);
                          if (expr_type_ne_prev_type) {
                             CODE_INST(dupl);
                          }
@@ -289,18 +290,20 @@ list: /* empty */
                          }
                          CODE_INST_TYP($2.typ, print);
                          CODE_INST(STOP);  /* STOP vm. */
-                         return 1; }
+                         return 1;
+                       }
     | list error error_end {
                          yyerrok;
                          CODE_INST(STOP);
                          while (get_current_scope()) {
                             end_scope();
                          }
-                         return 1; }
+                         return 1;
+                       }
     ;
 
 error_end
-    : '\n'
+    : '@'
     | ';'
     ;
 
@@ -389,6 +392,8 @@ stmt
                              pop_sub_call_stack();
                            }
 
+    | TYPEDEF type_expr ';' { $$ = progp; }
+
     | '{' create_scope stmtlist '}'  { /* scoped block */
                              $$ = $2;
                              scope *cs = get_current_scope();
@@ -421,6 +426,45 @@ create_scope
                                  $$ = progp;
                              }
                            }
+    ;
+
+/* TYPEDEF DECLARATION */
+type_expr
+    : TYPE type_expr_left_op {
+                                printf(" %s\n", $1->name);
+                           }
+    ;
+
+type_expr_left_op
+    : '*' type_expr_left_op {
+                             printf(" puntero a");
+                           }
+    | type_expr_right_op
+    ;
+
+type_expr_right_op
+    : type_expr_right_op '[' const_expr ']' {
+                             printf(" array de %d elementos ",
+                                    $3.cel.itg);
+                           }
+    | type_expr_right_op '[' ']' {
+                             printf(" array de numero no especificado de elementos ");
+                           }
+    | type_expr_right_op '(' ')' {
+                             printf(" funcion con lista de parametros vacia que devuelve ");
+                           }
+    | type_expr_right_op '(' parameter_defs_list ')' {
+                             printf(" funcion con parametros especificados que devuelve ");
+                           }
+    | '(' type_expr_left_op ')'
+    | UNDEF                { printf(" %s es un ", $1); }
+    | /* empty */          { printf("<unnamed>"); }
+    | lvar_definable_ident { printf(" %s es un ", $1->name); }
+    ;
+
+parameter_defs_list
+    : type_expr
+    | parameter_defs_list ',' type_expr
     ;
 
 /* GLOBAL VARIABLES DECLARATION */
@@ -647,8 +691,7 @@ mark: /* empty */          { $$ = progp; }
     ;
 
 stmtlist
-    : stmtlist '\n'
-    | stmtlist stmt
+    : stmtlist stmt
     | stmtlist lvar_decl
     | /* empty */          { $$ = progp; }
     ;

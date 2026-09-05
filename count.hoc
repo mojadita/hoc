@@ -3,4 +3,5 @@
         print "n = ", n, "\n";
         n++;
     }
+    list;
 }

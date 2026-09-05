@@ -34,7 +34,8 @@ const Symbol   /* predefined symbols */
        *Long,
        *Short,
        *String,
-       *Prev;
+       *Prev,
+       *Void;
 
 static struct predefined_types { /* predefined types */
     char             *name;
@@ -57,6 +58,7 @@ static struct predefined_types { /* predefined types */
     { .name = "long",   .sym_ref = &Long,   .t2i = &t2i_l, },
     { .name = "float",  .sym_ref = &Float,  .t2i = &t2i_f, },
     { .name = "double", .sym_ref = &Double, .t2i = &t2i_d, },
+    { .name = "void",   .sym_ref = &Void,   .t2i = NULL,   },
     { .name = NULL, },
 }; /* builtin_types } */
 

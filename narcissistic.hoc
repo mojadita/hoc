@@ -7,10 +7,12 @@
 /* A narcissistic number is one number that is equal as
  * the sum of its digits raised to the number of non-zero
  * digits it has. */
-func int narcissistic(long num, int n) \
+func int narcissistic(
+        long num,
+        int  n)
 {
-    long renum = num, \
-         sum   = 0,   \
+    long renum = num,
+         sum   = 0,
          digit;
 
     while (renum > 0 && sum <= num) {
@@ -23,7 +25,9 @@ func int narcissistic(long num, int n) \
 } /* narcissistic */
 
 proc search_narcis (int n_dig) {
-    int start = 10^^(n_dig - 1), end  = 10^^n_dig - 1, i = start;
+    int start = 10^^(n_dig - 1),
+        end   = 10^^n_dig - 1,
+        i     = start;
 
     while (i <= end) {
         if (narcissistic(i, n_dig)) {

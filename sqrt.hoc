@@ -1,10 +1,16 @@
-/* calculo de la raiz cuadrada.
+/* sqrt.hoc -- calculo de la raiz cuadrada.
+ * Author: Luis Colorado <luis.colorado.urcola@gmail.com>
  * Date: Sun Mar 16 13:14:23 -05 2025
  */
 
-func double square_root(double x, double eps) {
-    double a = x, b = 1.0;
-    while (abs(a - b) > eps) {
+func double
+square_root(
+        double x,
+        double eps)
+{
+    double a = x,
+           b = 1.0;
+    while ( abs(a - b) > eps ) {
         a = (a + b) / 2.0; /* arithmetic average */
         b = x / a;         /* geometric average (approx) */
         brkpt;

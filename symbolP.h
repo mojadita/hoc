@@ -36,7 +36,7 @@ struct Symbol_s {                         /* Symbol table entry */
             size_t      argums_len;       /* array length of the array of argument symbols */
             size_t      argums_cap;       /* capacity of the previous array */
 
-            Cell      **returns_to_patch; /* list of returns that must be patched in subroutine */
+            Cell      **returns_to_patch;     /* list of returns that must be patched in subroutine */
             size_t      returns_to_patch_len, /* number of entries in array */
                         returns_to_patch_cap; /* actual capacity of the array. */
 

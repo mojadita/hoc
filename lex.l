@@ -460,12 +460,12 @@ sufd        {flt}?
           BEGIN(IN_FIELD);
           return ARROW; }
 
-\n      {
-            add_token('\n', lineno, col_no, 2, "\\n");
+\r?\n   {
+            // add_token('\n', lineno, col_no, 2, "\\n");
             lineno++;
             col_no = 1;
-            P("new line (10)'\\n'\n");
-            return '\n';
+            // P("new line (10)'\\n'\n");
+            // return '\n';
         }
 
 #.*     ; /* comentario */

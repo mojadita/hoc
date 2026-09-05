@@ -1,9 +1,8 @@
 #!hoc
-proc x(double a) {
-    print a ^^= 10, "\n";
-    print a, "\n";
-}
+proc x(double a)
 {
-    list;
-    x(2);
+    print a ^^= 10, "\n";
+    print a,        "\n";
 }
+
+{ list; x(2); }

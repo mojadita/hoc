@@ -1,5 +1,7 @@
 #!hoc
+
 int n = 100;
+
 func int gauss(int a, int b, int c) {
     while (b <= a) {
         c = c + b;
@@ -7,8 +9,9 @@ func int gauss(int a, int b, int c) {
     }
     return c;
 }
+
 {
-    list;
     print "gauss(", n, ") -> ", gauss(n, 0, 0), "\n";
     print n, "*(", n, " + 1)/2 -> ", n*(n + 1)/2, "\n";
+    list;
 }

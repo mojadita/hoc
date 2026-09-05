@@ -78,10 +78,11 @@ int main(int argc, char *argv[]) /* hoc1 */
     progname = argv[0];
     setbuf(stdout, NULL);
     int opt;
-    while ((opt = getopt(argc, argv, "hv")) != EOF) {
+    while ((opt = getopt(argc, argv, "hvi")) != EOF) {
         switch (opt) {
         case 'h': do_help(EXIT_SUCCESS);
         case 'v': do_version(EXIT_SUCCESS);
+        case 'i': setbuf(stdin, NULL);
         }
     } /* while */
 
